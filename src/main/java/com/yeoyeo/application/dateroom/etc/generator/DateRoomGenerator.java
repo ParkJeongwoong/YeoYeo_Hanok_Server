@@ -20,9 +20,8 @@ public class DateRoomGenerator {
 
     @PostConstruct
     private void init() {
-        roomService.makeRoom("A", 250000, 300000, 330000, 220000);
-        roomService.makeRoom("B", 250000, 300000, 330000, 220000);
-        dateRoomService.make3MonthsDateRoom();
+        roomService.makeRoom();
+        dateRoomService.make6MonthsDateRoom();
     }
 
     @Scheduled(cron = "10 0 0 * * *")

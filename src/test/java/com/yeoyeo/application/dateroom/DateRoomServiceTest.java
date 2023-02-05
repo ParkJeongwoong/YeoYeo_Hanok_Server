@@ -31,26 +31,16 @@ public class DateRoomServiceTest {
     @Autowired
     DateRoomService dateRoomService;
 
-    long roomId1;
-    long roomId2;
-
-    @BeforeAll
-    public void setup() {
-        String roomName1 = "왼쪽방";
-        String roomName2 = "오른쪽방";
-        Room room1 = Room.builder().name(roomName1).build();
-        Room room2 = Room.builder().name(roomName2).build();
-        roomId1 = roomRepository.save(room1).getId();
-        roomId2 = roomRepository.save(room2).getId();
-    }
+    long roomId1 = 1;
+    long roomId2 = 2;
 
     @AfterEach
-    public void cleanup() { dateRoomRepository.deleteAll(); roomRepository.deleteAll(); }
-
-    @AfterAll
-    public void teardown() {
-        dateRoomRepository.deleteAll();
-        roomRepository.deleteAll();
+    public void cleanup() {
+        List<DateRoom> dateRooms = dateRoomRepository.findAll();
+        dateRooms.forEach(dateRoom -> {
+            if (dateRoom.getRoomReservationState()==1) dateRoom.resetState();
+        });
+        dateRoomRepository.saveAll(dateRooms);
     }
 
     @Test
@@ -94,8 +84,8 @@ public class DateRoomServiceTest {
         List<DateRoomInfoDto> dateRoomInfoDtoList = dateRoomService.showAllDateRooms();
 
         // Then
-        DateRoomInfoDto dateRoomInfo1 = dateRoomInfoDtoList.get(0);
-        DateRoomInfoDto dateRoomInfo2 = dateRoomInfoDtoList.get(1);
+        DateRoomInfoDto dateRoomInfo1 = dateRoomInfoDtoList.get(1);
+        DateRoomInfoDto dateRoomInfo2 = dateRoomInfoDtoList.get(0);
         assertThat(dateRoomInfo1.getDate()).isEqualTo(now);
         assertThat(dateRoomInfo1.getRoomId()).isEqualTo(roomId1);
         assertThat(dateRoomInfo1.getReservationState()).isEqualTo(0);

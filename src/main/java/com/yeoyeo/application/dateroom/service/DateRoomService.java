@@ -33,26 +33,26 @@ public class DateRoomService extends Thread {
     }
 
     @Transactional
-    public void make3MonthsDateRoom() {
+    public void make6MonthsDateRoom() {
         LocalDate date = LocalDate.now();
         log.info("TODAY : {}", date);
-//        int month = date.getMonth().getValue();
-//        int endMonth = month+3;
-        for (int i=0;i<90;i++) {
+        for (int i=0;i<180;i++) {
             try {
                 makeDateRoom(2, date);
                 makeDateRoom(1, date);
             } catch (Exception e) {
-                log.error("초기 3개월치 방 날짜 생성 중 에러 발생", e);
+                log.error("초기 6개월치 방 날짜 생성 중 에러 발생", e);
             }
             date = date.plusDays(1);
         }
+//        int month = date.getMonth().getValue();
+//        int endMonth = month+6;
 //        while (month < endMonth) {
 //            try {
 //                makeDateRoom(2, date);
 //                makeDateRoom(1, date);
 //            } catch (Exception e) {
-//                log.error("초기 3개월치 방 날짜 생성 중 에러 발생", e);
+//                log.error("초기 6개월치 방 날짜 생성 중 에러 발생", e);
 //            }
 //
 //            date = date.plusDays(1);

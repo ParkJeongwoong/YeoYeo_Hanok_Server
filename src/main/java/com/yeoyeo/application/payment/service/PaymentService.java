@@ -3,22 +3,24 @@ package com.yeoyeo.application.payment.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yeoyeo.application.common.dto.GeneralResponseDto;
-import com.yeoyeo.application.dateroom.etc.exception.RoomReservationException;
 import com.yeoyeo.application.dateroom.repository.DateRoomRepository;
-import com.yeoyeo.application.guest.repository.GuestRepository;
 import com.yeoyeo.application.payment.dto.ImpTokenRequestDto;
 import com.yeoyeo.application.payment.dto.ImpTokenResponseDto;
 import com.yeoyeo.application.payment.dto.PaymentRequestDto;
 import com.yeoyeo.application.payment.etc.exception.PaymentException;
+import com.yeoyeo.application.reservation.dto.MakeReservationHomeDto;
 import com.yeoyeo.application.reservation.etc.exception.ReservationException;
-import com.yeoyeo.application.reservation.repository.ReservationRepository;
+import com.yeoyeo.application.reservation.service.ReservationService;
 import com.yeoyeo.domain.DateRoom;
+import com.yeoyeo.domain.GuestHome;
+import com.yeoyeo.domain.Payment;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -30,9 +32,9 @@ import java.util.NoSuchElementException;
 @Service
 public class PaymentService {
 
-    private final ReservationRepository reservationRepository;
     private final DateRoomRepository dateRoomRepository;
-    private final GuestRepository guestRepository;
+
+    private final ReservationService reservationService;
 
     @Value("${payment.iamport.key}")
     String imp_key;
@@ -46,42 +48,29 @@ public class PaymentService {
         return WebClient.builder().defaultHeader(HttpHeaders.CONTENT_TYPE, contentType).build();
     }
 
+    @Transactional
     public GeneralResponseDto pay(PaymentRequestDto requestDto) {
         try {
-//            Reservation reservation = reservationRepository.findById(requestDto.getReservationId()).orElseThrow(NoSuchElementException::new);
-            DateRoom dateRoom = dateRoomRepository.findById(requestDto.getMerchant_uid()).orElseThrow(NoSuchElementException::new);
-//            Guest guest = guestRepository.findById(requestDto.getGuestId()).orElseThrow(NoSuchElementException::new);
-
             // 결제 정보 조회
             log.info("imp_uid : {}", requestDto.getImp_uid());
             log.info("merchant_uid : {}", requestDto.getMerchant_uid());
             Map<String, Object> paymentData = getPaymentData(requestDto.getImp_uid());
 
+            DateRoom dateRoom = dateRoomRepository.findById(requestDto.getMerchant_uid()).orElseThrow(NoSuchElementException::new);
+            GuestHome guest = requestDto.createGuest();
+            Payment payment = makePayment(paymentData);
+
             // 결제 검증
             validatePayment(dateRoom, paymentData);
-            completeReservation(dateRoom);
+            completeReservation(dateRoom, guest, payment);
 
             return GeneralResponseDto.builder()
                     .successYN("Y")
                     .message("예약이 확정되었습니다.")
                     .build();
         }
-        catch (RoomReservationException dateRoomException) {
-            log.error("방날짜 예약 완료 오류", dateRoomException);
-            return GeneralResponseDto.builder()
-                    .successYN("N")
-                    .message("예약 완료 작업 중 오류가 발생했습니다.")
-                    .build();
-        }
-        catch (ReservationException reservationException) {
-            log.error("예약 완료 오류", reservationException);
-            return GeneralResponseDto.builder()
-                    .successYN("N")
-                    .message("예약 완료 작업 중 오류가 발생했습니다.")
-                    .build();
-        }
         catch (PaymentException paymentException) {
-            log.error("결제 오류", paymentException);
+            log.error("결제 오류가 발생했습니다.", paymentException);
             return GeneralResponseDto.builder()
                     .successYN("N")
                     .message(paymentException.getMessage())
@@ -142,12 +131,31 @@ public class PaymentService {
         if (dateRoom.getPrice() != payedAmount) throw new PaymentException("결제 금액이 상품 가격과 일치하지 않습니다.");
     }
 
-    private void completeReservation(DateRoom dateRoom) {
-        log.info("결제 완료");
-        dateRoom.setStateBooked();
-//            reservation.setStatePayed();
+    @Transactional
+    private void completeReservation(DateRoom dateRoom, GuestHome guest, Payment payment) {
+        try {
+            log.info("결제가 완료되었습니다.");
+            MakeReservationHomeDto reservationDto = new MakeReservationHomeDto(dateRoom, guest, payment);
+            reservationService.makeReservation(reservationDto);
+        } catch (ReservationException reservationException) {
+            throw new PaymentException(reservationException.getMessage());
+        }
 
         // Todo : 결제 완료 문자 전송
+    }
+
+    private Payment makePayment(Map<String, Object> paymentData) {
+        return Payment.builder()
+                .amount((Integer) paymentData.get("amount"))
+                .buyer_name(paymentData.get("buyer_name").toString())
+                .buyer_tel(paymentData.get("buyer_tel").toString())
+                .buyer_email(paymentData.get("buyer_email").toString())
+                .buyer_addr(paymentData.get("buyer_addr").toString())
+                .imp_uid(paymentData.get("imp_uid").toString())
+                .pay_method(paymentData.get("pay_method").toString())
+                .receipt_url(paymentData.get("receipt_url").toString())
+                .status(paymentData.get("status").toString())
+                .build();
     }
 
 }

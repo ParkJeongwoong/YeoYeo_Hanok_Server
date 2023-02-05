@@ -14,6 +14,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -27,19 +28,11 @@ public class RoomServiceTest {
     @Autowired
     RoomService roomService;
 
-    @AfterEach
-    public void cleanup() { roomRepository.deleteAll(); }
-
-    @AfterAll
-    public void teardown() {
-        roomRepository.deleteAll();
-    }
-
     @Test
     public void test_makeRoom() {
         // Given
         String roomName = "왼쪽방";
-        MakeRoomDto requestDto = MakeRoomDto.builder().name(roomName).build();
+        MakeRoomDto requestDto = MakeRoomDto.builder().name(roomName).price(250000).priceWeekend(300000).priceHoliday(330000).priceSpecial(220000).build();
 
         // When
         long roomId = roomService.makeRoom(requestDto);
@@ -53,12 +46,10 @@ public class RoomServiceTest {
     @Test
     public void test_showAllRooms() {
         // Given
-        String roomName1 = "왼쪽방";
-        String roomName2 = "오른쪽방";
-        Room room1 = Room.builder().name(roomName1).build();
-        Room room2 = Room.builder().name(roomName2).build();
-        roomRepository.save(room1);
-        roomRepository.save(room2);
+        Room room1 = roomRepository.findById(1L).orElseThrow(NoSuchElementException::new);
+        Room room2 = roomRepository.findById(2L).orElseThrow(NoSuchElementException::new);
+        String roomName1 = room1.getName();
+        String roomName2 = room2.getName();
 
         // When
         List<RoomInfoDto> roomInfoDtoList = roomService.showAllRooms();

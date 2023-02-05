@@ -9,10 +9,16 @@ import lombok.NoArgsConstructor;
 public class MakeRoomDto {
     String name;
     long price;
+    long priceWeekend;
+    long priceHoliday;
+    long priceSpecial;
 
     @Builder
-    public MakeRoomDto(String name, long price) {
+    public MakeRoomDto(String name, long price, long priceWeekend, long priceHoliday, long priceSpecial) {
         this.name = name;
         this.price = price;
+        this.priceWeekend = priceWeekend;
+        this.priceHoliday = priceHoliday;
+        this.priceSpecial = priceSpecial;
     }
 }

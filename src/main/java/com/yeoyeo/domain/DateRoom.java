@@ -30,10 +30,7 @@ public class DateRoom {
     private int priceType; // 0 : 평일, 1 : 주말, 2 : 연휴, 3 : 특별가
 
     @Column(nullable = false)
-    private long roomReservationState; // 0 : 예약 가능, 1 : 예약 증, 2 : 예약 완료
-
-//    @Version
-//    private long version;
+    private long roomReservationState; // 0 : 예약 가능, 1 : 예약 완료
 
     @Builder
     DateRoom(LocalDate date, Room room) {
@@ -41,11 +38,11 @@ public class DateRoom {
         this.room = room;
         this.roomReservationState = 0;
         this.dateRoomId = date.toString() + "&&" + room.getId();
-        setPriceType();
-        setRealPrice();
+        setDefaultPriceType();
+        setPrice();
     }
 
-    public void setStateBooking() throws RoomReservationException {
+    public void setStateBooked() throws RoomReservationException {
         if (this.roomReservationState == 0) {
             this.roomReservationState = 1;
         } else {
@@ -53,25 +50,21 @@ public class DateRoom {
         }
     }
 
-    public void setStateBooked() throws RoomReservationException {
-        if (this.roomReservationState == 1) {
-            this.roomReservationState = 2;
-        } else {
-            throw new RoomReservationException("예약 중인 날짜가 아닙니다.");
-        }
-    }
-
     public void resetState() {
-        this.roomReservationState = 0;
+        if (this.roomReservationState == 1) {
+            this.roomReservationState = 0;
+        } else {
+            throw new RoomReservationException("예약된 날짜가 아닙니다.");
+        }
     }
 
     public long changePriceType(int priceType) {
         this.priceType = priceType;
-        setRealPrice();
+        setPrice();
         return this.priceType;
     }
 
-    private void setPriceType() {
+    private void setDefaultPriceType() {
         DayOfWeek dayOfWeek = this.date.getDayOfWeek();
         switch (dayOfWeek) {
             case FRIDAY:
@@ -84,7 +77,7 @@ public class DateRoom {
         }
     }
 
-    private void setRealPrice() {
+    private void setPrice() {
         switch (this.priceType) {
             case 0:
                 this.price = this.room.getPrice();

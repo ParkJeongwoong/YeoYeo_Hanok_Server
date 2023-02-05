@@ -1,4 +1,12 @@
 function requestPay() {
+    // 고객 입력정보
+    const name = '박정웅'
+    const phoneNumber = '010-2033-9091'
+    const email = 'dvlprjw@gmail.com'
+    const guestCount = 2
+    const request = "특별한 건 없습니다."
+
+    // 아임포트
     var IMP = window.IMP; // 생략 가능
     IMP.init("imp28607423"); // 예: imp00000000
 
@@ -26,7 +34,12 @@ function requestPay() {
                 headers: { "Content-Type": "application/json" },
                 data: JSON.stringify({
                     imp_uid: rsp.imp_uid,
-                    merchant_uid: rsp.merchant_uid
+                    merchant_uid: rsp.merchant_uid,
+                    name,
+                    phoneNumber,
+                    email,
+                    guestCount,
+                    request
                 })
             }).done(function (data) {
                 alert("서버 응답 성공!")

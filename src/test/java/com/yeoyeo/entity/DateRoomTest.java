@@ -15,7 +15,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class DateRoomTest {
 
     @Test
-    public void test_setToReservation() {
+    public void test_setStateBooked() {
         // Given
         Room room1 = Room.builder().name("방1").build();
         Room room2 = Room.builder().name("방2").build();
@@ -30,7 +30,7 @@ public class DateRoomTest {
                 .build();
 
         // When
-        dateRoom1.setStateBooking();
+        dateRoom1.setStateBooked();
 
         // Then
         assertThat(dateRoom1.getRoomReservationState()).isEqualTo(1);
