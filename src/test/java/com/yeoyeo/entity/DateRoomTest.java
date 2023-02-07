@@ -1,6 +1,8 @@
 package com.yeoyeo.entity;
 
+import com.yeoyeo.application.dateroom.etc.exception.RoomReservationException;
 import com.yeoyeo.domain.*;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -10,6 +12,7 @@ import java.time.LocalDate;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@Slf4j
 @ExtendWith(SpringExtension.class)
 @SpringBootTest
 public class DateRoomTest {
@@ -30,7 +33,11 @@ public class DateRoomTest {
                 .build();
 
         // When
-        dateRoom1.setStateBooked();
+        try {
+            dateRoom1.setStateBooked();
+        } catch (RoomReservationException e) {
+            log.error("Dateroom 상태 변경 에러", e);
+        }
 
         // Then
         assertThat(dateRoom1.getRoomReservationState()).isEqualTo(1);

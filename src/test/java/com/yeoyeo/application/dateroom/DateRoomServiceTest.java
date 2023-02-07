@@ -2,11 +2,13 @@ package com.yeoyeo.application.dateroom;
 
 import com.yeoyeo.application.dateroom.dto.DateRoomInfoDto;
 import com.yeoyeo.application.dateroom.dto.MakeDateRoomDto;
+import com.yeoyeo.application.dateroom.etc.exception.RoomReservationException;
 import com.yeoyeo.application.dateroom.repository.DateRoomRepository;
 import com.yeoyeo.application.dateroom.service.DateRoomService;
 import com.yeoyeo.application.room.repository.RoomRepository;
 import com.yeoyeo.domain.DateRoom;
 import com.yeoyeo.domain.Room;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +21,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@Slf4j
 @TestInstance(TestInstance.Lifecycle.PER_CLASS) // BeforeAll 어노테이션을 non-static으로 사용하기 위한 어노테이션
 @ExtendWith(SpringExtension.class)
 @SpringBootTest
@@ -38,7 +41,13 @@ public class DateRoomServiceTest {
     public void cleanup() {
         List<DateRoom> dateRooms = dateRoomRepository.findAll();
         dateRooms.forEach(dateRoom -> {
-            if (dateRoom.getRoomReservationState()==1) dateRoom.resetState();
+            try {
+                if (dateRoom.getRoomReservationState()==1) {
+                        dateRoom.resetState();
+                }
+            } catch (RoomReservationException e) {
+                log.error("Dateroom 초기화 에러", e);
+            }
         });
         dateRoomRepository.saveAll(dateRooms);
     }

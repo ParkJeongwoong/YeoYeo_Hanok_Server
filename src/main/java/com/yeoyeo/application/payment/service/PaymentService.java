@@ -68,8 +68,7 @@ public class PaymentService {
                     .successYN("Y")
                     .message("예약이 확정되었습니다.")
                     .build();
-        }
-        catch (PaymentException paymentException) {
+        } catch (PaymentException paymentException) {
             log.error("결제 오류가 발생했습니다.", paymentException);
             return GeneralResponseDto.builder()
                     .successYN("N")
@@ -99,8 +98,12 @@ public class PaymentService {
                                                 .bodyToMono(ImpTokenResponseDto.class)
                                                 .block();
 
-            log.info("RESPONSE TOKEN : {}", response.getResponse().get("access_token"));
-            return response.getResponse().get("access_token");
+            if (response != null) {
+                log.info("RESPONSE TOKEN : {}", response.getResponse().get("access_token"));
+                return response.getResponse().get("access_token");
+            } else {
+                throw new RuntimeException("IAMPORT Return 데이터 문제. (access_token 부재)");
+            }
         } catch (JsonProcessingException e) {
             log.error("requestDto JSON 변환 에러", e);
         }
@@ -117,8 +120,12 @@ public class PaymentService {
                 .bodyToMono(JSONObject.class)
                 .block();
 
-        log.info("PAYMENT DATA : {}", response.get("response").toString());
-        return mapper.convertValue(response.get("response"), Map.class);
+        if (response != null) {
+            log.info("PAYMENT DATA : {}", response.get("response").toString());
+            return mapper.convertValue(response.get("response"), Map.class);
+        } else {
+            throw new RuntimeException("IAMPORT Return 데이터 문제. (response 부재)");
+        }
     }
 
     private void validatePayment(DateRoom dateRoom, Map<String, Object> paymentData) throws PaymentException {
@@ -132,7 +139,7 @@ public class PaymentService {
     }
 
     @Transactional
-    private void completeReservation(DateRoom dateRoom, GuestHome guest, Payment payment) {
+    private void completeReservation(DateRoom dateRoom, GuestHome guest, Payment payment) throws PaymentException {
         try {
             log.info("결제가 완료되었습니다.");
             MakeReservationHomeDto reservationDto = new MakeReservationHomeDto(dateRoom, guest, payment);

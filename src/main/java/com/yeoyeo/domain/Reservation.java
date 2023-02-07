@@ -50,7 +50,7 @@ public class Reservation extends BaseTimeEntity {
         }
     }
 
-    public void setStateTimeOut() throws ReservationException {
+    public void setStateCanceled() throws ReservationException {
         if (this.reservationState == 1) {
             this.reservationState = -1;
         } else {

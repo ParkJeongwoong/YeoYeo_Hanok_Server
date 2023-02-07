@@ -1,9 +1,11 @@
 package com.yeoyeo.application.reservation;
 
+import com.yeoyeo.application.dateroom.etc.exception.RoomReservationException;
 import com.yeoyeo.application.dateroom.repository.DateRoomRepository;
 import com.yeoyeo.application.payment.repository.PaymentRepository;
 import com.yeoyeo.application.reservation.dto.MakeReservationAirbnbDto;
 import com.yeoyeo.application.reservation.dto.MakeReservationHomeDto;
+import com.yeoyeo.application.reservation.etc.exception.ReservationException;
 import com.yeoyeo.application.reservation.repository.ReservationRepository;
 import com.yeoyeo.application.reservation.service.ReservationService;
 import com.yeoyeo.domain.*;
@@ -80,7 +82,13 @@ public class ReservationServiceTest {
         paymentRepository.deleteAll();
         List<DateRoom> dateRooms = dateRoomRepository.findAll();
         dateRooms.forEach(dateRoom -> {
-            if (dateRoom.getRoomReservationState()==1) dateRoom.resetState();
+            try {
+                if (dateRoom.getRoomReservationState()==1) {
+                        dateRoom.resetState();
+                }
+            } catch (RoomReservationException e) {
+                log.error("Dateroom 초기화 에러", e);
+            }
         });
         dateRoomRepository.saveAll(dateRooms);
     }
@@ -90,7 +98,13 @@ public class ReservationServiceTest {
         reservationRepository.deleteAll();
         List<DateRoom> dateRooms = dateRoomRepository.findAll();
         dateRooms.forEach(dateRoom -> {
-            if (dateRoom.getRoomReservationState()==1) dateRoom.resetState();
+            if (dateRoom.getRoomReservationState()==1) {
+                try {
+                    dateRoom.resetState();
+                } catch (RoomReservationException e) {
+                    e.printStackTrace();
+                }
+            }
         });
         dateRoomRepository.saveAll(dateRooms);
     }
@@ -120,8 +134,14 @@ public class ReservationServiceTest {
 
         // When
         log.info("makeReservation 테스트 진행");
-        long reservationId1 = reservationService.makeReservation(requestDto1);
-        long reservationId2 = reservationService.makeReservation(requestDto2);
+        long reservationId1 = 0;
+        long reservationId2 =0;
+        try {
+            reservationId1 = reservationService.makeReservation(requestDto1);
+            reservationId2 = reservationService.makeReservation(requestDto2);
+        } catch (ReservationException e) {
+            log.error("makeReservation Error", e);
+        }
 
         // Then
         log.info("makeReservation 테스트 결과 검증");

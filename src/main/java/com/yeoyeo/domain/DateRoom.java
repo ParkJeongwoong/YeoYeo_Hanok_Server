@@ -50,7 +50,7 @@ public class DateRoom {
         }
     }
 
-    public void resetState() {
+    public void resetState() throws RoomReservationException {
         if (this.roomReservationState == 1) {
             this.roomReservationState = 0;
         } else {
