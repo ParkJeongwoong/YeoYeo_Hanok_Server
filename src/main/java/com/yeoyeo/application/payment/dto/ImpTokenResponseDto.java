@@ -11,6 +11,7 @@ public class ImpTokenResponseDto {
     private long code;
     private String message;
     private HashMap<String, String> response;
+//    <response item>
 //    private String access_token;
 //    private long now;
 //    private long expired_at;

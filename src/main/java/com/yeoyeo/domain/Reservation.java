@@ -40,6 +40,7 @@ public class Reservation extends BaseTimeEntity {
         this.reservedFrom = guest.getClass().getSimpleName();
         this.reservationState = 0;
         this.payment = payment;
+        payment.setReservation(this);
     }
 
     public void setStatePayed() throws ReservationException {

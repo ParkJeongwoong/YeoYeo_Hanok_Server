@@ -39,6 +39,9 @@ public class Payment {
     @Column(nullable = false)
     private String status;
 
+    @OneToOne(mappedBy = "payment")
+    private Reservation reservation;
+
     @Builder
     public Payment(Integer amount, String buyer_name, String buyer_tel, String buyer_email, String buyer_addr,
                    String imp_uid, String pay_method, String receipt_url, String status) {
@@ -51,5 +54,9 @@ public class Payment {
         this.pay_method = pay_method;
         this.receipt_url = receipt_url;
         this.status = status;
+    }
+
+    public void setReservation(Reservation reservation) {
+        this.reservation = reservation;
     }
 }

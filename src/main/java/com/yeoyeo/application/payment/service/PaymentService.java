@@ -7,13 +7,17 @@ import com.yeoyeo.application.dateroom.repository.DateRoomRepository;
 import com.yeoyeo.application.payment.dto.ImpTokenRequestDto;
 import com.yeoyeo.application.payment.dto.ImpTokenResponseDto;
 import com.yeoyeo.application.payment.dto.PaymentRequestDto;
+import com.yeoyeo.application.payment.dto.RefundRequestDto;
 import com.yeoyeo.application.payment.etc.exception.PaymentException;
+import com.yeoyeo.application.payment.repository.PaymentRepository;
 import com.yeoyeo.application.reservation.dto.MakeReservationHomeDto;
 import com.yeoyeo.application.reservation.etc.exception.ReservationException;
+import com.yeoyeo.application.reservation.repository.ReservationRepository;
 import com.yeoyeo.application.reservation.service.ReservationService;
 import com.yeoyeo.domain.DateRoom;
 import com.yeoyeo.domain.GuestHome;
 import com.yeoyeo.domain.Payment;
+import com.yeoyeo.domain.Reservation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.json.simple.JSONObject;
@@ -24,6 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
@@ -33,6 +38,8 @@ import java.util.NoSuchElementException;
 public class PaymentService {
 
     private final DateRoomRepository dateRoomRepository;
+    private final ReservationRepository reservationRepository;
+    private final PaymentRepository paymentRepository;
 
     private final ReservationService reservationService;
 
@@ -75,6 +82,22 @@ public class PaymentService {
                     .message(paymentException.getMessage())
                     .build();
         }
+    }
+
+    @Transactional
+    public GeneralResponseDto refund(RefundRequestDto requestDto) {
+        log.info("TESTESTESTESTST");
+        // 결제 정보 조회
+        DateRoom dateRoom = dateRoomRepository.findByDateRoomId(requestDto.getMerchant_uid());
+        log.info("DATEROOM : {}",dateRoom.getDateRoomId());
+        List<Reservation> reservation = reservationRepository.findByDateRoom_DateRoomId(dateRoom.getDateRoomId());
+        log.info("RESERVATION : {} : {}", reservation.get(0).getId(), reservation.get(0).getDateRoom().getDateRoomId());
+
+        return GeneralResponseDto.builder()
+                .successYN("Y")
+                .message("환불 요청이 완료되었습니다.")
+                .build();
+
     }
 
     public Map<String, Object> getPaymentData(String imp_uid) {
