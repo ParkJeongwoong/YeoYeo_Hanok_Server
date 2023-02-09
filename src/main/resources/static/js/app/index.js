@@ -14,9 +14,9 @@ function requestPay() {
     IMP.request_pay({ // param
         pg: "kcp",
         pay_method: "card",
-        merchant_uid: "resv_no_0003", //고유 주문번호
+        merchant_uid: "2023-02-25&&2", //고유 주문번호
         name: "여여 결제 테스트",
-        amount: 277777, // 결제금액
+        amount: 250000, // 결제금액
         buyer_email: "toto9091@naver.com",
         buyer_name: "박정웅",
         buyer_tel: "010-1234-7777",
@@ -29,7 +29,7 @@ function requestPay() {
             // 결제 성공 시: 결제 승인 또는 가상계좌 발급에 성공한 경우
             // jQuery로 HTTP 요청
             jQuery.ajax({
-                url: "http://localhost:8080/reservation/payment", // 예: https://www.myservice.com/payments/complete
+                url: "https://8dc3-39-115-83-55.jp.ngrok.io/reservation/payment", // 예: https://www.myservice.com/payments/complete
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 data: JSON.stringify({
