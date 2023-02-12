@@ -33,8 +33,7 @@ public class Room {
     @Builder
     public Room(String name) {
         this.name = name;
-        this.price = 277777; // TEST 용
-//        this.price = 250000;
+        this.price = 250000;
         this.priceWeekend = 300000;
         this.priceHoliday = 330000;
         this.priceSpecial = 220000;

@@ -7,8 +7,8 @@ import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 
-@Getter
 @NoArgsConstructor
+@Getter
 @Entity
 public class Reservation extends BaseTimeEntity {
     @Id

@@ -67,6 +67,22 @@ public class ReservationService {
         }
     }
 
+    @Transactional
+    public void cancel(DateRoom dateRoom, Reservation reservation) throws ReservationException {
+        try {
+            reservation.setStateCanceled();
+            dateRoom.resetState();
+            reservationRepository.save(reservation);
+            log.info("{} 고객님의 예약이 취소되었습니다.", reservation.getGuest().getName());
+        } catch (ReservationException reservationException) {
+            log.error("Reservation 상태 변경 에러", reservationException);
+            throw new ReservationException(reservationException.getMessage());
+        } catch (RoomReservationException roomReservationException) {
+            log.error("Dateroom 상태 변경 에러", roomReservationException);
+            throw new ReservationException(roomReservationException.getMessage());
+        }
+    }
+
     private Reservation createReservation(MakeReservationDto reservationDto) {
         DateRoom dateRoom = reservationDto.getDateRoom();
         Guest guest = reservationDto.getGuest();

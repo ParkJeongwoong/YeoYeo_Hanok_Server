@@ -32,6 +32,9 @@ public class DateRoom {
     @Column(nullable = false)
     private long roomReservationState; // 0 : 예약 가능, 1 : 예약 완료
 
+    @Column(nullable = false)
+    private int reservationCount;
+
     @Builder
     DateRoom(LocalDate date, Room room) {
         this.date = date;
@@ -40,11 +43,13 @@ public class DateRoom {
         this.dateRoomId = date.toString() + "&&" + room.getId();
         setDefaultPriceType();
         setPrice();
+        this.reservationCount = 0;
     }
 
     public void setStateBooked() throws RoomReservationException {
         if (this.roomReservationState == 0) {
             this.roomReservationState = 1;
+            this.reservationCount += 1;
         } else {
             throw new RoomReservationException("예약이 불가능한 날짜입니다.");
         }

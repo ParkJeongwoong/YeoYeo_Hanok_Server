@@ -4,12 +4,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yeoyeo.application.common.dto.GeneralResponseDto;
 import com.yeoyeo.application.dateroom.repository.DateRoomRepository;
-import com.yeoyeo.application.payment.dto.ImpTokenRequestDto;
-import com.yeoyeo.application.payment.dto.ImpTokenResponseDto;
-import com.yeoyeo.application.payment.dto.PaymentRequestDto;
-import com.yeoyeo.application.payment.dto.RefundRequestDto;
+import com.yeoyeo.application.payment.dto.*;
 import com.yeoyeo.application.payment.etc.exception.PaymentException;
-import com.yeoyeo.application.payment.repository.PaymentRepository;
 import com.yeoyeo.application.reservation.dto.MakeReservationHomeDto;
 import com.yeoyeo.application.reservation.etc.exception.ReservationException;
 import com.yeoyeo.application.reservation.repository.ReservationRepository;
@@ -39,7 +35,6 @@ public class PaymentService {
 
     private final DateRoomRepository dateRoomRepository;
     private final ReservationRepository reservationRepository;
-    private final PaymentRepository paymentRepository;
 
     private final ReservationService reservationService;
 
@@ -50,6 +45,7 @@ public class PaymentService {
 
     String IMP_GET_TOKEN_URL = "https://api.iamport.kr/users/getToken";
     String IMP_GET_PAYMENT_DATA_URL = "https://api.iamport.kr/payments/";
+    String IMP_SET_REFUND_URL = "https://api.iamport.kr/payments/cancel";
 
     private WebClient WebClient(String contentType) {
         return WebClient.builder().defaultHeader(HttpHeaders.CONTENT_TYPE, contentType).build();
@@ -60,15 +56,18 @@ public class PaymentService {
         try {
             // 결제 정보 조회
             log.info("imp_uid : {}", requestDto.getImp_uid());
-            log.info("merchant_uid : {}", requestDto.getMerchant_uid());
-            Map<String, Object> paymentData = getPaymentData(requestDto.getImp_uid());
+            log.info("DateRoom ID : {}", requestDto.getDateRoomId());
+            String accessToken = getToken();
+            Map<String, Object> paymentData = getPaymentData(requestDto.getImp_uid(), accessToken);
 
-            DateRoom dateRoom = dateRoomRepository.findById(requestDto.getMerchant_uid()).orElseThrow(NoSuchElementException::new);
+            DateRoom dateRoom = dateRoomRepository.findById(requestDto.getDateRoomId()).orElseThrow(NoSuchElementException::new);
             GuestHome guest = requestDto.createGuest();
             Payment payment = makePayment(paymentData);
 
             // 결제 검증
-            validatePayment(dateRoom, paymentData);
+            validatePayment(dateRoom, paymentData, accessToken);
+
+            // 결제 완료
             completeReservation(dateRoom, guest, payment);
 
             return GeneralResponseDto.builder()
@@ -85,27 +84,42 @@ public class PaymentService {
     }
 
     @Transactional
-    public GeneralResponseDto refund(RefundRequestDto requestDto) {
-        log.info("TESTESTESTESTST");
-        // 결제 정보 조회
-        DateRoom dateRoom = dateRoomRepository.findByDateRoomId(requestDto.getMerchant_uid());
-        log.info("DATEROOM : {}",dateRoom.getDateRoomId());
-        List<Reservation> reservation = reservationRepository.findByDateRoom_DateRoomId(dateRoom.getDateRoomId());
-        log.info("RESERVATION : {} : {}", reservation.get(0).getId(), reservation.get(0).getDateRoom().getDateRoomId());
+    public GeneralResponseDto refund(RefundClientRequestDto requestDto) {
+        try {
+            // 결제 정보 조회
+            DateRoom dateRoom = dateRoomRepository.findByDateRoomId(requestDto.getDateRoomId());
+            Reservation reservation = getRefundableReservation(dateRoom);
+            log.info("DateRoom : {}, Reservation {} {} {}", dateRoom.getDateRoomId(), reservation.getId(), reservation.getDateRoom().getDateRoomId(), reservation.getReservationState());
+            Payment payment = reservation.getPayment();
+            Integer cancelableAmount = payment.getCancelableAmount();
+            long requestedAmount = requestDto.getCancel_request_amount();
 
-        return GeneralResponseDto.builder()
-                .successYN("Y")
-                .message("환불 요청이 완료되었습니다.")
-                .build();
+            // 검증
+            validateRefunding(requestedAmount, cancelableAmount);
 
+            // 환불 요청
+            String accessToken = getToken();
+            Map<String, Object> refundData = sendRefundRequest(
+                    requestDto.getReason(), requestedAmount, cancelableAmount, payment.getImp_uid(), accessToken);
+
+            // 환불 완료
+            payment.setCanceled(requestedAmount, requestDto.getReason(), refundData.get("receipt_url").toString());
+            completeRefund(dateRoom, reservation);
+
+            return GeneralResponseDto.builder()
+                    .successYN("Y")
+                    .message("환불 요청이 완료되었습니다.")
+                    .build();
+        } catch (PaymentException paymentException) {
+            log.error("환불 오류가 발생했습니다.", paymentException);
+            return GeneralResponseDto.builder()
+                    .successYN("N")
+                    .message(paymentException.getMessage())
+                    .build();
+        }
     }
 
-    public Map<String, Object> getPaymentData(String imp_uid) {
-        String accessToken = fetchToken();
-        return fetchPaymentData(imp_uid, accessToken);
-    }
-
-    private String fetchToken() {
+    private String getToken() {
         try {
             log.info("IMP_KEY : {}", imp_key);
             log.info("IMP_SECRET : {}", imp_secret);
@@ -121,11 +135,13 @@ public class PaymentService {
                                                 .bodyToMono(ImpTokenResponseDto.class)
                                                 .block();
 
-            if (response != null) {
+            if (response == null) {
+                throw new RuntimeException("IAMPORT Return 데이터 문제");
+            } else if(response.getResponse().get("access_token") == null) {
+                throw new RuntimeException("IAMPORT Return 데이터 문제 (access_token 부재)");
+            } else {
                 log.info("RESPONSE TOKEN : {}", response.getResponse().get("access_token"));
                 return response.getResponse().get("access_token");
-            } else {
-                throw new RuntimeException("IAMPORT Return 데이터 문제. (access_token 부재)");
             }
         } catch (JsonProcessingException e) {
             log.error("requestDto JSON 변환 에러", e);
@@ -133,7 +149,7 @@ public class PaymentService {
         return null;
     }
 
-    private Map<String, Object> fetchPaymentData(String imp_uid, String accessToken) {
+    private Map<String, Object> getPaymentData(String imp_uid, String accessToken) {
         ObjectMapper mapper = new ObjectMapper();
 
         JSONObject response = WebClient("application/json").get()
@@ -143,22 +159,36 @@ public class PaymentService {
                 .bodyToMono(JSONObject.class)
                 .block();
 
-        if (response != null) {
+        if (response == null) {
+            throw new RuntimeException("IAMPORT Return 데이터 문제");
+        } else if(response.get("response") == null) {
+            throw new RuntimeException("IAMPORT Return 데이터 문제. (response 부재)");
+        } else {
             log.info("PAYMENT DATA : {}", response.get("response").toString());
             return mapper.convertValue(response.get("response"), Map.class);
-        } else {
-            throw new RuntimeException("IAMPORT Return 데이터 문제. (response 부재)");
         }
     }
 
-    private void validatePayment(DateRoom dateRoom, Map<String, Object> paymentData) throws PaymentException {
+    private void validatePayment(DateRoom dateRoom, Map<String, Object> paymentData, String accessToken) throws PaymentException {
         String status = paymentData.get("status").toString();
+        String merchant_uid = paymentData.get("merchant_uid").toString();
         long payedAmount = (long) (Integer) paymentData.get("amount");
 
         log.info("status : {}", status);
         log.info("amount : {}", payedAmount);
-        if (!status.equals("paid")) throw new PaymentException("결제가 완료되지 않았습니다.");
-        if (dateRoom.getPrice() != payedAmount) throw new PaymentException("결제 금액이 상품 가격과 일치하지 않습니다.");
+        if (!status.equals("paid")) {
+            throw new PaymentException("결제가 완료되지 않았습니다.");
+        }
+        if (!(dateRoom.getDateRoomId()+"&&"+dateRoom.getReservationCount()).equals(merchant_uid)) {
+            log.info("비정상 결제 - 환불 작업이 진행됩니다.");
+            sendRefundRequest("서버 결제 작업 중 오류", payedAmount, (int) payedAmount, paymentData.get("imp_uid").toString(), accessToken);
+            throw new PaymentException("상품 번호가 유효하지 않은 결제입니다.");
+        }
+        if (dateRoom.getPrice() != payedAmount) {
+            log.info("비정상 결제 - 환불 작업이 진행됩니다.");
+            sendRefundRequest("서버 결제 작업 중 오류", payedAmount, (int) payedAmount, paymentData.get("imp_uid").toString(), accessToken);
+            throw new PaymentException("결제 금액이 상품 가격과 일치하지 않습니다.");
+        }
     }
 
     @Transactional
@@ -176,6 +206,7 @@ public class PaymentService {
 
     private Payment makePayment(Map<String, Object> paymentData) {
         return Payment.builder()
+                .merchant_uid(paymentData.get("merchant_uid").toString())
                 .amount((Integer) paymentData.get("amount"))
                 .buyer_name(paymentData.get("buyer_name").toString())
                 .buyer_tel(paymentData.get("buyer_tel").toString())
@@ -186,6 +217,59 @@ public class PaymentService {
                 .receipt_url(paymentData.get("receipt_url").toString())
                 .status(paymentData.get("status").toString())
                 .build();
+    }
+
+    private Reservation getRefundableReservation(DateRoom dateRoom) throws PaymentException {
+        List<Reservation> reservationList = reservationRepository.findByDateRoom_DateRoomIdAndReservationState(dateRoom.getDateRoomId(), 1);
+        log.info("Refundable Reservation Count : {}", reservationList.size());
+        if (reservationList.size() == 0) throw new PaymentException("결제 정보를 찾을 수가 없습니다.");
+        return reservationList.get(0);
+    }
+
+    private void validateRefunding(long requestedAmount, Integer cancelableAmount) throws PaymentException {
+        if (requestedAmount <= 0) throw new PaymentException("요청된 환불금액이 없습니다.");
+        if (requestedAmount > cancelableAmount) throw new PaymentException("요청된 금액이 환불가능액을 초과합니다.");
+    }
+
+    private Map<String, Object> sendRefundRequest(String reason, long requestedAmount, Integer cancelableAmount, String imp_uid, String accessToken)
+            throws PaymentException {
+        try {
+            RefundServerRequestDto requestDto = RefundServerRequestDto.builder()
+                    .reason(reason)
+                    .imp_uid(imp_uid)
+                    .cancel_request_amount(requestedAmount)
+                    .cancelableAmount(cancelableAmount).build();
+            ObjectMapper mapper = new ObjectMapper();
+            String jsonString = mapper.writeValueAsString(requestDto);
+
+            JSONObject response = WebClient("application/json").post()
+                    .uri(IMP_SET_REFUND_URL)
+                    .header("Authorization", accessToken)
+                    .body(BodyInserters.fromValue(jsonString))
+                    .retrieve()
+                    .bodyToMono(JSONObject.class)
+                    .block();
+
+            if (response == null) {
+                throw new RuntimeException("IAMPORT Return 데이터 문제");
+            } else if (!response.get("code").toString().equals("0")) {
+                log.info(response.toString());
+                throw new PaymentException(response.get("message").toString());
+            } else {
+                log.info("REFUND DATA : {}", response.get("response").toString());
+                return mapper.convertValue(response.get("response"), Map.class);
+            }
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("requestDto JSON 변환 에러");
+        }
+    }
+
+    private void completeRefund(DateRoom dateRoom, Reservation reservation) throws PaymentException {
+        try {
+            reservationService.cancel(dateRoom, reservation);
+        } catch (ReservationException reservationException) {
+            throw new PaymentException(reservationException.getMessage());
+        }
     }
 
 }

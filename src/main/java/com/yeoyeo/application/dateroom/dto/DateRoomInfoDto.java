@@ -8,6 +8,7 @@ import java.time.LocalDate;
 
 @Getter
 public class DateRoomInfoDto {
+    private final String merchant_uid;
     private final LocalDate date;
     private final long roomId;
     private final String roomName;
@@ -17,6 +18,7 @@ public class DateRoomInfoDto {
     public DateRoomInfoDto(DateRoom entity) {
         Room room = entity.getRoom();
 
+        this.merchant_uid = entity.getDateRoomId()+"&&"+entity.getReservationCount();
         this.date = entity.getDate();
         this.roomId = room.getId();
         this.roomName = room.getName();

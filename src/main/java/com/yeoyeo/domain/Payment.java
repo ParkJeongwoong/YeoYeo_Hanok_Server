@@ -1,16 +1,22 @@
 package com.yeoyeo.domain;
 
+import com.yeoyeo.application.payment.etc.exception.PaymentException;
 import lombok.Builder;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 
 @NoArgsConstructor
+@Getter
 @Entity
 public class Payment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
+
+    @Column(nullable = false)
+    private String merchant_uid;
 
     @Column(nullable = false)
     private Integer amount;
@@ -42,9 +48,19 @@ public class Payment {
     @OneToOne(mappedBy = "payment")
     private Reservation reservation;
 
+    @Column
+    private Integer canceled_amount;
+
+    @Column
+    private String cancel_reason;
+
+    @Column
+    private String cancel_receipt_url;
+
     @Builder
-    public Payment(Integer amount, String buyer_name, String buyer_tel, String buyer_email, String buyer_addr,
+    public Payment(String merchant_uid, Integer amount, String buyer_name, String buyer_tel, String buyer_email, String buyer_addr,
                    String imp_uid, String pay_method, String receipt_url, String status) {
+        this.merchant_uid = merchant_uid;
         this.amount = amount;
         this.buyer_name = buyer_name;
         this.buyer_tel = buyer_tel;
@@ -54,9 +70,22 @@ public class Payment {
         this.pay_method = pay_method;
         this.receipt_url = receipt_url;
         this.status = status;
+        this.canceled_amount = 0;
     }
 
     public void setReservation(Reservation reservation) {
         this.reservation = reservation;
+    }
+
+    public Integer getCancelableAmount() throws PaymentException {
+        int cancelableAmount = this.amount - this.canceled_amount;
+        if (cancelableAmount <= 0) throw new PaymentException("이미 전액환불된 결제입니다.");
+        return cancelableAmount;
+    }
+
+    public void setCanceled(long canceled_amount, String cancel_reason, String cancel_receipt_url) {
+        this.canceled_amount = (int) canceled_amount;
+        this.cancel_reason = cancel_reason;
+        this.cancel_receipt_url = cancel_receipt_url;
     }
 }

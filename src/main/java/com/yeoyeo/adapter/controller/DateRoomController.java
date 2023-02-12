@@ -24,8 +24,9 @@ public class DateRoomController {
     }
 
     @ApiOperation(value = "Get Reservation Status", notes = "2달 치 예약 정보 조회")
-    @GetMapping("list/{year}/{month}")
+    @GetMapping("/{year}/{month}")
     public ResponseEntity<List<DateRoomInfoDto>> show2MonthsDateRooms(@PathVariable("year") int year, @PathVariable("month") int month) {
         return ResponseEntity.status(HttpStatus.OK).body(dateRoomService.show2MonthsDateRooms(year, month));
     }
+
 }

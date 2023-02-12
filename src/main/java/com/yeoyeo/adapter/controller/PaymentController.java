@@ -3,7 +3,7 @@ package com.yeoyeo.adapter.controller;
 import com.yeoyeo.application.common.dto.GeneralResponseDto;
 import com.yeoyeo.application.payment.dto.PaymentRequestDto;
 import com.yeoyeo.application.payment.dto.PaymentWebHookDto;
-import com.yeoyeo.application.payment.dto.RefundRequestDto;
+import com.yeoyeo.application.payment.dto.RefundClientRequestDto;
 import com.yeoyeo.application.payment.service.PaymentService;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
@@ -28,7 +28,7 @@ public class PaymentController {
 
     @ApiOperation(value = "Refund", notes = "환불")
     @DeleteMapping("/refund")
-    public ResponseEntity<GeneralResponseDto> refund(@RequestBody RefundRequestDto requestDto) {
+    public ResponseEntity<GeneralResponseDto> refund(@RequestBody RefundClientRequestDto requestDto) {
         GeneralResponseDto responseDto = paymentService.refund(requestDto);
         if (responseDto.getSuccessYN().equals("N")) return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseDto);
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);

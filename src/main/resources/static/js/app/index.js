@@ -1,4 +1,9 @@
+const SERVER_URL = "http://localhost:8080"
+
 function requestPay() {
+    let merchant_uid = $('#merchant_uid').val()
+    console.log(merchant_uid)
+
     // 고객 입력정보
     const name = '박정웅'
     const phoneNumber = '010-2033-9091'
@@ -13,8 +18,9 @@ function requestPay() {
     // IMP.request_pay(param, callback) 결제창 호출
     IMP.request_pay({ // param
         pg: "kcp",
+//        pg: "kakaopay",
         pay_method: "card",
-        merchant_uid: "2023-02-25&&2", //고유 주문번호
+        merchant_uid: merchant_uid, //고유 주문번호 (날짜&&방)
         name: "여여 결제 테스트",
         amount: 250000, // 결제금액
         buyer_email: "toto9091@naver.com",
@@ -29,7 +35,7 @@ function requestPay() {
             // 결제 성공 시: 결제 승인 또는 가상계좌 발급에 성공한 경우
             // jQuery로 HTTP 요청
             jQuery.ajax({
-                url: "https://8dc3-39-115-83-55.jp.ngrok.io/reservation/payment", // 예: https://www.myservice.com/payments/complete
+                url: SERVER_URL+"/payment/pay", // 예: https://www.myservice.com/payments/complete
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 data: JSON.stringify({
@@ -52,9 +58,32 @@ function requestPay() {
                       // 결제 성공 시 로직
                       break;
                 }
+            }).fail(function(error) { // 환불 실패시 로직
+                      alert("서버 결제 중 실패");
             })
       } else {
         alert("결제에 실패하였습니다. 에러 내용: " +  rsp.error_msg);
       }
   });
+}
+
+function cancelPay() {
+    let merchant_uid = $('#merchant_uid').val()
+    console.log(merchant_uid)
+
+    jQuery.ajax({
+        "url": SERVER_URL+"/payment/refund",
+        "type": "DELETE",
+        "contentType": "application/json",
+        "data": JSON.stringify({
+            "merchant_uid": merchant_uid,
+            "cancel_request_amount": 250000, // 환불금액
+            "reason": "테스트 결제 환불" // 환불사유
+        }),
+        "dataType": "json"
+    }).done(function(result) {
+        alert("환불 성공");
+    }).fail(function(error) { // 환불 실패시 로직
+        alert("환불 실패");
+    });
 }
