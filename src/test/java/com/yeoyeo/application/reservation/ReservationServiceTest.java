@@ -44,15 +44,15 @@ public class ReservationServiceTest {
     @Autowired
     ReservationService reservationService;
 
-    String dateRoom1Id = LocalDate.now()+"&&1";
-    String dateRoom2Id = LocalDate.now()+"&&2";
+    String dateRoom1Id = LocalDate.now().toString().replaceAll("[^0-9]","")+"1";
+    String dateRoom2Id = LocalDate.now().toString().replaceAll("[^0-9]","")+"2";
     Payment payment;
     Payment payment_airbnb;
 
     @BeforeEach
     public void setup() {
         payment = Payment.builder()
-                .merchant_uid(dateRoom1Id+"&&0")
+                .merchant_uid(dateRoom1Id+"0")
                 .amount(277777)
                 .buyer_name("박정웅")
                 .buyer_tel("010-1234-7777")
@@ -65,7 +65,7 @@ public class ReservationServiceTest {
                 .build();
 
         payment_airbnb = Payment.builder()
-                .merchant_uid(dateRoom2Id+"&&1")
+                .merchant_uid(dateRoom2Id+"1")
                 .amount(250000)
                 .buyer_name("박정웅")
                 .buyer_tel("none")
@@ -181,10 +181,10 @@ public class ReservationServiceTest {
         GuestHome guest3 = GuestHome.builder().name(guestName3).phoneNumber("010-1234-5678").email("toto9091@naver.com").guestCount(1).request("없습니다.").build();
         GuestHome guest4 = GuestHome.builder().name(guestName4).phoneNumber("010-1234-5678").email("toto9091@naver.com").guestCount(1).request("없습니다.").build();
 
-        Payment payment1 = Payment.builder().merchant_uid(dateRoom1Id+"&&0").amount(277777).buyer_name("박정웅").buyer_tel("010-1234-7777").buyer_email("toto9091@daum.net").buyer_addr("서울특별시 강남구 신사동").imp_uid("imp_425844476859").pay_method("card").receipt_url("https://testadmin8.kcp.co.kr/assist/bill.BillActionNew.do?cmd=card_bill&tno=23665984854529&order_no=imp_425844476859&trade_mony=277777").status("paid").build();
-        Payment payment2 = Payment.builder().merchant_uid(dateRoom1Id+"&&0").amount(277777).buyer_name("박정웅").buyer_tel("010-1234-7777").buyer_email("toto9091@daum.net").buyer_addr("서울특별시 강남구 신사동").imp_uid("imp_425844476859").pay_method("card").receipt_url("https://testadmin8.kcp.co.kr/assist/bill.BillActionNew.do?cmd=card_bill&tno=23665984854529&order_no=imp_425844476859&trade_mony=277777").status("paid").build();
-        Payment payment3 = Payment.builder().merchant_uid(dateRoom1Id+"&&0").amount(277777).buyer_name("박정웅").buyer_tel("010-1234-7777").buyer_email("toto9091@daum.net").buyer_addr("서울특별시 강남구 신사동").imp_uid("imp_425844476859").pay_method("card").receipt_url("https://testadmin8.kcp.co.kr/assist/bill.BillActionNew.do?cmd=card_bill&tno=23665984854529&order_no=imp_425844476859&trade_mony=277777").status("paid").build();
-        Payment payment4 = Payment.builder().merchant_uid(dateRoom1Id+"&&0").amount(277777).buyer_name("박정웅").buyer_tel("010-1234-7777").buyer_email("toto9091@daum.net").buyer_addr("서울특별시 강남구 신사동").imp_uid("imp_425844476859").pay_method("card").receipt_url("https://testadmin8.kcp.co.kr/assist/bill.BillActionNew.do?cmd=card_bill&tno=23665984854529&order_no=imp_425844476859&trade_mony=277777").status("paid").build();
+        Payment payment1 = Payment.builder().merchant_uid(dateRoom1Id+"0").amount(277777).buyer_name("박정웅").buyer_tel("010-1234-7777").buyer_email("toto9091@daum.net").buyer_addr("서울특별시 강남구 신사동").imp_uid("imp_425844476859").pay_method("card").receipt_url("https://testadmin8.kcp.co.kr/assist/bill.BillActionNew.do?cmd=card_bill&tno=23665984854529&order_no=imp_425844476859&trade_mony=277777").status("paid").build();
+        Payment payment2 = Payment.builder().merchant_uid(dateRoom1Id+"0").amount(277777).buyer_name("박정웅").buyer_tel("010-1234-7777").buyer_email("toto9091@daum.net").buyer_addr("서울특별시 강남구 신사동").imp_uid("imp_425844476859").pay_method("card").receipt_url("https://testadmin8.kcp.co.kr/assist/bill.BillActionNew.do?cmd=card_bill&tno=23665984854529&order_no=imp_425844476859&trade_mony=277777").status("paid").build();
+        Payment payment3 = Payment.builder().merchant_uid(dateRoom1Id+"0").amount(277777).buyer_name("박정웅").buyer_tel("010-1234-7777").buyer_email("toto9091@daum.net").buyer_addr("서울특별시 강남구 신사동").imp_uid("imp_425844476859").pay_method("card").receipt_url("https://testadmin8.kcp.co.kr/assist/bill.BillActionNew.do?cmd=card_bill&tno=23665984854529&order_no=imp_425844476859&trade_mony=277777").status("paid").build();
+        Payment payment4 = Payment.builder().merchant_uid(dateRoom1Id+"0").amount(277777).buyer_name("박정웅").buyer_tel("010-1234-7777").buyer_email("toto9091@daum.net").buyer_addr("서울특별시 강남구 신사동").imp_uid("imp_425844476859").pay_method("card").receipt_url("https://testadmin8.kcp.co.kr/assist/bill.BillActionNew.do?cmd=card_bill&tno=23665984854529&order_no=imp_425844476859&trade_mony=277777").status("paid").build();
 
         MakeReservationHomeDto requestDto1 = new MakeReservationHomeDto(dateRoom1, guest1, payment1);
         MakeReservationHomeDto requestDto2 = new MakeReservationHomeDto(dateRoom1, guest2, payment2);

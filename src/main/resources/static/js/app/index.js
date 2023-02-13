@@ -20,7 +20,7 @@ function requestPay() {
         pg: "kcp",
 //        pg: "kakaopay",
         pay_method: "card",
-        merchant_uid: merchant_uid, //고유 주문번호 (날짜&&방)
+        merchant_uid: merchant_uid, //고유 주문번호 (날짜+방)
         name: "여여 결제 테스트",
         amount: 250000, // 결제금액
         buyer_email: "toto9091@naver.com",

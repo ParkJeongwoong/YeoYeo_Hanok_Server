@@ -6,7 +6,6 @@ import com.yeoyeo.application.room.repository.RoomRepository;
 import com.yeoyeo.domain.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -45,19 +44,6 @@ public class DateRoomService extends Thread {
             }
             date = date.plusDays(1);
         }
-//        int month = date.getMonth().getValue();
-//        int endMonth = month+6;
-//        while (month < endMonth) {
-//            try {
-//                makeDateRoom(2, date);
-//                makeDateRoom(1, date);
-//            } catch (Exception e) {
-//                log.error("초기 6개월치 방 날짜 생성 중 에러 발생", e);
-//            }
-//
-//            date = date.plusDays(1);
-//            month = date.getMonth().getValue();
-//        }
         log.info("Last Day : {}", date);
     }
 

@@ -179,7 +179,7 @@ public class PaymentService {
         if (!status.equals("paid")) {
             throw new PaymentException("결제가 완료되지 않았습니다.");
         }
-        if (!(dateRoom.getDateRoomId()+"&&"+dateRoom.getReservationCount()).equals(merchant_uid)) {
+        if (!(dateRoom.getDateRoomId()+dateRoom.getReservationCount()).equals(merchant_uid)) {
             log.info("비정상 결제 - 환불 작업이 진행됩니다.");
             sendRefundRequest("서버 결제 작업 중 오류", payedAmount, (int) payedAmount, paymentData.get("imp_uid").toString(), accessToken);
             throw new PaymentException("상품 번호가 유효하지 않은 결제입니다.");

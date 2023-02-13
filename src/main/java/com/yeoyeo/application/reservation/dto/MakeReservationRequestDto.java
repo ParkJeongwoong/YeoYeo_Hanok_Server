@@ -23,7 +23,7 @@ public class MakeReservationRequestDto {
         DateRoom dateRoom = dateRoomRepository.findByDateRoomId(this.dateRoomId);
         Guest guest = new Guest(this.name);
         Payment payment = Payment.builder()
-                .merchant_uid(dateRoom.getDateRoomId()+"&&"+dateRoom.getReservationCount())
+                .merchant_uid(dateRoom.getDateRoomId()+dateRoom.getReservationCount())
                 .amount(dateRoom.getPrice())
                 .buyer_name(this.name)
                 .buyer_tel("none")

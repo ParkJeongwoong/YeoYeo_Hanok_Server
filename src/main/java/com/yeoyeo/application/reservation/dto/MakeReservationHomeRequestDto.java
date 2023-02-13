@@ -37,7 +37,7 @@ public class MakeReservationHomeRequestDto extends MakeReservationRequestDto {
                 .request(this.request)
                 .build();
         Payment payment = Payment.builder()
-                .merchant_uid(dateRoom.getDateRoomId()+"&&"+dateRoom.getReservationCount())
+                .merchant_uid(dateRoom.getDateRoomId()+dateRoom.getReservationCount())
                 .amount(dateRoom.getPrice())
                 .buyer_name(this.name)
                 .buyer_tel("none")

@@ -35,15 +35,20 @@ public class DateRoom {
     @Column(nullable = false)
     private int reservationCount;
 
+    // 굳이 필요가 없음
+//    @Column(nullable = false)
+//    private String merchantUid;
+
     @Builder
     DateRoom(LocalDate date, Room room) {
         this.date = date;
         this.room = room;
         this.roomReservationState = 0;
-        this.dateRoomId = date.toString() + "&&" + room.getId();
+        this.dateRoomId = date.toString().replaceAll("[^0-9]","") + room.getId();
         setDefaultPriceType();
         setPrice();
         this.reservationCount = 0;
+//        this.merchantUid = UUID.randomUUID().toString();
     }
 
     public void setStateBooked() throws RoomReservationException {
