@@ -19,16 +19,16 @@ public class Room {
     private String name;
 
     @Column(nullable = false)
-    private long price;
+    private int price;
 
     @Column(nullable = false)
-    private long priceWeekend;
+    private int priceWeekend;
 
     @Column(nullable = false)
-    private long priceHoliday;
+    private int priceHoliday;
 
     @Column(nullable = false)
-    private long priceSpecial;
+    private int priceSpecial;
 
     @Builder
     public Room(String name) {
@@ -39,7 +39,7 @@ public class Room {
         this.priceSpecial = 220000;
     }
 
-    public Room(String name, long price, long priceWeekend, long priceHoliday, long priceSpecial) {
+    public Room(String name, int price, int priceWeekend, int priceHoliday, int priceSpecial) {
         this.name = name;
         this.price = price;
         this.priceWeekend = priceWeekend;

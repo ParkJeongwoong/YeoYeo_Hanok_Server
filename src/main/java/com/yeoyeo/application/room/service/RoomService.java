@@ -28,7 +28,7 @@ public class RoomService {
     }
 
     @Transactional
-    public void makeRoom(String name, long price, long priceWeekend, long priceHoliday, long priceSpecial) {
+    public void makeRoom(String name, int price, int priceWeekend, int priceHoliday, int priceSpecial) {
         Room room = new Room(name, price, priceWeekend, priceHoliday, priceSpecial);
         roomRepository.save(room);
     }

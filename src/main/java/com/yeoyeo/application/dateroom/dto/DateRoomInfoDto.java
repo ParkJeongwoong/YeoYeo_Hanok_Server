@@ -12,7 +12,7 @@ public class DateRoomInfoDto {
     private final LocalDate date;
     private final long roomId;
     private final String roomName;
-    private final long price;
+    private final int price;
     private final long reservationState;
 
     public DateRoomInfoDto(DateRoom entity) {

@@ -12,7 +12,6 @@ import javax.persistence.*;
 @Entity
 public class Reservation extends BaseTimeEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
     @OneToOne
@@ -35,6 +34,7 @@ public class Reservation extends BaseTimeEntity {
 
     @Builder
     public Reservation(DateRoom dateRoom, Guest guest, Payment payment) {
+        this.id = System.currentTimeMillis();
         this.dateRoom = dateRoom;
         this.guest = guest;
         this.reservedFrom = guest.getClass().getSimpleName();

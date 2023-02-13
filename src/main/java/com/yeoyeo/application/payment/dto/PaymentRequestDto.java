@@ -15,7 +15,7 @@ public class PaymentRequestDto {
     private String name;
     private String phoneNumber;
     private String email;
-    private long guestCount;
+    private int guestCount;
     private String request;
 
     public GuestHome createGuest() {

@@ -23,13 +23,13 @@ public class GuestHome extends Guest {
     private String email;
 
     @Column
-    private long guestCount;
+    private int guestCount;
 
     @Column(length = 255)
     private String request;
 
     @Builder
-    public GuestHome(String name, String phoneNumber, String email, long guestCount, String request) {
+    public GuestHome(String name, String phoneNumber, String email, int guestCount, String request) {
         super(name);
         this.phoneNumber = phoneNumber;
         this.email = email;

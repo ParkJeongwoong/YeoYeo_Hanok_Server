@@ -24,7 +24,7 @@ public class DateRoom {
     private Room room;
 
     @Column(nullable = false)
-    private long price;
+    private int price;
 
     @Column(nullable = false)
     private int priceType; // 0 : 평일, 1 : 주말, 2 : 연휴, 3 : 특별가
