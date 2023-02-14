@@ -22,7 +22,7 @@ public class PaymentController {
     @PostMapping("/pay")
     public ResponseEntity<GeneralResponseDto> payment(@RequestBody PaymentRequestDto requestDto) {
         GeneralResponseDto responseDto = paymentService.pay(requestDto);
-        if (responseDto.getSuccessYN().equals("N")) return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseDto);
+        if (!responseDto.getSuccess()) return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseDto);
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
@@ -30,7 +30,7 @@ public class PaymentController {
     @DeleteMapping("/refund")
     public ResponseEntity<GeneralResponseDto> refund(@RequestBody RefundClientRequestDto requestDto) {
         GeneralResponseDto responseDto = paymentService.refund(requestDto);
-        if (responseDto.getSuccessYN().equals("N")) return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseDto);
+        if (!responseDto.getSuccess()) return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseDto);
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 

@@ -26,17 +26,17 @@ public class ReservationController {
     public ResponseEntity<GeneralResponseDto> createReservation(@RequestBody MakeReservationHomeRequestDto requestDto) {
         try {
             reservationService.makeReservation(requestDto.getMakeReservationHomeDto(dateRoomRepository));
-            return ResponseEntity.status(HttpStatus.OK).body(GeneralResponseDto.builder().successYN("Y").message("예약이 확정되었습니다.").build());
+            return ResponseEntity.status(HttpStatus.OK).body(GeneralResponseDto.builder().success(true).message("예약이 확정되었습니다.").build());
         } catch (ReservationException e) {
             log.error("createReservation 에러", e);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(GeneralResponseDto.builder().successYN("N").message("예약 중 오류가 발생했습니다.").build());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(GeneralResponseDto.builder().success(false).message("예약 중 오류가 발생했습니다.").build());
         }
     }
 
     @DeleteMapping("/{reservationId}")
     public ResponseEntity<GeneralResponseDto> cancelReservation(@PathVariable("reservationId") long reservationId) {
         GeneralResponseDto responseDto = reservationService.cancel(reservationId);
-        if (responseDto.getSuccessYN().equals("N")) return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseDto);
+        if (!responseDto.getSuccess()) return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseDto);
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 

@@ -5,13 +5,13 @@ import lombok.Getter;
 
 @Getter
 public class GeneralResponseDto {
-    private final String successYN;
+    private final Boolean success;
     private final long resultId;
     private final String message;
 
     @Builder
-    public GeneralResponseDto(String successYN, long resultId, String message) {
-        this.successYN = successYN;
+    public GeneralResponseDto(boolean success, long resultId, String message) {
+        this.success = success;
         this.resultId = resultId;
         this.message = message;
     }

@@ -1,15 +1,15 @@
 const SERVER_URL = "http://localhost:8080"
 
+// 고객 입력정보
+const name = '박정웅'
+const phoneNumber = '010-2033-9091'
+const email = 'dvlprjw@gmail.com'
+const guestCount = 2
+const request = "특별한 건 없습니다."
+
 function requestPay() {
     let merchant_uid = $('#merchant_uid').val()
     console.log(merchant_uid)
-
-    // 고객 입력정보
-    const name = '박정웅'
-    const phoneNumber = '010-2033-9091'
-    const email = 'dvlprjw@gmail.com'
-    const guestCount = 2
-    const request = "특별한 건 없습니다."
 
     // 아임포트
     var IMP = window.IMP; // 생략 가능
@@ -86,4 +86,27 @@ function cancelPay() {
     }).fail(function(error) { // 환불 실패시 로직
         alert("환불 실패");
     });
+}
+
+function certificate() {
+
+    // 아임포트
+    var IMP = window.IMP; // 생략 가능
+    IMP.init("imp28607423"); // 예: imp00000000
+
+    // IMP.certification(param, callback) 호출
+    IMP.certification({
+    }, function (rsp) { // callback
+        if (rsp.success) {
+            jQuery.ajax({
+                url: SERVER_URL+"/guest/certificate",
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                data: { imp_uid: rsp.imp_uid }
+            });
+        } else {
+            alert("인증에 실패하였습니다. 에러 내용: " +  rsp.error_msg);
+        }
+    });
+
 }

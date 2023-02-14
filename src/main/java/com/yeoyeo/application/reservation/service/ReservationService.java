@@ -49,19 +49,19 @@ public class ReservationService {
             reservationRepository.save(reservation);
             log.info("{} 고객님의 예약이 취소되었습니다.", reservation.getGuest().getName());
             return GeneralResponseDto.builder()
-                    .successYN("Y")
+                    .success(true)
                     .message("예약이 취소되었습니다.")
                     .build();
         } catch (ReservationException reservationException) {
             log.error("Reservation 상태 변경 에러", reservationException);
             return GeneralResponseDto.builder()
-                    .successYN("N")
+                    .success(false)
                     .message(reservationException.getMessage())
                     .build();
         } catch (RoomReservationException roomReservationException) {
             log.error("Dateroom 상태 변경 에러", roomReservationException);
             return GeneralResponseDto.builder()
-                    .successYN("N")
+                    .success(false)
                     .message(roomReservationException.getMessage())
                     .build();
         }

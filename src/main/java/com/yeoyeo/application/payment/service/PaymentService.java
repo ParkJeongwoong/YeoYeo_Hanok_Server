@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yeoyeo.application.common.dto.GeneralResponseDto;
 import com.yeoyeo.application.dateroom.repository.DateRoomRepository;
+import com.yeoyeo.application.general.webclient.WebClientService;
 import com.yeoyeo.application.payment.dto.*;
 import com.yeoyeo.application.payment.etc.exception.PaymentException;
 import com.yeoyeo.application.reservation.dto.MakeReservationHomeDto;
@@ -18,11 +19,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.BodyInserters;
-import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.List;
 import java.util.Map;
@@ -33,23 +32,20 @@ import java.util.NoSuchElementException;
 @Service
 public class PaymentService {
 
-    private final DateRoomRepository dateRoomRepository;
-    private final ReservationRepository reservationRepository;
-
-    private final ReservationService reservationService;
+    String IMP_GET_TOKEN_URL = "https://api.iamport.kr/users/getToken";
+    String IMP_GET_PAYMENT_DATA_URL = "https://api.iamport.kr/payments/";
+    String IMP_SET_REFUND_URL = "https://api.iamport.kr/payments/cancel";
 
     @Value("${payment.iamport.key}")
     String imp_key;
     @Value("${payment.iamport.secret}")
     String imp_secret;
 
-    String IMP_GET_TOKEN_URL = "https://api.iamport.kr/users/getToken";
-    String IMP_GET_PAYMENT_DATA_URL = "https://api.iamport.kr/payments/";
-    String IMP_SET_REFUND_URL = "https://api.iamport.kr/payments/cancel";
+    private final DateRoomRepository dateRoomRepository;
+    private final ReservationRepository reservationRepository;
 
-    private WebClient WebClient(String contentType) {
-        return WebClient.builder().defaultHeader(HttpHeaders.CONTENT_TYPE, contentType).build();
-    }
+    private final WebClientService webClientService;
+    private final ReservationService reservationService;
 
     @Transactional
     public GeneralResponseDto pay(PaymentRequestDto requestDto) {
@@ -71,13 +67,13 @@ public class PaymentService {
             completeReservation(dateRoom, guest, payment);
 
             return GeneralResponseDto.builder()
-                    .successYN("Y")
+                    .success(true)
                     .message("예약이 확정되었습니다.")
                     .build();
         } catch (PaymentException paymentException) {
             log.error("결제 오류가 발생했습니다.", paymentException);
             return GeneralResponseDto.builder()
-                    .successYN("N")
+                    .success(false)
                     .message(paymentException.getMessage())
                     .build();
         }
@@ -107,19 +103,19 @@ public class PaymentService {
             completeRefund(dateRoom, reservation);
 
             return GeneralResponseDto.builder()
-                    .successYN("Y")
+                    .success(true)
                     .message("환불 요청이 완료되었습니다.")
                     .build();
         } catch (PaymentException paymentException) {
             log.error("환불 오류가 발생했습니다.", paymentException);
             return GeneralResponseDto.builder()
-                    .successYN("N")
+                    .success(false)
                     .message(paymentException.getMessage())
                     .build();
         }
     }
 
-    private String getToken() {
+    public String getToken() {
         try {
             log.info("IMP_KEY : {}", imp_key);
             log.info("IMP_SECRET : {}", imp_secret);
@@ -128,7 +124,7 @@ public class PaymentService {
             ObjectMapper mapper = new ObjectMapper();
             String jsonString = mapper.writeValueAsString(requestDto);
 
-            ImpTokenResponseDto response = WebClient("application/json").post()
+            ImpTokenResponseDto response = webClientService.WebClient("application/json").post()
                                                 .uri(IMP_GET_TOKEN_URL)
                                                 .body(BodyInserters.fromValue(jsonString))
                                                 .retrieve()
@@ -152,7 +148,7 @@ public class PaymentService {
     private Map<String, Object> getPaymentData(String imp_uid, String accessToken) {
         ObjectMapper mapper = new ObjectMapper();
 
-        JSONObject response = WebClient("application/json").get()
+        JSONObject response = webClientService.WebClient("application/json").get()
                 .uri(IMP_GET_PAYMENT_DATA_URL+imp_uid)
                 .header("Authorization", accessToken)
                 .retrieve()
@@ -242,7 +238,7 @@ public class PaymentService {
             ObjectMapper mapper = new ObjectMapper();
             String jsonString = mapper.writeValueAsString(requestDto);
 
-            JSONObject response = WebClient("application/json").post()
+            JSONObject response = webClientService.WebClient("application/json").post()
                     .uri(IMP_SET_REFUND_URL)
                     .header("Authorization", accessToken)
                     .body(BodyInserters.fromValue(jsonString))
