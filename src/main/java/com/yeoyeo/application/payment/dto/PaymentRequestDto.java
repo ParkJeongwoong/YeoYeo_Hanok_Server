@@ -22,5 +22,5 @@ public class PaymentRequestDto {
         return GuestHome.builder().name(this.name).phoneNumber(this.phoneNumber).email(this.email).guestCount(this.guestCount).request(this.request).build();
     }
 
-    public String getDateRoomId() { return this.merchant_uid.substring(0,13); }
+    public String getDateRoomId() { return this.merchant_uid.substring(0,9); }
 }

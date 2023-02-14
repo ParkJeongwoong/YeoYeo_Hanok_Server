@@ -29,7 +29,7 @@ public class ReservationService {
     public long makeReservation(MakeReservationDto reservationDto) throws ReservationException {
         try {
             Reservation reservation = createReservation(reservationDto);
-            setDataPayed(reservation.getDateRoom(), reservation);
+            setDataPaid(reservation.getDateRoom(), reservation);
             reservationRepository.save(reservation);
             log.info("{} 고객님의 예약이 완료되었습니다.", reservationDto.getGuest().getName());
             return reservation.getId();
@@ -95,9 +95,9 @@ public class ReservationService {
     }
 
     @Transactional
-    private void setDataPayed(DateRoom dateRoom, Reservation reservation) throws ReservationException {
+    private void setDataPaid(DateRoom dateRoom, Reservation reservation) throws ReservationException {
         try {
-            reservation.setStatePayed();
+            reservation.setStatePaid();
             dateRoom.setStateBooked();
         } catch (RoomReservationException e) {
             log.error("예약된 날짜 에러 - {}", reservation.getGuest().getName(), e);

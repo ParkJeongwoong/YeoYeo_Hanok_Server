@@ -43,7 +43,7 @@ public class Reservation extends BaseTimeEntity {
         payment.setReservation(this);
     }
 
-    public void setStatePayed() throws ReservationException {
+    public void setStatePaid() throws ReservationException {
         if (this.reservationState == 0) {
             this.reservationState = 1;
         } else {

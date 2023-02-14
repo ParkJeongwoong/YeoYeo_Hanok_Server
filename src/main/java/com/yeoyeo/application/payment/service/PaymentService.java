@@ -23,6 +23,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.BodyInserters;
 
+import java.time.LocalDate;
+import java.time.Period;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -88,18 +90,19 @@ public class PaymentService {
             log.info("DateRoom : {}, Reservation {} {} {}", dateRoom.getDateRoomId(), reservation.getId(), reservation.getDateRoom().getDateRoomId(), reservation.getReservationState());
             Payment payment = reservation.getPayment();
             Integer cancelableAmount = payment.getCancelableAmount();
-            long requestedAmount = requestDto.getCancel_request_amount();
+            long refundableAmount = getRefundableAmount(reservation);
+            log.info("Refundable Amount : {}", refundableAmount);
 
             // 검증
-            validateRefunding(requestedAmount, cancelableAmount);
+            validateRefunding(refundableAmount, cancelableAmount);
 
             // 환불 요청
             String accessToken = getToken();
             Map<String, Object> refundData = sendRefundRequest(
-                    requestDto.getReason(), requestedAmount, cancelableAmount, payment.getImp_uid(), accessToken);
+                    requestDto.getReason(), refundableAmount, cancelableAmount, payment.getImp_uid(), accessToken);
 
             // 환불 완료
-            payment.setCanceled(requestedAmount, requestDto.getReason(), refundData.get("receipt_url").toString());
+            payment.setCanceled(refundableAmount, requestDto.getReason(), refundData.get("receipt_url").toString());
             completeRefund(dateRoom, reservation);
 
             return GeneralResponseDto.builder()
@@ -266,6 +269,31 @@ public class PaymentService {
         } catch (ReservationException reservationException) {
             throw new PaymentException(reservationException.getMessage());
         }
+    }
+
+    private long getRefundableAmount(Reservation reservation) {
+        LocalDate reservationDate = reservation.getDateRoom().getDate();
+        LocalDate now = LocalDate.now();
+        Period diff = Period.between(now, reservationDate);
+        long paidPrice = reservation.getPayment().getAmount();
+
+        log.info("남은 기간 : {}년 {}개월 {}일", diff.getYears(), diff.getMonths(), diff.getDays());
+        if (diff.getYears() > 0 || diff.getMonths() > 0 || diff.getDays() > 10) return paidPrice;
+        switch (diff.getDays()) {
+            case 10: return paidPrice;
+            case 9: return (long) (paidPrice*0.9);
+            case 8: return (long) (paidPrice*0.8);
+            case 7: return (long) (paidPrice*0.7);
+            case 6: return (long) (paidPrice*0.6);
+            case 5: return (long) (paidPrice*0.5);
+            case 4: return (long) (paidPrice*0.4);
+            case 3: return (long) (paidPrice*0.3);
+            case 2: return (long) (paidPrice*0.2);
+            case 1: return (long) (paidPrice*0.1);
+            case 0: return 0;
+        }
+        return 0;
+
     }
 
 }
