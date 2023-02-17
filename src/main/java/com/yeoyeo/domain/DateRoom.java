@@ -30,7 +30,7 @@ public class DateRoom {
     private int priceType; // 0 : 평일, 1 : 주말, 2 : 연휴, 3 : 특별가
 
     @Column(nullable = false)
-    private long roomReservationState; // 0 : 예약 가능, 1 : 예약 완료
+    private long roomReservationState; // 0 : 예약 가능, 1 : 예약 완료, 2 : 예약 대기 (Webhook)
 
     @Column(nullable = false)
     private int reservationCount;
@@ -52,7 +52,7 @@ public class DateRoom {
     }
 
     public void setStateBooked() throws RoomReservationException {
-        if (this.roomReservationState == 0) {
+        if (this.roomReservationState != 1) {
             this.roomReservationState = 1;
             this.reservationCount += 1;
         } else {
@@ -60,10 +60,22 @@ public class DateRoom {
         }
     }
 
+    public void setStateWaiting() throws RoomReservationException {
+        if (this.roomReservationState == 0) {
+            this.roomReservationState = 2;
+        } else {
+            throw new RoomReservationException("예약 대기가 불가능한 날짜입니다.");
+        }
+    }
+
     public void resetState() throws RoomReservationException {
         if (this.roomReservationState == 1) {
             this.roomReservationState = 0;
-        } else {
+        } else if (this.roomReservationState == 2) { // Webhook 수신 후 예약 정보 수신 실패
+            this.roomReservationState = 0;
+            this.reservationCount += 1;
+        }
+        else {
             throw new RoomReservationException("예약된 날짜가 아닙니다.");
         }
     }

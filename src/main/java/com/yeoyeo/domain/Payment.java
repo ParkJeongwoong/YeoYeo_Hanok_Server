@@ -16,7 +16,7 @@ public class Payment {
     private long id;
 
     @Column(nullable = false)
-    private String merchant_uid;
+    private String merchantUid;
 
     @Column(nullable = false)
     private Integer amount;
@@ -60,7 +60,7 @@ public class Payment {
     @Builder
     public Payment(String merchant_uid, Integer amount, String buyer_name, String buyer_tel, String buyer_email, String buyer_addr,
                    String imp_uid, String pay_method, String receipt_url, String status) {
-        this.merchant_uid = merchant_uid;
+        this.merchantUid = merchant_uid;
         this.amount = amount;
         this.buyer_name = buyer_name;
         this.buyer_tel = buyer_tel;

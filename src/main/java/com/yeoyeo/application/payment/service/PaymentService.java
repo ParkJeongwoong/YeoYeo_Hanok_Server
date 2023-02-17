@@ -3,10 +3,13 @@ package com.yeoyeo.application.payment.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yeoyeo.application.common.dto.GeneralResponseDto;
+import com.yeoyeo.application.payment.service.eventLoop.WaitingWebhookHandler;
+import com.yeoyeo.application.dateroom.etc.exception.RoomReservationException;
 import com.yeoyeo.application.dateroom.repository.DateRoomRepository;
 import com.yeoyeo.application.general.webclient.WebClientService;
 import com.yeoyeo.application.payment.dto.*;
 import com.yeoyeo.application.payment.etc.exception.PaymentException;
+import com.yeoyeo.application.payment.repository.PaymentRepository;
 import com.yeoyeo.application.reservation.dto.MakeReservationHomeDto;
 import com.yeoyeo.application.reservation.etc.exception.ReservationException;
 import com.yeoyeo.application.reservation.repository.ReservationRepository;
@@ -118,6 +121,55 @@ public class PaymentService {
         }
     }
 
+    @Transactional
+    public void refund(WaitingWebhookRefundDto refundDto) throws PaymentException {
+        // 결제 정보 조회
+        DateRoom dateRoom = refundDto.getDateRoom();
+        long refundAmount = refundDto.getRefundAmount();
+        Integer cancelableAmount = (Integer) (int) refundAmount;
+
+        // 환불 요청
+        String accessToken = getToken();
+        sendRefundRequest(refundDto.getReason(), refundAmount, cancelableAmount, refundDto.getImp_uid(), accessToken);
+
+        // 환불 완료
+        completeWebhookRefund(dateRoom);
+        log.info("환불 완료");
+    }
+
+    private Map<String, Object> sendRefundRequest(String reason, long requestedAmount, Integer cancelableAmount, String imp_uid, String accessToken)
+            throws PaymentException {
+        try {
+            RefundServerRequestDto requestDto = RefundServerRequestDto.builder()
+                    .reason(reason)
+                    .imp_uid(imp_uid)
+                    .cancel_request_amount(requestedAmount)
+                    .cancelableAmount(cancelableAmount).build();
+            ObjectMapper mapper = new ObjectMapper();
+            String jsonString = mapper.writeValueAsString(requestDto);
+
+            JSONObject response = webClientService.WebClient("application/json").post()
+                    .uri(IMP_SET_REFUND_URL)
+                    .header("Authorization", accessToken)
+                    .body(BodyInserters.fromValue(jsonString))
+                    .retrieve()
+                    .bodyToMono(JSONObject.class)
+                    .block();
+
+            if (response == null) {
+                throw new RuntimeException("IAMPORT Return 데이터 문제");
+            } else if (!response.get("code").toString().equals("0")) {
+                log.info(response.toString());
+                throw new PaymentException(response.get("message").toString());
+            } else {
+                log.info("REFUND DATA : {}", response.get("response").toString());
+                return mapper.convertValue(response.get("response"), Map.class);
+            }
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("requestDto JSON 변환 에러");
+        }
+    }
+
     public String getToken() {
         try {
             log.info("IMP_KEY : {}", imp_key);
@@ -148,7 +200,7 @@ public class PaymentService {
         return null;
     }
 
-    private Map<String, Object> getPaymentData(String imp_uid, String accessToken) {
+    public Map<String, Object> getPaymentData(String imp_uid, String accessToken) {
         ObjectMapper mapper = new ObjectMapper();
 
         JSONObject response = webClientService.WebClient("application/json").get()
@@ -170,6 +222,7 @@ public class PaymentService {
 
     private void validatePayment(DateRoom dateRoom, Map<String, Object> paymentData, String accessToken) throws PaymentException {
         String status = paymentData.get("status").toString();
+        String imp_uid = paymentData.get("imp_uid").toString();
         String merchant_uid = paymentData.get("merchant_uid").toString();
         long payedAmount = (long) (Integer) paymentData.get("amount");
 
@@ -179,13 +232,11 @@ public class PaymentService {
             throw new PaymentException("결제가 완료되지 않았습니다.");
         }
         if (!(dateRoom.getDateRoomId()+dateRoom.getReservationCount()).equals(merchant_uid)) {
-            log.info("비정상 결제 - 환불 작업이 진행됩니다.");
-            sendRefundRequest("서버 결제 작업 중 오류", payedAmount, (int) payedAmount, paymentData.get("imp_uid").toString(), accessToken);
+            sendRefundRequest("상품 번호가 유효하지 않은 결제", payedAmount, (int) payedAmount, imp_uid, accessToken);
             throw new PaymentException("상품 번호가 유효하지 않은 결제입니다.");
         }
         if (dateRoom.getPrice() != payedAmount) {
-            log.info("비정상 결제 - 환불 작업이 진행됩니다.");
-            sendRefundRequest("서버 결제 작업 중 오류", payedAmount, (int) payedAmount, paymentData.get("imp_uid").toString(), accessToken);
+            sendRefundRequest("결제 금액과 상품 가격 불일치", payedAmount, (int) payedAmount, imp_uid, accessToken);
             throw new PaymentException("결제 금액이 상품 가격과 일치하지 않습니다.");
         }
     }
@@ -230,44 +281,22 @@ public class PaymentService {
         if (requestedAmount > cancelableAmount) throw new PaymentException("요청된 금액이 환불가능액을 초과합니다.");
     }
 
-    private Map<String, Object> sendRefundRequest(String reason, long requestedAmount, Integer cancelableAmount, String imp_uid, String accessToken)
-            throws PaymentException {
-        try {
-            RefundServerRequestDto requestDto = RefundServerRequestDto.builder()
-                    .reason(reason)
-                    .imp_uid(imp_uid)
-                    .cancel_request_amount(requestedAmount)
-                    .cancelableAmount(cancelableAmount).build();
-            ObjectMapper mapper = new ObjectMapper();
-            String jsonString = mapper.writeValueAsString(requestDto);
-
-            JSONObject response = webClientService.WebClient("application/json").post()
-                    .uri(IMP_SET_REFUND_URL)
-                    .header("Authorization", accessToken)
-                    .body(BodyInserters.fromValue(jsonString))
-                    .retrieve()
-                    .bodyToMono(JSONObject.class)
-                    .block();
-
-            if (response == null) {
-                throw new RuntimeException("IAMPORT Return 데이터 문제");
-            } else if (!response.get("code").toString().equals("0")) {
-                log.info(response.toString());
-                throw new PaymentException(response.get("message").toString());
-            } else {
-                log.info("REFUND DATA : {}", response.get("response").toString());
-                return mapper.convertValue(response.get("response"), Map.class);
-            }
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException("requestDto JSON 변환 에러");
-        }
-    }
-
+    @Transactional
     private void completeRefund(DateRoom dateRoom, Reservation reservation) throws PaymentException {
         try {
             reservationService.cancel(dateRoom, reservation);
         } catch (ReservationException reservationException) {
             throw new PaymentException(reservationException.getMessage());
+        }
+    }
+
+    @Transactional
+    private void completeWebhookRefund(DateRoom dateRoom) throws PaymentException {
+        try {
+            dateRoom.resetState();
+            dateRoomRepository.save(dateRoom);
+        } catch (RoomReservationException roomReservationException) {
+            throw new PaymentException(roomReservationException.getMessage());
         }
     }
 
