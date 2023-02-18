@@ -231,10 +231,11 @@ public class PaymentService {
         if (!status.equals("paid")) {
             throw new PaymentException("결제가 완료되지 않았습니다.");
         }
-        if (!(dateRoom.getDateRoomId()+dateRoom.getReservationCount()).equals(merchant_uid)) {
-            sendRefundRequest("상품 번호가 유효하지 않은 결제", payedAmount, (int) payedAmount, imp_uid, accessToken);
-            throw new PaymentException("상품 번호가 유효하지 않은 결제입니다.");
-        }
+        // Todo - Test
+//        if (!(dateRoom.getDateRoomId()+dateRoom.getReservationCount()).equals(merchant_uid)) {
+//            sendRefundRequest("상품 번호가 유효하지 않은 결제", payedAmount, (int) payedAmount, imp_uid, accessToken);
+//            throw new PaymentException("상품 번호가 유효하지 않은 결제입니다.");
+//        }
         if (dateRoom.getPrice() != payedAmount) {
             sendRefundRequest("결제 금액과 상품 가격 불일치", payedAmount, (int) payedAmount, imp_uid, accessToken);
             throw new PaymentException("결제 금액이 상품 가격과 일치하지 않습니다.");
