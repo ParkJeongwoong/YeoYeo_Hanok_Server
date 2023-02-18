@@ -19,7 +19,7 @@ public class GuestHome extends Guest {
     @Column(length = 20)
     private String phoneNumber;
 
-    @Column(length = 30)
+    @Column(length = 50)
     private String email;
 
     @Column
