@@ -67,6 +67,7 @@ public class WaitingWebhookLoop extends Thread {
         DateRoom dateRoom = waitingWebhookDto.getDateRoom();
         Payment payment = paymentRepository.findByMerchantUid(merchant_uid);
         try {
+            log.info("TEST DATA : {} {}",(dateRoom.getRoomReservationState()==1), (payment != null));
             if (dateRoom.getRoomReservationState()!=1 || payment == null) {
                 WaitingWebhookRefundDto refundDto = WaitingWebhookRefundDto.builder()
                         .imp_uid(imp_uid).refundAmount(payedAmount).dateRoom(dateRoom).reason("이미 예약된 방에 결제 발생").build();
@@ -85,10 +86,6 @@ public class WaitingWebhookLoop extends Thread {
                 paymentService.refund(refundDto);
                 return;
             }
-            WaitingWebhookRefundDto refundDto = WaitingWebhookRefundDto.builder()
-                    .imp_uid(imp_uid).refundAmount(payedAmount).dateRoom(dateRoom).reason("알 수 없는 결제 정보").build();
-            paymentService.refund(refundDto);
-            throw new PaymentException("알 수 없는 결제 정보가 수신 됐습니다.");
         } catch (PaymentException paymentException) {
             log.error("결제 취소 중 에러가 발생했습니다. 확인 바랍니다.", paymentException);
             // Todo - 문자 전송

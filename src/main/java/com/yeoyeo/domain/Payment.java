@@ -87,5 +87,6 @@ public class Payment {
         this.canceled_amount = (int) canceled_amount;
         this.cancel_reason = cancel_reason;
         this.cancel_receipt_url = cancel_receipt_url;
+        this.status = "cancelled";
     }
 }
