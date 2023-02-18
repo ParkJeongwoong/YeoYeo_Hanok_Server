@@ -1,5 +1,6 @@
 package com.yeoyeo.application.payment.service.eventLoop;
 
+import com.yeoyeo.application.dateroom.repository.DateRoomRepository;
 import com.yeoyeo.application.payment.dto.WaitingWebhookDto;
 import com.yeoyeo.application.payment.dto.WaitingWebhookRefundDto;
 import com.yeoyeo.application.payment.etc.exception.PaymentException;
@@ -25,7 +26,7 @@ public class WaitingWebhookLoop extends Thread {
 
     private final WaitingWebhookQueue waitingWebhookQueue;
     private final PaymentRepository paymentRepository;
-
+    private final DateRoomRepository dateRoomRepository;
     private final PaymentService paymentService;
 
     @Override
@@ -64,7 +65,7 @@ public class WaitingWebhookLoop extends Thread {
         String imp_uid = waitingWebhookDto.getImp_uid();
         String merchant_uid = waitingWebhookDto.getMerchant_uid();
         long payedAmount = waitingWebhookDto.getPayedAmount();
-        DateRoom dateRoom = waitingWebhookDto.getDateRoom();
+        DateRoom dateRoom = dateRoomRepository.findByDateRoomId(waitingWebhookDto.getDateRoomId());
         Payment payment = paymentRepository.findByMerchantUid(merchant_uid);
         try {
             log.info("TEST DATA : {} {}",(dateRoom.getRoomReservationState()==1), (payment != null));

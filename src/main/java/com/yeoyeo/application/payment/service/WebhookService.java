@@ -54,7 +54,7 @@ public class WebhookService {
             if (payment == null) {
                 // 조건 1. 데이터 생성 X -> 1분 대기
                 dateRoom.setStateWaiting();
-                waitingWebhookHandler.add(imp_uid, merchant_uid, payedAmount, dateRoom);
+                waitingWebhookHandler.add(imp_uid, merchant_uid, payedAmount, dateRoom.getDateRoomId());
                 dateRoomRepository.save(dateRoom);
                 return;
             }
