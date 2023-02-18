@@ -30,6 +30,7 @@ public class WebhookService {
     @Transactional
     public void webhook(ImpWebHookDto webHookDto) {
         try {
+            log.info("Webhook 수신 : {} / {}", webHookDto.getImp_uid(), webHookDto.getMerchant_uid());
             DateRoom dateRoom = dateRoomRepository.findById(webHookDto.getDateRoomId()).orElseThrow(NoSuchElementException::new);
             Payment payment = paymentRepository.findByMerchantUid(webHookDto.getMerchant_uid());
             String accessToken = paymentService.getToken();
