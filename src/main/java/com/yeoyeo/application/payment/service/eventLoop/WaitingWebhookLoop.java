@@ -40,9 +40,6 @@ public class WaitingWebhookLoop extends Thread {
                     WaitingWebhookDto waitingWebhookDto = waitingWebhookQueue.getFirstWebhook();
                     if (expirationCheck(waitingWebhookDto.getExpirationTime())) {
                         expiredWaitingWebhookProcess(waitingWebhookQueue.popFirstWebhook());
-
-
-                        log.info("미예약 결제 취소 - 결제번호 : {} / 상품번호 : {}", waitingWebhookDto.getImp_uid(),waitingWebhookDto.getMerchant_uid());
                     } else {
                         Thread.sleep(getSleepTime(waitingWebhookQueue.getFirstWebhook().getExpirationTime())*1000);
                     }
@@ -68,7 +65,7 @@ public class WaitingWebhookLoop extends Thread {
             long payedAmount = waitingWebhookDto.getPayedAmount();
             DateRoom dateRoom = dateRoomRepository.findById(waitingWebhookDto.getDateRoomId()).orElseThrow(()->new PaymentException("존재하지 않는 방입니다."));
             Payment payment = paymentRepository.findByMerchantUid(merchant_uid);
-            if (dateRoom.getRoomReservationState()!=1 || payment == null) {
+            if (dateRoom.getRoomReservationState() != 1 || payment == null) {
                 WaitingWebhookRefundDto refundDto = WaitingWebhookRefundDto.builder()
                         .imp_uid(imp_uid).refundAmount(payedAmount).dateRoom(dateRoom).reason("이미 예약된 방에 결제 발생").build();
                 paymentService.refund(refundDto);
@@ -86,6 +83,7 @@ public class WaitingWebhookLoop extends Thread {
                 paymentService.refund(refundDto);
                 return;
             }
+            log.info("정상 예약 처리된 결제입니다.");
         } catch (PaymentException paymentException) {
             log.error("결제 취소 중 에러가 발생했습니다. 확인 바랍니다.", paymentException);
             // Todo - 문자 전송

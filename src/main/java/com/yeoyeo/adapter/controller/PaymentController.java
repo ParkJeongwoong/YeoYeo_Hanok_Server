@@ -36,7 +36,6 @@ public class PaymentController {
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
-    // Todo - 서버 호스팅 후 아임포트 웹훅 주소 수정 필요
     @ApiOperation(value = "WebHook", notes = "(서버전용) 아임포트 서버와 결제 정보 동기화 용도")
     @PostMapping("/webhook")
     public void webhook(@RequestBody ImpWebHookDto webHookDto) {
