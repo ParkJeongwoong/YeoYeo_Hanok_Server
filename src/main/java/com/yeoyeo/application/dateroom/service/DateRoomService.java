@@ -36,6 +36,7 @@ public class DateRoomService extends Thread {
         LocalDate date = LocalDate.now();
         log.info("TODAY : {}", date);
         for (int i=0;i<180;i++) {
+            if (dateRoomRepository.findByDateRoomId(date.toString()+"1")!=null) continue;
             try {
                 makeDateRoom(2, date);
                 makeDateRoom(1, date);
