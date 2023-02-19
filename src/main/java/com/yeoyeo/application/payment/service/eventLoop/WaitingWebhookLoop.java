@@ -34,12 +34,12 @@ public class WaitingWebhookLoop extends Thread {
         log.info("Waiting Webhook Loop 시작");
         log.info("Thread Cnt : {}", Thread.activeCount());
         while (true) {
-            log.info("클라이언트 예약 대기 Webhook 수 : {}", waitingWebhookQueue.countWaitingWebhook());
             try {
                 if (waitingWebhookQueue.getFirstWebhook() != null) {
                     WaitingWebhookDto waitingWebhookDto = waitingWebhookQueue.getFirstWebhook();
                     if (expirationCheck(waitingWebhookDto.getExpirationTime())) {
                         expiredWaitingWebhookProcess(waitingWebhookQueue.popFirstWebhook());
+                        log.info("클라이언트 예약 대기 Webhook 수 : {}", waitingWebhookQueue.countWaitingWebhook());
                     } else {
                         Thread.sleep(getSleepTime(waitingWebhookQueue.getFirstWebhook().getExpirationTime())*1000);
                     }
@@ -48,6 +48,7 @@ public class WaitingWebhookLoop extends Thread {
                 }
             } catch (InterruptedException e) {
                 log.info("Interrupted");
+                log.info("클라이언트 예약 대기 Webhook 수 : {}", waitingWebhookQueue.countWaitingWebhook());
             }
         }
     }
