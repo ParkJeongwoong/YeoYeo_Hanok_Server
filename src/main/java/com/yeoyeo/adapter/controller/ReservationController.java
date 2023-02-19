@@ -5,6 +5,7 @@ import com.yeoyeo.application.dateroom.repository.DateRoomRepository;
 import com.yeoyeo.application.reservation.dto.MakeReservationHomeRequestDto;
 import com.yeoyeo.application.reservation.etc.exception.ReservationException;
 import com.yeoyeo.application.reservation.service.ReservationService;
+import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -21,6 +22,7 @@ public class ReservationController {
     private final ReservationService reservationService;
     private final DateRoomRepository dateRoomRepository;
 
+    @ApiOperation(value = "Reservation", notes = "(관리자용) 관리자의 해당 날짜 예약 처리")
     @Transactional
     @PostMapping("/home")
     public ResponseEntity<GeneralResponseDto> createReservation(@RequestBody MakeReservationHomeRequestDto requestDto) {
@@ -33,6 +35,7 @@ public class ReservationController {
         }
     }
 
+    @ApiOperation(value = "Reservation", notes = "(관리자용) 관리자의 해당 날짜 예약 취소 처리")
     @DeleteMapping("/{reservationId}")
     public ResponseEntity<GeneralResponseDto> cancelReservation(@PathVariable("reservationId") long reservationId) {
         GeneralResponseDto responseDto = reservationService.cancel(reservationId);

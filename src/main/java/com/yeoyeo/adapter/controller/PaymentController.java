@@ -20,7 +20,7 @@ public class PaymentController {
     private final PaymentService paymentService;
     private final WebhookService webhookService;
 
-    @ApiOperation(value = "Payment", notes = "결제")
+    @ApiOperation(value = "Payment", notes = "결제 - 아임포트 결제 모듈로 결제 완료 후 결제정보+예약정보 전달")
     @PostMapping("/pay")
     public ResponseEntity<GeneralResponseDto> payment(@RequestBody PaymentRequestDto requestDto) {
         GeneralResponseDto responseDto = paymentService.pay(requestDto);

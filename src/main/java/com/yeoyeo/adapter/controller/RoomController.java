@@ -17,7 +17,7 @@ public class RoomController {
 
     private final RoomService roomService;
 
-    @ApiOperation(value = "Show rooms", notes = "생성된 방 정보 조회")
+    @ApiOperation(value = "Show rooms", notes = "방 정보 조회")
     @GetMapping("show-all")
     public ResponseEntity<List<RoomInfoDto>> showAllRooms() {
         return ResponseEntity.status(HttpStatus.OK).body(roomService.showAllRooms());
