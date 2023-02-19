@@ -18,7 +18,7 @@ public class DateRoomInfoDto {
     public DateRoomInfoDto(DateRoom entity) {
         Room room = entity.getRoom();
 
-        this.merchant_uid = entity.getDateRoomId()+entity.getReservationCount();
+        this.merchant_uid = entity.getDateRoomId()+entity.getReservationCount()+"test"; // Todo - Test용 상품번호 지우기
         this.date = entity.getDate();
         this.roomId = room.getId();
         this.roomName = room.getName();

@@ -61,14 +61,13 @@ public class WaitingWebhookLoop extends Thread {
 
     @Transactional
     private void expiredWaitingWebhookProcess(WaitingWebhookDto waitingWebhookDto) {
-        log.info("Webhook 검증 - 결제번호 : {} / 상품번호 : {}", waitingWebhookDto.getImp_uid(), waitingWebhookDto.getMerchant_uid());
-        String imp_uid = waitingWebhookDto.getImp_uid();
-        String merchant_uid = waitingWebhookDto.getMerchant_uid();
-        long payedAmount = waitingWebhookDto.getPayedAmount();
-        DateRoom dateRoom = dateRoomRepository.findByDateRoomId(waitingWebhookDto.getDateRoomId());
-        Payment payment = paymentRepository.findByMerchantUid(merchant_uid);
         try {
-            log.info("TEST DATA : {} {}",(dateRoom.getRoomReservationState()==1), (payment != null));
+            log.info("Webhook 검증 - 결제번호 : {} / 상품번호 : {}", waitingWebhookDto.getImp_uid(), waitingWebhookDto.getMerchant_uid());
+                String imp_uid = waitingWebhookDto.getImp_uid();
+            String merchant_uid = waitingWebhookDto.getMerchant_uid();
+            long payedAmount = waitingWebhookDto.getPayedAmount();
+            DateRoom dateRoom = dateRoomRepository.findById(waitingWebhookDto.getDateRoomId()).orElseThrow(()->new PaymentException("존재하지 않는 방입니다."));
+            Payment payment = paymentRepository.findByMerchantUid(merchant_uid);
             if (dateRoom.getRoomReservationState()!=1 || payment == null) {
                 WaitingWebhookRefundDto refundDto = WaitingWebhookRefundDto.builder()
                         .imp_uid(imp_uid).refundAmount(payedAmount).dateRoom(dateRoom).reason("이미 예약된 방에 결제 발생").build();

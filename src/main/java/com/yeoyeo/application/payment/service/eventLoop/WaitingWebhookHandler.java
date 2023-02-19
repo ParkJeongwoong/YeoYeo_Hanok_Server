@@ -5,7 +5,6 @@ import com.yeoyeo.application.payment.dto.WaitingWebhookDto;
 import com.yeoyeo.application.payment.etc.exception.WaitingWebhookException;
 import com.yeoyeo.application.payment.repository.PaymentRepository;
 import com.yeoyeo.application.payment.service.PaymentService;
-import com.yeoyeo.domain.DateRoom;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
