@@ -9,6 +9,7 @@ const guestCount = 2
 const request = "특별한 건 없습니다."
 
 function requestPay() {
+    let amount = $('#amount').val()
     let merchant_uid = $('#merchant_uid').val()
     console.log(merchant_uid)
 
@@ -23,7 +24,7 @@ function requestPay() {
         pay_method: "card",
         merchant_uid: merchant_uid, //고유 주문번호 (날짜+방)
         name: "여여 결제 테스트",
-        amount: 250000, // 결제금액
+        amount: amount, // 결제금액
         buyer_email: "toto9091@naver.com",
         buyer_name: "박정웅",
         buyer_tel: "010-1234-7777",
@@ -69,6 +70,7 @@ function requestPay() {
 }
 
 function cancelPay() {
+    let amount = $('#amount').val()
     let merchant_uid = $('#merchant_uid').val()
     console.log(merchant_uid)
 
@@ -78,7 +80,7 @@ function cancelPay() {
         "contentType": "application/json",
         "data": JSON.stringify({
             "merchant_uid": merchant_uid,
-            "cancel_request_amount": 250000, // 환불금액
+            "cancel_request_amount": amount, // 환불금액
             "reason": "테스트 결제 환불" // 환불사유
         }),
         "dataType": "json"
