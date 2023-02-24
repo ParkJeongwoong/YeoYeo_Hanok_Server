@@ -34,7 +34,7 @@ public class DateRoom {
     private int price;
 
     @Column(nullable = false)
-    private int priceType; // 0 : 평일, 1 : 주말, 2 : 연휴, 3 : 특별가
+    private int priceType; // 0 : 직접 설정, 1 : 평일, 2 : 주말, 3 : 평일(특가), 4 : 주말(특가)
 
     @Column(nullable = false)
     private long roomReservationState; // 0 : 예약 가능, 1 : 예약 완료, 2 : 예약 대기 (Webhook)
@@ -93,15 +93,21 @@ public class DateRoom {
         return this.priceType;
     }
 
+    public int changePrice(int price) {
+        this.price = price;
+        this.priceType = 0;
+        return this.price;
+    }
+
     private void setDefaultPriceType(WebClientService webClientService, String key) {
         DayOfWeek dayOfWeek = this.date.getDayOfWeek();
         switch (dayOfWeek) {
             case FRIDAY:
             case SATURDAY:
-                this.priceType = 1;
+                this.priceType = 2;
                 break;
             default:
-                this.priceType = 0;
+                this.priceType = 1;
                 break;
         }
         if (checkHoliday(webClientService, key)) {
@@ -111,17 +117,17 @@ public class DateRoom {
 
     private void setPrice() {
         switch (this.priceType) {
-            case 0:
+            case 1:
                 this.price = this.room.getPrice();
                 break;
-            case 1:
+            case 2:
                 this.price = this.room.getPriceWeekend();
                 break;
-            case 2:
-                this.price = this.room.getPriceHoliday();
-                break;
             case 3:
-                this.price = this.room.getPriceSpecial();
+                this.price = this.room.getPriceWeekSpecial();
+                break;
+            case 4:
+                this.price = this.room.getPriceWeekendSpecial();
                 break;
         }
     }

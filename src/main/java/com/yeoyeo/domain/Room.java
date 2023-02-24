@@ -25,33 +25,33 @@ public class Room {
     private int priceWeekend;
 
     @Column(nullable = false)
-    private int priceHoliday;
+    private int priceWeekSpecial;
 
     @Column(nullable = false)
-    private int priceSpecial;
+    private int priceWeekendSpecial;
 
     @Builder
     public Room(String name) {
         this.name = name;
         this.price = 250000;
         this.priceWeekend = 300000;
-        this.priceHoliday = 330000;
-        this.priceSpecial = 220000;
+        this.priceWeekSpecial = 270000;
+        this.priceWeekendSpecial = 330000;
     }
 
-    public Room(String name, int price, int priceWeekend, int priceHoliday, int priceSpecial) {
+    public Room(String name, int price, int priceWeekend, int priceWeekSpecial, int priceWeekendSpecial) {
         this.name = name;
         this.price = price;
         this.priceWeekend = priceWeekend;
-        this.priceHoliday = priceHoliday;
-        this.priceSpecial = priceSpecial;
+        this.priceWeekSpecial = priceWeekSpecial;
+        this.priceWeekendSpecial = priceWeekendSpecial;
     }
 
     public Room(MakeRoomDto requestDto) {
         this.name = requestDto.getName();
         this.price = requestDto.getPrice();
         this.priceWeekend = requestDto.getPriceWeekend();
-        this.priceHoliday = requestDto.getPriceHoliday();
-        this.priceSpecial = requestDto.getPriceSpecial();
+        this.priceWeekSpecial = requestDto.getPriceHoliday();
+        this.priceWeekendSpecial = requestDto.getPriceSpecial();
     }
 }
