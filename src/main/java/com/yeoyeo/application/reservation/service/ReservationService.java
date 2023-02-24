@@ -3,6 +3,7 @@ package com.yeoyeo.application.reservation.service;
 import com.yeoyeo.application.common.dto.GeneralResponseDto;
 import com.yeoyeo.application.dateroom.etc.exception.RoomReservationException;
 import com.yeoyeo.application.reservation.dto.MakeReservationDto;
+import com.yeoyeo.application.reservation.dto.ReservationInfoDto;
 import com.yeoyeo.application.reservation.etc.exception.ReservationException;
 import com.yeoyeo.application.reservation.repository.ReservationRepository;
 import com.yeoyeo.domain.DateRoom;
@@ -16,7 +17,9 @@ import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -24,6 +27,17 @@ import java.util.NoSuchElementException;
 public class ReservationService {
 
     private final ReservationRepository reservationRepository;
+
+    @Transactional
+    public List<ReservationInfoDto> showReservations(int type) {
+        switch (type) {
+            // 현재 가상계좌 결제를 사용하지 않아 미결제 상태 0이 없음
+            case 0: // 전체
+                return reservationRepository.findAll().stream().map(ReservationInfoDto::new).collect(Collectors.toList());
+            default: // 1 : 숙박 대기, 2 : 숙박 완료, 3 : 예약 취소, 4 : 환불 완료
+                return reservationRepository.findAllByReservationState(type).stream().map(ReservationInfoDto::new).collect(Collectors.toList());
+        }
+    }
 
     @Transactional
     public long makeReservation(MakeReservationDto reservationDto) throws ReservationException {
@@ -70,7 +84,7 @@ public class ReservationService {
     @Transactional
     public void cancel(DateRoom dateRoom, Reservation reservation) throws ReservationException {
         try {
-            reservation.setStateCanceled();
+            reservation.setStateRefund();
             dateRoom.resetState();
             reservationRepository.save(reservation);
             log.info("{} 고객님의 예약이 취소되었습니다.", reservation.getGuest().getName());

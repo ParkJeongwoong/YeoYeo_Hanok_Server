@@ -3,6 +3,7 @@ package com.yeoyeo.adapter.controller;
 import com.yeoyeo.application.common.dto.GeneralResponseDto;
 import com.yeoyeo.application.dateroom.repository.DateRoomRepository;
 import com.yeoyeo.application.reservation.dto.MakeReservationHomeRequestDto;
+import com.yeoyeo.application.reservation.dto.ReservationInfoDto;
 import com.yeoyeo.application.reservation.etc.exception.ReservationException;
 import com.yeoyeo.application.reservation.service.ReservationService;
 import io.swagger.annotations.ApiOperation;
@@ -13,6 +14,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @Slf4j
 @RequiredArgsConstructor
 @RestController
@@ -21,6 +24,12 @@ public class ReservationController {
 
     private final ReservationService reservationService;
     private final DateRoomRepository dateRoomRepository;
+
+    @ApiOperation(value = "Reservation List", notes = "(관리자용) 관리자의 예약 관리용 예약 정보 조회")
+    @GetMapping("/list/{type}")
+    public ResponseEntity<List<ReservationInfoDto>> showReservations(@PathVariable("type") int type) {
+        return ResponseEntity.status(HttpStatus.OK).body(reservationService.showReservations(type));
+    }
 
     @ApiOperation(value = "Reservation", notes = "(관리자용) 관리자의 해당 날짜 예약 처리")
     @Transactional

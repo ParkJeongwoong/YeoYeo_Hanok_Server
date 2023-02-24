@@ -51,6 +51,14 @@ public class Reservation extends BaseTimeEntity {
         }
     }
 
+    public void setStateComplete() throws ReservationException {
+        if (this.reservationState == 1) {
+            this.reservationState = 2;
+        } else {
+            throw new ReservationException("정상적인 예약이 아닙니다.");
+        }
+    }
+
     public void setStateCanceled() throws ReservationException {
         if (this.reservationState == 1) {
             this.reservationState = -1;

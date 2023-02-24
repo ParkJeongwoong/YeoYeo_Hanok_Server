@@ -20,7 +20,7 @@ public class DateRoomGenerator {
 
     @PostConstruct
     private void init() {
-//        roomService.makeRoom(); // 초기 방 생성 완료
+        roomService.makeRoom(); // 초기 방 생성 완료
         dateRoomService.make6MonthsDateRoom();
     }
 

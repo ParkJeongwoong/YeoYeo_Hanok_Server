@@ -124,7 +124,7 @@ public class DateRoom {
                 this.price = this.room.getPriceWeekend();
                 break;
             case 3:
-                this.price = this.room.getPriceWeekSpecial();
+                this.price = this.room.getPriceWeekdaySpecial();
                 break;
             case 4:
                 this.price = this.room.getPriceWeekendSpecial();

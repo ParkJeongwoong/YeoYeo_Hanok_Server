@@ -25,7 +25,7 @@ public class Room {
     private int priceWeekend;
 
     @Column(nullable = false)
-    private int priceWeekSpecial;
+    private int priceWeekdaySpecial;
 
     @Column(nullable = false)
     private int priceWeekendSpecial;
@@ -35,15 +35,15 @@ public class Room {
         this.name = name;
         this.price = 250000;
         this.priceWeekend = 300000;
-        this.priceWeekSpecial = 270000;
+        this.priceWeekdaySpecial = 270000;
         this.priceWeekendSpecial = 330000;
     }
 
-    public Room(String name, int price, int priceWeekend, int priceWeekSpecial, int priceWeekendSpecial) {
+    public Room(String name, int price, int priceWeekend, int priceWeekdaySpecial, int priceWeekendSpecial) {
         this.name = name;
         this.price = price;
         this.priceWeekend = priceWeekend;
-        this.priceWeekSpecial = priceWeekSpecial;
+        this.priceWeekdaySpecial = priceWeekdaySpecial;
         this.priceWeekendSpecial = priceWeekendSpecial;
     }
 
@@ -51,7 +51,7 @@ public class Room {
         this.name = requestDto.getName();
         this.price = requestDto.getPrice();
         this.priceWeekend = requestDto.getPriceWeekend();
-        this.priceWeekSpecial = requestDto.getPriceHoliday();
+        this.priceWeekdaySpecial = requestDto.getPriceHoliday();
         this.priceWeekendSpecial = requestDto.getPriceSpecial();
     }
 }
