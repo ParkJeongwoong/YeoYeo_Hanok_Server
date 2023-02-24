@@ -13,8 +13,8 @@ import javax.persistence.Entity;
 public class GuestAirbnb extends Guest {
 
     @Builder
-    public GuestAirbnb(String name) {
-        super(name);
+    public GuestAirbnb(String name, String phoneNumber, String email, int guestCount, String request) {
+        super(name, phoneNumber, email, guestCount, request);
     }
 
 }

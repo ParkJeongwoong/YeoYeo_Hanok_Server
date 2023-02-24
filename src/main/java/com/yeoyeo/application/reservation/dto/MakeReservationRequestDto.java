@@ -11,17 +11,25 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class MakeReservationRequestDto {
 
-    private String dateRoomId;
+    protected String dateRoomId;
     protected String name;
+    protected String phoneNumber;
+    protected String email;
+    protected int guestCount;
+    protected String request;
 
-    public MakeReservationRequestDto(String dateRoomId, String name) {
+    public MakeReservationRequestDto(String dateRoomId, String name, String phoneNumber, String email, int guestCount, String request) {
         this.dateRoomId = dateRoomId;
         this.name = name;
+        this.phoneNumber = phoneNumber;
+        this.email = email;
+        this.guestCount = guestCount;
+        this.request = request;
     }
 
     public MakeReservationDto getMakeReservationDto(DateRoomRepository dateRoomRepository) {
         DateRoom dateRoom = dateRoomRepository.findByDateRoomId(this.dateRoomId);
-        Guest guest = new Guest(this.name);
+        Guest guest = new Guest(this.name, this.phoneNumber, this.email, this.guestCount, this.request);
         Payment payment = Payment.builder()
                 .merchant_uid(dateRoom.getDateRoomId()+dateRoom.getReservationCount())
                 .amount(dateRoom.getPrice())

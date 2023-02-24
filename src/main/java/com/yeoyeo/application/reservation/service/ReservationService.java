@@ -3,6 +3,7 @@ package com.yeoyeo.application.reservation.service;
 import com.yeoyeo.application.common.dto.GeneralResponseDto;
 import com.yeoyeo.application.dateroom.etc.exception.RoomReservationException;
 import com.yeoyeo.application.reservation.dto.MakeReservationDto;
+import com.yeoyeo.application.reservation.dto.ReservationDetailInfoDto;
 import com.yeoyeo.application.reservation.dto.ReservationInfoDto;
 import com.yeoyeo.application.reservation.etc.exception.ReservationException;
 import com.yeoyeo.application.reservation.repository.ReservationRepository;
@@ -28,7 +29,6 @@ public class ReservationService {
 
     private final ReservationRepository reservationRepository;
 
-    @Transactional
     public List<ReservationInfoDto> showReservations(int type) {
         switch (type) {
             // 현재 가상계좌 결제를 사용하지 않아 미결제 상태 0이 없음
@@ -37,6 +37,10 @@ public class ReservationService {
             default: // 1 : 숙박 대기, 2 : 숙박 완료, 3 : 예약 취소, 4 : 환불 완료
                 return reservationRepository.findAllByReservationState(type).stream().map(ReservationInfoDto::new).collect(Collectors.toList());
         }
+    }
+
+    public ReservationDetailInfoDto getReservationInfo(long reservationId) throws ReservationException {
+        return new ReservationDetailInfoDto(reservationRepository.findById(reservationId).orElseThrow(NoSuchElementException::new));
     }
 
     @Transactional

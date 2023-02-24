@@ -3,6 +3,7 @@ package com.yeoyeo.adapter.controller;
 import com.yeoyeo.application.common.dto.GeneralResponseDto;
 import com.yeoyeo.application.dateroom.repository.DateRoomRepository;
 import com.yeoyeo.application.reservation.dto.MakeReservationHomeRequestDto;
+import com.yeoyeo.application.reservation.dto.ReservationDetailInfoDto;
 import com.yeoyeo.application.reservation.dto.ReservationInfoDto;
 import com.yeoyeo.application.reservation.etc.exception.ReservationException;
 import com.yeoyeo.application.reservation.service.ReservationService;
@@ -29,6 +30,17 @@ public class ReservationController {
     @GetMapping("/list/{type}")
     public ResponseEntity<List<ReservationInfoDto>> showReservations(@PathVariable("type") int type) {
         return ResponseEntity.status(HttpStatus.OK).body(reservationService.showReservations(type));
+    }
+
+    @ApiOperation(value = "Reservation Detail", notes = "(관리자용) 예약 상세 정보 조회")
+    @GetMapping("/{reservationId}")
+    public ResponseEntity<ReservationDetailInfoDto> getReservationInfo(@PathVariable("reservationId") long reservationId) {
+        try {
+            return ResponseEntity.status(HttpStatus.OK).body(reservationService.getReservationInfo(reservationId));
+        } catch (ReservationException e) {
+            log.error("예약 정보 조회 실패", e);
+            return ResponseEntity.status(HttpStatus.OK).body(null);
+        }
     }
 
     @ApiOperation(value = "Reservation", notes = "(관리자용) 관리자의 해당 날짜 예약 처리")

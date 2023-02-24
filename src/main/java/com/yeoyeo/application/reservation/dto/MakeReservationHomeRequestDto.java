@@ -11,19 +11,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class MakeReservationHomeRequestDto extends MakeReservationRequestDto {
 
-    private String dateRoomId;
-    private String name;
-    private String phoneNumber;
-    private String email;
-    private int guestCount;
-    private String request;
-
     public MakeReservationHomeRequestDto(String dateRoomId, String name, String phoneNumber, String email, int guestCount, String request) {
-        super(dateRoomId, name);
-        this.phoneNumber = phoneNumber;
-        this.email = email;
-        this.guestCount = guestCount;
-        this.request = request;
+        super(dateRoomId, name, phoneNumber, email, guestCount, request);
     }
 
     public MakeReservationHomeDto getMakeReservationHomeDto(DateRoomRepository dateRoomRepository) {

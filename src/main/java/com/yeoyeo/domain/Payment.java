@@ -79,7 +79,7 @@ public class Payment {
 
     public Integer getCancelableAmount() throws PaymentException {
         int cancelableAmount = this.amount - this.canceled_amount;
-        if (cancelableAmount <= 0) throw new PaymentException("이미 전액환불된 결제입니다.");
+        if (cancelableAmount <= 0) throw new PaymentException("전액환불된 결제입니다.");
         return cancelableAmount;
     }
 
