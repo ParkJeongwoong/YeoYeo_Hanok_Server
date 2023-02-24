@@ -45,4 +45,6 @@ public class WaitingWebhookHandler {
         this.waitingWebhookLoop.interrupt();
     }
 
+    public int getQueueSize() { return waitingWebhookQueue.countWaitingWebhook(); }
+
 }

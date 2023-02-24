@@ -1,11 +1,14 @@
 package com.yeoyeo.application.dateroom.service;
 
+import com.yeoyeo.application.common.dto.GeneralResponseDto;
 import com.yeoyeo.application.dateroom.dto.*;
 import com.yeoyeo.application.dateroom.repository.DateRoomRepository;
+import com.yeoyeo.application.general.webclient.WebClientService;
 import com.yeoyeo.application.room.repository.RoomRepository;
 import com.yeoyeo.domain.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,6 +23,10 @@ public class DateRoomService extends Thread {
 
     private final DateRoomRepository dateRoomRepository;
     private final RoomRepository roomRepository;
+
+    private final WebClientService webClientService;
+    @Value("${data.holiday.key}")
+    String holidayKey;
 
     public List<DateRoomInfoDto> showAllDateRooms() {
         return dateRoomRepository.findAll().stream().map(DateRoomInfoDto::new).collect(Collectors.toList());
@@ -54,6 +61,8 @@ public class DateRoomService extends Thread {
         DateRoom dateRoom = DateRoom.builder()
                 .date(date)
                 .room(room)
+                .webClientService(webClientService)
+                .key(holidayKey)
                 .build();
         dateRoomRepository.save(dateRoom);
     }
@@ -64,8 +73,29 @@ public class DateRoomService extends Thread {
         DateRoom dateRoom = DateRoom.builder()
                 .date(makeDateRoomDto.getDate())
                 .room(room)
+                .webClientService(webClientService)
+                .key(holidayKey)
                 .build();
         return dateRoomRepository.save(dateRoom).getDateRoomId();
+    }
+
+    @Transactional
+    public GeneralResponseDto makeDateRoom(int year, int month, int day, long roomId) {
+        try {
+            LocalDate date = LocalDate.of(year, month, day);
+            Room room = roomRepository.findById(roomId).orElseThrow(()->new Exception("존재하지 않는 방입니다."));
+            DateRoom dateRoom = DateRoom.builder()
+                    .date(date)
+                    .room(room)
+                    .webClientService(webClientService)
+                    .key(holidayKey)
+                    .build();
+             dateRoomRepository.save(dateRoom).getDateRoomId();
+            return new GeneralResponseDto(false, -1, "방 생성에 성공했습니다.");
+        } catch (Exception e) {
+            log.error("방 생성 중 에러 발생", e);
+            return new GeneralResponseDto(false, -1, "방 생성에 실패했습니다.");
+        }
     }
 
 }

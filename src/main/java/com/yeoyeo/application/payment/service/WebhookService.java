@@ -41,6 +41,8 @@ public class WebhookService {
         }
     }
 
+    public Integer checkWebhook() { return waitingWebhookHandler.getQueueSize(); }
+
     @Transactional
     private void validateWebHook(DateRoom dateRoom, Map<String, Object> paymentData, Payment payment) throws PaymentException {
         // Webhook이 나중에 수신되는 경우 -> payment 체크 -> 끝

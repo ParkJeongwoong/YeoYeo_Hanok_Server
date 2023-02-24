@@ -1,14 +1,21 @@
 package com.yeoyeo.domain;
 
 import com.yeoyeo.application.dateroom.etc.exception.RoomReservationException;
+import com.yeoyeo.application.general.webclient.WebClientService;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 import javax.persistence.*;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 
+@Slf4j
 @Getter
 @NoArgsConstructor
 @Entity
@@ -40,12 +47,12 @@ public class DateRoom {
 //    private String merchantUid;
 
     @Builder
-    DateRoom(LocalDate date, Room room) {
+    DateRoom(LocalDate date, Room room, WebClientService webClientService, String key) {
         this.date = date;
         this.room = room;
         this.roomReservationState = 0;
         this.dateRoomId = date.toString().replaceAll("[^0-9]","") + room.getId();
-        setDefaultPriceType();
+        setDefaultPriceType(webClientService, key);
         setPrice();
         this.reservationCount = 0;
 //        this.merchantUid = UUID.randomUUID().toString();
@@ -86,7 +93,7 @@ public class DateRoom {
         return this.priceType;
     }
 
-    private void setDefaultPriceType() {
+    private void setDefaultPriceType(WebClientService webClientService, String key) {
         DayOfWeek dayOfWeek = this.date.getDayOfWeek();
         switch (dayOfWeek) {
             case FRIDAY:
@@ -96,6 +103,9 @@ public class DateRoom {
             default:
                 this.priceType = 0;
                 break;
+        }
+        if (checkHoliday(webClientService, key)) {
+            this.priceType = 1;
         }
     }
 
@@ -114,5 +124,39 @@ public class DateRoom {
                 this.price = this.room.getPriceSpecial();
                 break;
         }
+    }
+
+    private boolean checkHoliday(WebClientService webClientService, String key) {
+        LocalDate dayAfter = this.date.plusDays(1);
+        String year = String.valueOf(dayAfter.getYear());
+        String month = dayAfter.getMonthValue()>9 ? String.valueOf(dayAfter.getMonthValue()) : "0"+dayAfter.getMonthValue();
+        String day = dayAfter.getDayOfMonth()>9 ? String.valueOf(dayAfter.getDayOfMonth()) : "0"+dayAfter.getDayOfMonth();
+        String url = "http://apis.data.go.kr/B090041/openapi/service/SpcdeInfoService/getRestDeInfo?solYear="+year+"&solMonth="+month+"&_type=json&ServiceKey="+key;
+        JSONParser parser = new JSONParser();
+
+        JSONObject response = webClientService.get("application/json;charset=UTF-8", url);
+        if (response == null) { throw new RuntimeException("Return 데이터 문제"); }
+        try {
+            response = (JSONObject) parser.parse(response.toString().replaceAll("\"","\\\""));
+            JSONObject res = (JSONObject) response.get("response");
+            JSONObject body = (JSONObject) res.get("body");
+            String totalCount = body.get("totalCount").toString();
+            if (totalCount.equals("0")) return false;
+            JSONObject items = (JSONObject) body.get("items");
+            if (totalCount.equals("1")) { // 1개면 그냥 객체로 응답됨
+                JSONObject holiday = (JSONObject) items.get("item");
+                String date = holiday.get("locdate").toString();
+                return (date.equals(year + month + day));
+            } else {
+                JSONArray holidays = (JSONArray) items.get("item");
+                for (Object holiday : holidays) { // 2개 이상이면 배열로 응답됨
+                    String date = ((JSONObject) holiday).get("locdate").toString();
+                    if ((date.equals(year + month + day))) return true;
+                }
+            }
+        } catch (ParseException e) {
+            log.error("공휴일 공공 데이터 확인 중 JSON Parsing Error 발생", e);
+        }
+        return false;
     }
 }

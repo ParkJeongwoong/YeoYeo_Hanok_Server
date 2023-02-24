@@ -38,6 +38,7 @@ public class GuestService {
                 .retrieve()
                 .bodyToMono(ImpCertResponseDto.class)
                 .block();
+//        ImpCertResponseDto test = webClientService.getWithAuth("application/json", IMP_GET_CERT_URL+imp_uid, accessToken, ImpCertResponseDto.class);
         if (response == null) throw new GuestException("IAMPORT Return 데이터 문제");
         else if (response.getCode() != 0) throw new GuestException("유효하지 않은 인증입니다.");
         return response;

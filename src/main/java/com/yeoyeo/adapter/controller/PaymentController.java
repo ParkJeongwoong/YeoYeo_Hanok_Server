@@ -42,5 +42,8 @@ public class PaymentController {
         webhookService.webhook(webHookDto);
     }
 
+    @ApiOperation(value = "WebHook", notes = "(서버전용) 배포 전 기다리고 있는 예약 정보가 있는지 확인")
+    @GetMapping("/webhook")
+    public ResponseEntity<Integer> checkWebhook() { return ResponseEntity.status(HttpStatus.OK).body(webhookService.checkWebhook()); }
 
 }

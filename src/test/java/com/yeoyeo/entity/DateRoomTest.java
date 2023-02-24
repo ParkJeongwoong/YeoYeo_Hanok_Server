@@ -1,10 +1,12 @@
 package com.yeoyeo.entity;
 
 import com.yeoyeo.application.dateroom.etc.exception.RoomReservationException;
+import com.yeoyeo.application.general.webclient.WebClientService;
 import com.yeoyeo.domain.*;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
@@ -17,6 +19,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest
 public class DateRoomTest {
 
+    private WebClientService webClientService;
+    @Value("${data.holiday.key}")
+    String holidayKey;
+
     @Test
     public void test_setStateBooked() {
         // Given
@@ -26,10 +32,14 @@ public class DateRoomTest {
         DateRoom dateRoom1 = DateRoom.builder()
                 .date(now)
                 .room(room1)
+                .webClientService(webClientService)
+                .key(holidayKey)
                 .build();
         DateRoom dateRoom2 = DateRoom.builder()
                 .date(now)
                 .room(room2)
+                .webClientService(webClientService)
+                .key(holidayKey)
                 .build();
 
         // When

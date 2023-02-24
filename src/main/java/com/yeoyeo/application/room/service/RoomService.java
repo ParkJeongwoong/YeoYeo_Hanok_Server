@@ -21,12 +21,12 @@ public class RoomService {
         return roomRepository.findAll().stream().map(RoomInfoDto::new).collect(Collectors.toList());
     }
 
-    // 초기 방 생성 완료
-//    @Transactional
-//    public void makeRoom() {
-//        roomRepository.save(Room.builder().name("A").build());
-//        roomRepository.save(Room.builder().name("B").build());
-//    }
+    // 초기 방 생성 완료로 사용 X
+    @Transactional
+    public void makeRoom() {
+        roomRepository.save(Room.builder().name("A호실").build());
+        roomRepository.save(Room.builder().name("B호실").build());
+    }
 
     @Transactional
     public void makeRoom(String name, int price, int priceWeekend, int priceHoliday, int priceSpecial) {

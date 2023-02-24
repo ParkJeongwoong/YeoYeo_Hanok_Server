@@ -93,19 +93,19 @@ public class PaymentService {
             log.info("DateRoom : {}, Reservation {} {} {}", dateRoom.getDateRoomId(), reservation.getId(), reservation.getDateRoom().getDateRoomId(), reservation.getReservationState());
             Payment payment = reservation.getPayment();
             Integer cancelableAmount = payment.getCancelableAmount();
-            long refundableAmount = getRefundableAmount(reservation);
-            log.info("Refundable Amount : {}", refundableAmount);
+            long refundAmount = getRefundableAmount(reservation);
+            log.info("Refundable Amount : {}", refundAmount);
 
             // 검증
-            validateRefunding(refundableAmount, cancelableAmount);
+            validateRefunding(refundAmount, cancelableAmount);
 
             // 환불 요청
             String accessToken = getToken();
             Map<String, Object> refundData = sendRefundRequest(
-                    requestDto.getReason(), refundableAmount, cancelableAmount, payment.getImp_uid(), accessToken);
+                    requestDto.getReason(), refundAmount, cancelableAmount, payment.getImp_uid(), accessToken);
 
             // 환불 완료
-            payment.setCanceled(refundableAmount, requestDto.getReason(), refundData.get("receipt_url").toString());
+            payment.setCanceled(refundAmount, requestDto.getReason(), refundData.get("receipt_url").toString());
             completeRefund(dateRoom, reservation);
 
             return GeneralResponseDto.builder()
@@ -141,6 +141,8 @@ public class PaymentService {
     private Map<String, Object> sendRefundRequest(String reason, long requestedAmount, Integer cancelableAmount, String imp_uid, String accessToken)
             throws PaymentException {
         try {
+            if (requestedAmount<=0) throw new PaymentException("환불할 금액이 없습니다.");
+
             RefundServerRequestDto requestDto = RefundServerRequestDto.builder()
                     .reason(reason)
                     .imp_uid(imp_uid)
@@ -324,7 +326,6 @@ public class PaymentService {
             case 0: return 0;
         }
         return 0;
-
     }
 
 }
