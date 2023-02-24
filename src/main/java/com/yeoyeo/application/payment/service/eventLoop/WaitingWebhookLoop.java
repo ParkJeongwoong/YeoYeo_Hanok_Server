@@ -22,7 +22,7 @@ import java.util.Objects;
 @Component
 public class WaitingWebhookLoop extends Thread {
 
-    private static final long SLEEP_INTERVAL_BY_MINUTE = 1;
+    private static final long SLEEP_INTERVAL_BY_MINUTE = 360;
 
     private final WaitingWebhookQueue waitingWebhookQueue;
     private final PaymentRepository paymentRepository;

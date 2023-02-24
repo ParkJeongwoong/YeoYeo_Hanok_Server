@@ -20,7 +20,7 @@ public class ReservationScheduler {
     private final ReservationRepository reservationRepository;
 
     @Transactional
-    @Scheduled(cron = "1 0 0 * * *")
+    @Scheduled(cron = "0 1 0 * * *")
     private void dailyRoomCreation() {
         LocalDate today = LocalDate.now();
         List<Reservation> reservationList = reservationRepository.findAllByReservationState(1);
