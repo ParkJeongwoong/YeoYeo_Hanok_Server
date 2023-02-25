@@ -6,12 +6,11 @@ const name = '박정웅'
 const phoneNumber = '010-2033-9091'
 const email = 'dvlprjw@gmail.com'
 const guestCount = 2
-const request = "특별한 건 없습니다."
 
 function requestPay() {
     let amount = $('#amount').val()
     let merchant_uid = $('#merchant_uid').val()
-    console.log(merchant_uid)
+    let request = $('#request').val()
 
     // 아임포트
     var IMP = window.IMP; // 생략 가능

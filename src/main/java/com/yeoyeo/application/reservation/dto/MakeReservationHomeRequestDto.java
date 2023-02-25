@@ -16,7 +16,6 @@ public class MakeReservationHomeRequestDto extends MakeReservationRequestDto {
     }
 
     public MakeReservationHomeDto getMakeReservationHomeDto(DateRoomRepository dateRoomRepository) {
-        System.out.println(this.dateRoomId + this.name + this.phoneNumber);
         DateRoom dateRoom = dateRoomRepository.findByDateRoomId(this.dateRoomId);
         GuestHome guest = GuestHome.builder()
                 .name(this.name)
