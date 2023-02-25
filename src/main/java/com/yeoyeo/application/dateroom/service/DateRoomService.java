@@ -13,8 +13,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -28,14 +28,16 @@ public class DateRoomService extends Thread {
     @Value("${data.holiday.key}")
     String holidayKey;
 
-    public List<DateRoomInfoDto> showAllDateRooms() {
-        return dateRoomRepository.findAll().stream().map(DateRoomInfoDto::new).collect(Collectors.toList());
+    public List<DateRoomInfoListDto> showAllDateRooms() {
+        List<DateRoom> dateRoomList =  dateRoomRepository.findAllOrderByDate();
+        return getDateRoomInfoListDtoList(dateRoomList);
     }
 
-    public List<DateRoomInfoDto> show2MonthsDateRooms(int year, int month) {
+    public List<DateRoomInfoListDto> show2MonthsDateRooms(int year, int month) {
         LocalDate startDate = LocalDate.of(year, month, 1);
         LocalDate endDate = LocalDate.of(year, month+2, 1).minusDays(1);
-        return dateRoomRepository.findAllByDateBetween(startDate, endDate).stream().map(DateRoomInfoDto::new).collect(Collectors.toList());
+        List<DateRoom> dateRoomList =  dateRoomRepository.findAllByDateBetweenOrderByDate(startDate, endDate);
+        return getDateRoomInfoListDtoList(dateRoomList);
     }
 
     @Transactional
@@ -96,6 +98,19 @@ public class DateRoomService extends Thread {
             log.error("방 생성 중 에러 발생", e);
             return new GeneralResponseDto(false, -1, "방 생성에 실패했습니다.");
         }
+    }
+
+    private List<DateRoomInfoListDto> getDateRoomInfoListDtoList(List<DateRoom> dateRoomList) {
+        List<DateRoomInfoListDto> dateRoomInfoListDtos = new ArrayList<>();
+        dateRoomList.forEach(dateRoom -> {
+            DateRoomInfoListDto lastDto = dateRoomInfoListDtos.get(dateRoomInfoListDtos.size()-1);
+            if (lastDto.getDate().isEqual(dateRoom.getDate())) lastDto.addDateRoomInfo(new DateRoomInfoDto(dateRoom));
+            else {
+                DateRoomInfoListDto newDto = new DateRoomInfoListDto(dateRoom.getDate(), new DateRoomInfoDto(dateRoom));
+                dateRoomInfoListDtos.add(newDto);
+            }
+        });
+        return dateRoomInfoListDtos;
     }
 
 }

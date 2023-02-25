@@ -1,6 +1,7 @@
 package com.yeoyeo.application.dateroom;
 
 import com.yeoyeo.application.dateroom.dto.DateRoomInfoDto;
+import com.yeoyeo.application.dateroom.dto.DateRoomInfoListDto;
 import com.yeoyeo.application.dateroom.dto.MakeDateRoomDto;
 import com.yeoyeo.application.dateroom.etc.exception.RoomReservationException;
 import com.yeoyeo.application.dateroom.repository.DateRoomRepository;
@@ -100,15 +101,14 @@ public class DateRoomServiceTest {
         dateRoomRepository.save(dateRoom2);
 
         // When
-        List<DateRoomInfoDto> dateRoomInfoDtoList = dateRoomService.showAllDateRooms();
+        List<DateRoomInfoListDto> dateRoomInfoListDtos = dateRoomService.showAllDateRooms();
 
         // Then
-        DateRoomInfoDto dateRoomInfo1 = dateRoomInfoDtoList.get(1);
-        DateRoomInfoDto dateRoomInfo2 = dateRoomInfoDtoList.get(0);
-        assertThat(dateRoomInfo1.getDate()).isEqualTo(now);
+        DateRoomInfoDto dateRoomInfo1 = dateRoomInfoListDtos.get(0).getRooms().get(1);
+        DateRoomInfoDto dateRoomInfo2 = dateRoomInfoListDtos.get(0).getRooms().get(0);
+        assertThat(dateRoomInfoListDtos.get(0).getDate()).isEqualTo(now);
         assertThat(dateRoomInfo1.getRoomId()).isEqualTo(roomId1);
         assertThat(dateRoomInfo1.getReservationState()).isEqualTo(0);
-        assertThat(dateRoomInfo2.getDate()).isEqualTo(now);
         assertThat(dateRoomInfo2.getRoomId()).isEqualTo(roomId2);
         assertThat(dateRoomInfo2.getReservationState()).isEqualTo(0);
     }
