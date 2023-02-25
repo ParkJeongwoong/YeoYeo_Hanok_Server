@@ -110,9 +110,9 @@ public class DateRoom {
                 this.priceType = 1;
                 break;
         }
-//        if (checkHoliday(webClientService, key)) {
-//            this.priceType = 1;
-//        }
+        if (checkHoliday(webClientService, key)) {
+            this.priceType = 1;
+        }
     }
 
     private void setPrice() {

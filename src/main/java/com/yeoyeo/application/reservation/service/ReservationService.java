@@ -7,6 +7,7 @@ import com.yeoyeo.application.reservation.dto.ReservationDetailInfoDto;
 import com.yeoyeo.application.reservation.dto.ReservationInfoDto;
 import com.yeoyeo.application.reservation.etc.exception.ReservationException;
 import com.yeoyeo.application.reservation.repository.ReservationRepository;
+import com.yeoyeo.application.sms.service.SmsService;
 import com.yeoyeo.domain.DateRoom;
 import com.yeoyeo.domain.Guest;
 import com.yeoyeo.domain.Payment;
@@ -28,14 +29,15 @@ import java.util.stream.Collectors;
 public class ReservationService {
 
     private final ReservationRepository reservationRepository;
+    private final SmsService smsService;
 
     public List<ReservationInfoDto> showReservations(int type) {
-        switch (type) {
-            // 현재 가상계좌 결제를 사용하지 않아 미결제 상태 0이 없음
-            case 0: // 전체
-                return reservationRepository.findAllByOrderByDateRoom_Date().stream().map(ReservationInfoDto::new).collect(Collectors.toList());
-            default: // 1 : 숙박 대기, 2 : 숙박 완료, 3 : 예약 취소, 4 : 환불 완료
-                return reservationRepository.findAllByReservationStateOrderByDateRoom_Date(type).stream().map(ReservationInfoDto::new).collect(Collectors.toList());
+        // 현재 가상계좌 결제를 사용하지 않아 미결제 상태 0이 없음
+
+        if (type == 0) { // 전체
+            return reservationRepository.findAllByOrderByDateRoom_Date().stream().map(ReservationInfoDto::new).collect(Collectors.toList());
+        } else { // 1 : 숙박 대기, 2 : 숙박 완료, 3 : 예약 취소, 4 : 환불 완료
+            return reservationRepository.findAllByReservationStateOrderByDateRoom_Date(type).stream().map(ReservationInfoDto::new).collect(Collectors.toList());
         }
     }
 
@@ -49,6 +51,7 @@ public class ReservationService {
             Reservation reservation = createReservation(reservationDto);
             setDataPaid(reservation.getDateRoom(), reservation);
             reservationRepository.save(reservation);
+            smsService.sendReservationSms(reservationDto.getGuest().getPhoneNumberOnlyNumber());
             log.info("{} 고객님의 예약이 완료되었습니다.", reservationDto.getGuest().getName());
             return reservation.getId();
         } catch (ReservationException reservationException) {
@@ -65,6 +68,7 @@ public class ReservationService {
             reservation.setStateCanceled();
             dateRoom.resetState();
             reservationRepository.save(reservation);
+            smsService.sendCancelSms(reservation.getGuest().getPhoneNumberOnlyNumber());
             log.info("{} 고객님의 예약이 취소되었습니다.", reservation.getGuest().getName());
             return GeneralResponseDto.builder()
                     .success(true)

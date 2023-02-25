@@ -38,4 +38,8 @@ public class Guest {
         this.guestCount = guestCount;
         this.request = request;
     }
+
+    public String getPhoneNumberOnlyNumber() {
+        return phoneNumber.replaceAll("[^0-9]","");
+    }
 }

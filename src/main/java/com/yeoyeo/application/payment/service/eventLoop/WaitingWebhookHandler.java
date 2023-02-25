@@ -5,6 +5,7 @@ import com.yeoyeo.application.payment.dto.WaitingWebhookDto;
 import com.yeoyeo.application.payment.etc.exception.WaitingWebhookException;
 import com.yeoyeo.application.payment.repository.PaymentRepository;
 import com.yeoyeo.application.payment.service.PaymentService;
+import com.yeoyeo.application.sms.service.SmsService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -25,10 +26,11 @@ public class WaitingWebhookHandler {
     private final PaymentRepository paymentRepository;
     private final DateRoomRepository dateRoomRepository;
     private final PaymentService paymentService;
+    private final SmsService smsService;
 
     @PostConstruct
     private void run() {
-        this.waitingWebhookLoop = new WaitingWebhookLoop(waitingWebhookQueue, paymentRepository, dateRoomRepository, paymentService);
+        this.waitingWebhookLoop = new WaitingWebhookLoop(waitingWebhookQueue, paymentRepository, dateRoomRepository, paymentService, smsService);
         waitingWebhookLoop.start();
     }
 

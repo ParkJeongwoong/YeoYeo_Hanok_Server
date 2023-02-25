@@ -7,6 +7,8 @@ import com.yeoyeo.application.reservation.dto.ReservationDetailInfoDto;
 import com.yeoyeo.application.reservation.dto.ReservationInfoDto;
 import com.yeoyeo.application.reservation.etc.exception.ReservationException;
 import com.yeoyeo.application.reservation.service.ReservationService;
+import com.yeoyeo.application.sms.dto.SendMessageResponseDto;
+import com.yeoyeo.application.sms.service.SmsService;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -62,6 +64,13 @@ public class ReservationController {
         GeneralResponseDto responseDto = reservationService.cancel(reservationId);
         if (!responseDto.getSuccess()) return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseDto);
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
+    // TEST
+    private final SmsService smsService;
+    @PostMapping("/message/{to}/{sub}/{cont}")
+    public SendMessageResponseDto test(@PathVariable("to") String to, @PathVariable("sub") String sub, @PathVariable("cont") String cont) {
+        return smsService.test(sub, cont, to);
     }
 
 }

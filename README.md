@@ -1,9 +1,11 @@
 [Todo]
 
-**AWS  보안**
-관리자 페이지
-busy waiting 개선 (reactor pattern)
-대기큐 DB 저장 -> 서버 재가동 시 환불 처리
+- SMS 인증 구현
+- 예약 완료 SMS 보내기 구현 v
+- **AWS  보안**
+- 관리자 페이지
+- busy waiting 개선 (reactor pattern)
+- 대기큐 DB 저장 -> 서버 재가동 시 환불 처리
 
 [관리자 페이지]
 

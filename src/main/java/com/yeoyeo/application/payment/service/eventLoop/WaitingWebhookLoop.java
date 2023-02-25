@@ -6,6 +6,7 @@ import com.yeoyeo.application.payment.dto.WaitingWebhookRefundDto;
 import com.yeoyeo.application.payment.etc.exception.PaymentException;
 import com.yeoyeo.application.payment.repository.PaymentRepository;
 import com.yeoyeo.application.payment.service.PaymentService;
+import com.yeoyeo.application.sms.service.SmsService;
 import com.yeoyeo.domain.DateRoom;
 import com.yeoyeo.domain.Payment;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +29,7 @@ public class WaitingWebhookLoop extends Thread {
     private final PaymentRepository paymentRepository;
     private final DateRoomRepository dateRoomRepository;
     private final PaymentService paymentService;
+    private final SmsService smsService;
 
     @Override
     public void run() {
@@ -87,7 +89,7 @@ public class WaitingWebhookLoop extends Thread {
             log.info("정상 예약 처리된 결제입니다.");
         } catch (PaymentException paymentException) {
             log.error("결제 취소 중 에러가 발생했습니다. 확인 바랍니다.", paymentException);
-            // Todo - 문자 전송
+            // Todo - 에러 발생 문자 전송
         }
     }
 

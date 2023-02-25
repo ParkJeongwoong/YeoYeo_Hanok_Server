@@ -234,7 +234,7 @@ public class PaymentService {
         if (!status.equals("paid")) {
             throw new PaymentException("결제가 완료되지 않았습니다.");
         }
-        // Todo - Test 완료 수 검증 추가
+        // Todo - Test 완료 후 상품번호 검증 추가
 //        if (!(dateRoom.getDateRoomId()+dateRoom.getReservationCount()).equals(merchant_uid)) {
 //            sendRefundRequest("상품 번호가 유효하지 않은 결제", payedAmount, (int) payedAmount, imp_uid, accessToken);
 //            throw new PaymentException("상품 번호가 유효하지 않은 결제입니다.");
@@ -254,8 +254,6 @@ public class PaymentService {
         } catch (ReservationException reservationException) {
             throw new PaymentException(reservationException.getMessage());
         }
-
-        // Todo : 결제 완료 문자 전송
     }
 
     private Payment makePayment(Map<String, Object> paymentData) {
