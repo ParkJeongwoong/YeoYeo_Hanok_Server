@@ -15,7 +15,6 @@ public class ReservationInfoDto {
     private final long reservationState;
     // 손님
     private final String guestName;
-    private final String phoneNumber;
     private final int guestCount;
     // 결제
     private final String paymentStatus;
@@ -26,7 +25,6 @@ public class ReservationInfoDto {
         this.roomName = entity.getDateRoom().getRoom().getName();
         this.reservationState = entity.getReservationState();
         this.guestName = entity.getGuest().getName();
-        this.phoneNumber = entity.getGuest().getPhoneNumber();
         this.guestCount = entity.getGuest().getGuestCount();
         this.paymentStatus = entity.getPayment().getStatus();
     }

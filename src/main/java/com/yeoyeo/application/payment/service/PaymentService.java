@@ -88,8 +88,8 @@ public class PaymentService {
     public GeneralResponseDto refund(RefundClientRequestDto requestDto) {
         try {
             // 결제 정보 조회
-            DateRoom dateRoom = dateRoomRepository.findByDateRoomId(requestDto.getDateRoomId());
-            Reservation reservation = getRefundableReservation(dateRoom);
+            Reservation reservation = requestDto.getValidatedReservation(reservationRepository);
+            DateRoom dateRoom = reservation.getDateRoom();
             log.info("DateRoom : {}, Reservation {} {} {}", dateRoom.getDateRoomId(), reservation.getId(), reservation.getDateRoom().getDateRoomId(), reservation.getReservationState());
             Payment payment = reservation.getPayment();
             Integer cancelableAmount = payment.getCancelableAmount();

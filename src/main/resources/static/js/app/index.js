@@ -70,17 +70,16 @@ function requestPay() {
 }
 
 function cancelPay() {
-    let amount = $('#amount').val()
-    let merchant_uid = $('#merchant_uid').val()
-    console.log(merchant_uid)
+    let reservationId = $('#reservationId').val()
+    let phoneNumber = $('#phoneNumber').val()
 
     jQuery.ajax({
         "url": SERVER_URL+"/payment/refund",
         "type": "DELETE",
         "contentType": "application/json",
         "data": JSON.stringify({
-            "merchant_uid": merchant_uid,
-            "cancel_request_amount": amount, // 환불금액
+            "reservationId": reservationId,
+            "phoneNumber": phoneNumber,
             "reason": "테스트 결제 환불" // 환불사유
         }),
         "dataType": "json"

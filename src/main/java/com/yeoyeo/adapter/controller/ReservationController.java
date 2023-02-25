@@ -26,7 +26,7 @@ public class ReservationController {
     private final ReservationService reservationService;
     private final DateRoomRepository dateRoomRepository;
 
-    @ApiOperation(value = "Reservation List", notes = "(관리자용) 관리자의 예약 관리용 예약 정보 조회")
+    @ApiOperation(value = "Reservation List", notes = "(관리자용) 관리자의 예약 관리용 예약 정보 조회 (0 : 전체, 1 : 숙박 대기, 2 : 숙박 완료, 3 : 예약 취소, 4 : 환불 완료")
     @GetMapping("/list/{type}")
     public ResponseEntity<List<ReservationInfoDto>> showReservations(@PathVariable("type") int type) {
         return ResponseEntity.status(HttpStatus.OK).body(reservationService.showReservations(type));
