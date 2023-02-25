@@ -29,7 +29,7 @@ public class DateRoomService extends Thread {
     String holidayKey;
 
     public List<DateRoomInfoListDto> showAllDateRooms() {
-        List<DateRoom> dateRoomList =  dateRoomRepository.findAllOrderByDate();
+        List<DateRoom> dateRoomList =  dateRoomRepository.findAllByOrderByDate();
         return getDateRoomInfoListDtoList(dateRoomList);
     }
 
