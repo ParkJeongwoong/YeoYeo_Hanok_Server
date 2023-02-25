@@ -103,11 +103,16 @@ public class DateRoomService extends Thread {
     private List<DateRoomInfoListDto> getDateRoomInfoListDtoList(List<DateRoom> dateRoomList) {
         List<DateRoomInfoListDto> dateRoomInfoListDtos = new ArrayList<>();
         dateRoomList.forEach(dateRoom -> {
-            DateRoomInfoListDto lastDto = dateRoomInfoListDtos.get(dateRoomInfoListDtos.size()-1);
-            if (lastDto.getDate().isEqual(dateRoom.getDate())) lastDto.addDateRoomInfo(new DateRoomInfoDto(dateRoom));
-            else {
+            if (dateRoomInfoListDtos.size()==0) {
                 DateRoomInfoListDto newDto = new DateRoomInfoListDto(dateRoom.getDate(), new DateRoomInfoDto(dateRoom));
                 dateRoomInfoListDtos.add(newDto);
+            } else {
+                DateRoomInfoListDto lastDto = dateRoomInfoListDtos.get(dateRoomInfoListDtos.size()-1);
+                if (lastDto.getDate().isEqual(dateRoom.getDate())) lastDto.addDateRoomInfo(new DateRoomInfoDto(dateRoom));
+                else {
+                    DateRoomInfoListDto newDto = new DateRoomInfoListDto(dateRoom.getDate(), new DateRoomInfoDto(dateRoom));
+                    dateRoomInfoListDtos.add(newDto);
+                }
             }
         });
         return dateRoomInfoListDtos;
