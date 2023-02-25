@@ -33,9 +33,9 @@ public class ReservationService {
         switch (type) {
             // 현재 가상계좌 결제를 사용하지 않아 미결제 상태 0이 없음
             case 0: // 전체
-                return reservationRepository.findAll().stream().map(ReservationInfoDto::new).collect(Collectors.toList());
+                return reservationRepository.findAllByOrderByDateRoom_Date().stream().map(ReservationInfoDto::new).collect(Collectors.toList());
             default: // 1 : 숙박 대기, 2 : 숙박 완료, 3 : 예약 취소, 4 : 환불 완료
-                return reservationRepository.findAllByReservationState(type).stream().map(ReservationInfoDto::new).collect(Collectors.toList());
+                return reservationRepository.findAllByReservationStateOrderByDateRoom_Date(type).stream().map(ReservationInfoDto::new).collect(Collectors.toList());
         }
     }
 

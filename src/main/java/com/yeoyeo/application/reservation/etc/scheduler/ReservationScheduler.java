@@ -23,10 +23,11 @@ public class ReservationScheduler {
     @Scheduled(cron = "0 1 0 * * *")
     private void dailyRoomCreation() {
         LocalDate today = LocalDate.now();
-        List<Reservation> reservationList = reservationRepository.findAllByReservationState(1);
+        List<Reservation> reservationList = reservationRepository.findAllByReservationStateOrderByDateRoom_Date(1);
         try {
             for (Reservation reservation : reservationList) {
                 if (reservation.getDateRoom().getDate().isBefore(today)) reservation.setStateComplete();
+                else break;
             }
             reservationRepository.saveAll(reservationList);
         } catch (ReservationException reservationException) {
