@@ -42,6 +42,9 @@ public class DateRoom {
     @Column(nullable = false)
     private int reservationCount;
 
+    @Column(nullable = false)
+    private boolean isReservable;
+
     // 굳이 필요가 없음
 //    @Column(nullable = false)
 //    private String merchantUid;
@@ -55,6 +58,7 @@ public class DateRoom {
         setDefaultPriceType(webClientService, key);
         setPrice();
         this.reservationCount = 0;
+        this.isReservable = true;
 //        this.merchantUid = UUID.randomUUID().toString();
     }
 
@@ -165,4 +169,13 @@ public class DateRoom {
         }
         return false;
     }
+
+    public void setReservable() {
+        this.isReservable = true;
+    }
+
+    public void setUnReservable() {
+        this.isReservable = false;
+    }
+
 }

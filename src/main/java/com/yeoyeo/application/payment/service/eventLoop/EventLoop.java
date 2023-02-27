@@ -21,7 +21,7 @@ import java.util.Objects;
 @Slf4j
 @RequiredArgsConstructor
 @Component
-public class WaitingWebhookLoop extends Thread {
+public class EventLoop extends Thread {
 
     private static final long SLEEP_INTERVAL_BY_MINUTE = 360;
 
@@ -33,7 +33,7 @@ public class WaitingWebhookLoop extends Thread {
 
     @Override
     public void run() {
-        log.info("Waiting Webhook Loop 시작");
+        log.info("Event Loop 시작");
         log.info("Thread Cnt : {}", Thread.activeCount());
         while (true) {
             try {

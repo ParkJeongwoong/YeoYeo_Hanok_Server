@@ -3,13 +3,11 @@ package com.yeoyeo.application.payment.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yeoyeo.application.common.dto.GeneralResponseDto;
-import com.yeoyeo.application.payment.service.eventLoop.WaitingWebhookHandler;
 import com.yeoyeo.application.dateroom.etc.exception.RoomReservationException;
 import com.yeoyeo.application.dateroom.repository.DateRoomRepository;
 import com.yeoyeo.application.general.webclient.WebClientService;
 import com.yeoyeo.application.payment.dto.*;
 import com.yeoyeo.application.payment.etc.exception.PaymentException;
-import com.yeoyeo.application.payment.repository.PaymentRepository;
 import com.yeoyeo.application.reservation.dto.MakeReservationHomeDto;
 import com.yeoyeo.application.reservation.etc.exception.ReservationException;
 import com.yeoyeo.application.reservation.repository.ReservationRepository;
@@ -297,8 +295,8 @@ public class PaymentService {
         try {
             dateRoom.resetState();
             dateRoomRepository.save(dateRoom);
-        } catch (RoomReservationException roomReservationException) {
-            throw new PaymentException(roomReservationException.getMessage());
+        } catch (RoomReservationException e) {
+            throw new PaymentException(e.getMessage());
         }
     }
 

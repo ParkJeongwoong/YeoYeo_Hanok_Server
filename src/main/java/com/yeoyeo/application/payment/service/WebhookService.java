@@ -6,7 +6,7 @@ import com.yeoyeo.application.payment.dto.ImpWebHookDto;
 import com.yeoyeo.application.payment.dto.WaitingWebhookRefundDto;
 import com.yeoyeo.application.payment.etc.exception.PaymentException;
 import com.yeoyeo.application.payment.repository.PaymentRepository;
-import com.yeoyeo.application.payment.service.eventLoop.WaitingWebhookHandler;
+import com.yeoyeo.application.payment.service.eventLoop.EventLoopHandler;
 import com.yeoyeo.domain.DateRoom;
 import com.yeoyeo.domain.Payment;
 import lombok.RequiredArgsConstructor;
@@ -25,7 +25,7 @@ public class WebhookService {
     private final DateRoomRepository dateRoomRepository;
     private final PaymentRepository paymentRepository;
     private final PaymentService paymentService;
-    private final WaitingWebhookHandler waitingWebhookHandler;
+    private final EventLoopHandler eventLoopHandler;
 
     @Transactional
     public void webhook(ImpWebHookDto webHookDto) {
@@ -41,7 +41,7 @@ public class WebhookService {
         }
     }
 
-    public Integer checkWebhook() { return waitingWebhookHandler.getQueueSize(); }
+    public Integer checkWebhook() { return eventLoopHandler.getWaitingWebHookQueueSize(); }
 
     @Transactional
     private void validateWebHook(DateRoom dateRoom, Map<String, Object> paymentData, Payment payment) throws PaymentException {
@@ -56,7 +56,7 @@ public class WebhookService {
             if (payment == null) {
                 // 조건 1. 데이터 생성 X -> 1분 대기
                 dateRoom.setStateWaiting();
-                waitingWebhookHandler.add(imp_uid, merchant_uid, payedAmount, dateRoom.getDateRoomId());
+                eventLoopHandler.addWaitingWebHook(imp_uid, merchant_uid, payedAmount, dateRoom.getDateRoomId());
                 dateRoomRepository.save(dateRoom);
                 return;
             }

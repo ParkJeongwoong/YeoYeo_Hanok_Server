@@ -7,11 +7,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Getter
-public class DateRoomInfoListDto {
+public class DateRoomInfoByDateDto {
     private final LocalDate date;
     private final List<DateRoomInfoDto> rooms;
 
-    public DateRoomInfoListDto(LocalDate date, DateRoomInfoDto dateRoomInfoDto) {
+    public DateRoomInfoByDateDto(LocalDate date, DateRoomInfoDto dateRoomInfoDto) {
         this.date = date;
         this.rooms = new ArrayList<>();
         this.rooms.add(dateRoomInfoDto);

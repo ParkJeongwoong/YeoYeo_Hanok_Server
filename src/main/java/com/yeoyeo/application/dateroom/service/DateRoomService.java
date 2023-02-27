@@ -28,16 +28,22 @@ public class DateRoomService extends Thread {
     @Value("${data.holiday.key}")
     String holidayKey;
 
-    public List<DateRoomInfoListDto> showAllDateRooms() {
+    public List<DateRoomInfoByDateDto> showAllDateRooms() {
         List<DateRoom> dateRoomList =  dateRoomRepository.findAllByOrderByDate();
-        return getDateRoomInfoListDtoList(dateRoomList);
+        return getDateRoomInfoList(dateRoomList);
     }
 
-    public List<DateRoomInfoListDto> show2MonthsDateRooms(int year, int month) {
-        LocalDate startDate = LocalDate.of(year, month, 1);
-        LocalDate endDate = LocalDate.of(year, month+2, 1).minusDays(1);
-        List<DateRoom> dateRoomList =  dateRoomRepository.findAllByDateBetweenOrderByDate(startDate, endDate);
-        return getDateRoomInfoListDtoList(dateRoomList);
+    public DateRoom2MonthDto show2MonthsDateRooms(int year, int month) {
+        LocalDate thisMonthStartDate = LocalDate.of(year, month, 1);
+        LocalDate nextMonthStartDate = thisMonthStartDate.plusMonths(1);
+        List<DateRoomInfoByDateDto> thisMonth = getDateRoomInfoList(getMonthDateRooms(thisMonthStartDate));
+        List<DateRoomInfoByDateDto> nextMonth = getDateRoomInfoList(getMonthDateRooms(nextMonthStartDate));
+        return new DateRoom2MonthDto(thisMonth, nextMonth);
+    }
+
+    private List<DateRoom> getMonthDateRooms(LocalDate firstMonthDate) {
+        LocalDate lastMonthDate = firstMonthDate.plusMonths(1).minusDays(1);
+        return dateRoomRepository.findAllByDateBetweenOrderByDate(firstMonthDate, lastMonthDate);
     }
 
     @Transactional
@@ -60,6 +66,7 @@ public class DateRoomService extends Thread {
     @Transactional
     public void makeDateRoom(long roomId, LocalDate date) throws Exception {
         Room room = roomRepository.findById(roomId).orElseThrow(()->new Exception("존재하지 않는 방입니다."));
+        // Todo - 존재하는 방이면 생성 X
         DateRoom dateRoom = DateRoom.builder()
                 .date(date)
                 .room(room)
@@ -72,6 +79,7 @@ public class DateRoomService extends Thread {
     @Transactional
     public String makeDateRoom(MakeDateRoomDto makeDateRoomDto) throws Exception {
         Room room = roomRepository.findById(makeDateRoomDto.getRoomId()).orElseThrow(()->new Exception("존재하지 않는 방입니다."));
+        // Todo - 존재하는 방이면 생성 X
         DateRoom dateRoom = DateRoom.builder()
                 .date(makeDateRoomDto.getDate())
                 .room(room)
@@ -100,22 +108,29 @@ public class DateRoomService extends Thread {
         }
     }
 
-    private List<DateRoomInfoListDto> getDateRoomInfoListDtoList(List<DateRoom> dateRoomList) {
-        List<DateRoomInfoListDto> dateRoomInfoListDtos = new ArrayList<>();
+    @Transactional
+    public void setDateRoomUnReservableByDay(LocalDate date) {
+        List<DateRoom> dateRoomList = dateRoomRepository.findAllByDate(date);
+        dateRoomList.forEach(DateRoom::setUnReservable);
+        dateRoomRepository.saveAll(dateRoomList);
+    }
+
+    private List<DateRoomInfoByDateDto> getDateRoomInfoList(List<DateRoom> dateRoomList) {
+        List<DateRoomInfoByDateDto> dateRoomInfoByDateDtos = new ArrayList<>();
         dateRoomList.forEach(dateRoom -> {
-            if (dateRoomInfoListDtos.size()==0) {
-                DateRoomInfoListDto newDto = new DateRoomInfoListDto(dateRoom.getDate(), new DateRoomInfoDto(dateRoom));
-                dateRoomInfoListDtos.add(newDto);
+            if (dateRoomInfoByDateDtos.size()==0) {
+                DateRoomInfoByDateDto newDto = new DateRoomInfoByDateDto(dateRoom.getDate(), new DateRoomInfoDto(dateRoom));
+                dateRoomInfoByDateDtos.add(newDto);
             } else {
-                DateRoomInfoListDto lastDto = dateRoomInfoListDtos.get(dateRoomInfoListDtos.size()-1);
+                DateRoomInfoByDateDto lastDto = dateRoomInfoByDateDtos.get(dateRoomInfoByDateDtos.size()-1);
                 if (lastDto.getDate().isEqual(dateRoom.getDate())) lastDto.addDateRoomInfo(new DateRoomInfoDto(dateRoom));
                 else {
-                    DateRoomInfoListDto newDto = new DateRoomInfoListDto(dateRoom.getDate(), new DateRoomInfoDto(dateRoom));
-                    dateRoomInfoListDtos.add(newDto);
+                    DateRoomInfoByDateDto newDto = new DateRoomInfoByDateDto(dateRoom.getDate(), new DateRoomInfoDto(dateRoom));
+                    dateRoomInfoByDateDtos.add(newDto);
                 }
             }
         });
-        return dateRoomInfoListDtos;
+        return dateRoomInfoByDateDtos;
     }
 
 }

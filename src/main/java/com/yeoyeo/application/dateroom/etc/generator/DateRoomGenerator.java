@@ -36,4 +36,11 @@ public class DateRoomGenerator {
         }
         log.info("방 날짜 생성 : {}", date);
     }
+
+    @Scheduled(cron = "1 0 0 * * *")
+    private void dailyRoomUnReservableJob() {
+        log.info("Daily Room UnReservable Job");
+        dateRoomService.setDateRoomUnReservableByDay(LocalDate.now());
+    }
+
 }

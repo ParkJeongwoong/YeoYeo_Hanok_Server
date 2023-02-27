@@ -51,7 +51,7 @@ public class ReservationService {
             Reservation reservation = createReservation(reservationDto);
             setDataPaid(reservation.getDateRoom(), reservation);
             reservationRepository.save(reservation);
-            smsService.sendReservationSms(reservationDto.getGuest().getPhoneNumberOnlyNumber());
+            smsService.sendReservationSms(reservation);
             log.info("{} 고객님의 예약이 완료되었습니다.", reservationDto.getGuest().getName());
             return reservation.getId();
         } catch (ReservationException reservationException) {
@@ -68,7 +68,7 @@ public class ReservationService {
             reservation.setStateCanceled();
             dateRoom.resetState();
             reservationRepository.save(reservation);
-            smsService.sendCancelSms(reservation.getGuest().getPhoneNumberOnlyNumber());
+            smsService.sendCancelSms(reservation);
             log.info("{} 고객님의 예약이 취소되었습니다.", reservation.getGuest().getName());
             return GeneralResponseDto.builder()
                     .success(true)
@@ -80,11 +80,11 @@ public class ReservationService {
                     .success(false)
                     .message(reservationException.getMessage())
                     .build();
-        } catch (RoomReservationException roomReservationException) {
-            log.error("Dateroom 상태 변경 에러", roomReservationException);
+        } catch (RoomReservationException e) {
+            log.error("Dateroom 상태 변경 에러", e);
             return GeneralResponseDto.builder()
                     .success(false)
-                    .message(roomReservationException.getMessage())
+                    .message(e.getMessage())
                     .build();
         }
     }
@@ -99,9 +99,9 @@ public class ReservationService {
         } catch (ReservationException reservationException) {
             log.error("Reservation 상태 변경 에러", reservationException);
             throw new ReservationException(reservationException.getMessage());
-        } catch (RoomReservationException roomReservationException) {
-            log.error("Dateroom 상태 변경 에러", roomReservationException);
-            throw new ReservationException(roomReservationException.getMessage());
+        } catch (RoomReservationException e) {
+            log.error("Dateroom 상태 변경 에러", e);
+            throw new ReservationException(e.getMessage());
         }
     }
 
@@ -128,7 +128,7 @@ public class ReservationService {
             log.error("예약된 날짜 에러(낙관적 락) - {}", reservation.getGuest().getName(), e);
             throw new ReservationException(e.getMessage());
         } catch (ReservationException e) {
-            e.printStackTrace();
+            log.error("데이터 변경 중 에러", e);
         }
     }
 
