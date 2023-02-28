@@ -39,7 +39,7 @@ public class Guest {
         this.request = request;
     }
 
-    public String getPhoneNumberOnlyNumber() {
-        return phoneNumber.replaceAll("[^0-9]","");
+    public String getNumberOnlyPhoneNumber() {
+        return this.phoneNumber.replaceAll("[^0-9]","");
     }
 }

@@ -66,6 +66,18 @@ public class ReservationController {
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
+    @GetMapping("/sms/authKey/{phoneNumber}")
+    public ResponseEntity<SendMessageResponseDto> sendAuthKey(@PathVariable("phoneNumber") String phoneNumber) {
+        SendMessageResponseDto responseDto = smsService.sendAuthenticationKeySms(phoneNumber);
+        if (!responseDto.getStatusCode().equals("202")) ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseDto);
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
+    @GetMapping("/sms/authKey/{phoneNumber}/{authKey}")
+    public ResponseEntity<Boolean> validateAuthKey(@PathVariable("phoneNumber") String phoneNumber, @PathVariable("authKey") String authKey) {
+        return ResponseEntity.status(HttpStatus.OK).body(smsService.validateAuthenticationKey(phoneNumber, authKey));
+    }
+
     // TEST
     private final SmsService smsService;
     @PostMapping("/message/{to}/{sub}/{cont}")

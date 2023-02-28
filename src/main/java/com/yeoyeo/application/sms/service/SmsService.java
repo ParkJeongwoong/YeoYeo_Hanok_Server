@@ -5,7 +5,10 @@ import com.yeoyeo.application.sms.dto.SendMessageResponseDto;
 import com.yeoyeo.domain.Reservation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.Mac;
@@ -16,6 +19,7 @@ import java.security.NoSuchAlgorithmException;
 import java.time.LocalDate;
 import java.util.Base64;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -31,6 +35,9 @@ public class SmsService {
     @Value("${sms.ncloud.secretKey}")
     String secretKey;
 
+    @Autowired
+    private final RedisTemplate redisTemplate;
+
     private final WebClientService webClientService;
 
     public SendMessageResponseDto test(String subject, String content, String to) {
@@ -44,14 +51,19 @@ public class SmsService {
         String content = "[한옥스테이 여여 문자 인증]\n\n" +
                 "인증번호 : "+authKey+"\n" +
                 "인증번호를 입력해 주세요.";
+        registerAuthKey(to, authKey);
         return null;
+    }
+
+    public Boolean validateAuthenticationKey(String phoneNumber, String authKey) {
+        return checkAuthKey(phoneNumber, authKey);
     }
 
     public SendMessageResponseDto sendReservationSms(Reservation reservation) {
         // Todo - 예약 완료 문자
         LocalDate date = reservation.getDateRoom().getDate();
         String date_room = date.getYear()+"년 "+date.getMonthValue()+"월"+date.getDayOfMonth()+"일 "+reservation.getDateRoom().getRoom().getName();
-        String to = reservation.getGuest().getPhoneNumberOnlyNumber();
+        String to = reservation.getGuest().getNumberOnlyPhoneNumber();
         String subject = "[한옥스테이 여여] 예약 확정 안내 문자입니다.";
         String content = "[한옥스테이 여여 예약 확정 안내]\n\n" +
                 "안녕하세요, 한옥스테이 여여입니다.\n" +
@@ -67,7 +79,7 @@ public class SmsService {
         // Todo - 예약 취소 문자
         LocalDate date = reservation.getDateRoom().getDate();
         String date_room = date.getYear()+"년 "+date.getMonthValue()+"월"+date.getDayOfMonth()+"일 "+reservation.getDateRoom().getRoom().getName();
-        String to = reservation.getGuest().getPhoneNumberOnlyNumber();
+        String to = reservation.getGuest().getNumberOnlyPhoneNumber();
         String subject = "[한옥스테이 여여] 예약 취소 문자입니다.";
         String content = "[한옥스테이 여여 예약 취소 안내]\n\n" +
                 "안녕하세요, 한옥스테이 여여입니다.\n" +
@@ -121,6 +133,21 @@ public class SmsService {
     private String getAuthKey() {
         Random random = new Random();
         return String.format("%06d", random.nextInt(1000000));
+    }
+
+    private void registerAuthKey(String phoneNumber, String authKey) {
+        ValueOperations<String, String> valueOperations = redisTemplate.opsForValue();
+        valueOperations.set(phoneNumber, authKey, 3, TimeUnit.MINUTES);
+    }
+
+    private boolean checkAuthKey(String phoneNumber, String authKey) {
+        ValueOperations<String, String> valueOperations = redisTemplate.opsForValue();
+        String redisAuthKey = valueOperations.get(phoneNumber);
+        if (redisAuthKey == null) return false;
+        if (valueOperations.get(phoneNumber).equals(authKey)) {
+            return redisTemplate.delete(phoneNumber);
+        }
+        return false;
     }
 
 }
