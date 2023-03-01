@@ -18,10 +18,11 @@ function requestPay() {
 
     // IMP.request_pay(param, callback) 결제창 호출
     IMP.request_pay({ // param
-        pg: "kcp",
+//        pg: "kcp",
 //        pg: "kakaopay",
+        pg: "nice",
         pay_method: "card",
-        merchant_uid: merchant_uid, //고유 주문번호 (날짜+방)
+        merchant_uid: merchant_uid, // 예약번호
         name: "여여 결제 테스트",
         amount: amount, // 결제금액
         buyer_email: "toto9091@naver.com",

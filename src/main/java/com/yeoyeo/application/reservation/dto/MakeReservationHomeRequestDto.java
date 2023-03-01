@@ -7,16 +7,18 @@ import com.yeoyeo.domain.Payment;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Getter
 @NoArgsConstructor
 public class MakeReservationHomeRequestDto extends MakeReservationRequestDto {
 
-    public MakeReservationHomeRequestDto(String dateRoomId, String name, String phoneNumber, String email, int guestCount, String request) {
-        super(dateRoomId, name, phoneNumber, email, guestCount, request);
+    public MakeReservationHomeRequestDto(List<String> dateRoomIdList, String name, String phoneNumber, String email, int guestCount, String request) {
+        super(dateRoomIdList, name, phoneNumber, email, guestCount, request);
     }
 
     public MakeReservationHomeDto getMakeReservationHomeDto(DateRoomRepository dateRoomRepository) {
-        DateRoom dateRoom = dateRoomRepository.findByDateRoomId(this.dateRoomId);
+        List<DateRoom> dateRoomList = dateRoomRepository.findAllById(this.dateRoomIdList);
         GuestHome guest = GuestHome.builder()
                 .name(this.name)
                 .phoneNumber(this.phoneNumber)
@@ -24,19 +26,7 @@ public class MakeReservationHomeRequestDto extends MakeReservationRequestDto {
                 .guestCount(this.guestCount)
                 .request(this.request)
                 .build();
-        Payment payment = Payment.builder()
-                .merchant_uid(dateRoom.getDateRoomId()+dateRoom.getReservationCount())
-                .amount(dateRoom.getPrice())
-                .buyer_name(this.name)
-                .buyer_tel("none")
-                .buyer_email("none")
-                .buyer_addr("none")
-                .imp_uid("none")
-                .pay_method("manual")
-                .receipt_url("none")
-                .status("paid")
-                .build();
-        return new MakeReservationHomeDto(dateRoom, guest, payment);
+        return new MakeReservationHomeDto(dateRoomList, guest);
     }
 
 }

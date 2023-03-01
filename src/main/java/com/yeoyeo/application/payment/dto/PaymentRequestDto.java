@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 public class PaymentRequestDto {
     // 아임포트 정보
     private String imp_uid;
-    private String merchant_uid; // dateRoomId
+    private long merchant_uid; // reservationId
 
     // 예약자 정보
     private String name;
@@ -18,9 +18,4 @@ public class PaymentRequestDto {
     private int guestCount;
     private String request;
 
-    public GuestHome createGuest() {
-        return GuestHome.builder().name(this.name).phoneNumber(this.phoneNumber).email(this.email).guestCount(this.guestCount).request(this.request).build();
-    }
-
-    public String getDateRoomId() { return this.merchant_uid.substring(0,9); }
 }

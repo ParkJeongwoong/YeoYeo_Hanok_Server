@@ -51,12 +51,13 @@ public class DateRoomService extends Thread {
         LocalDate date = LocalDate.now();
         log.info("TODAY : {}", date);
         for (int i=0;i<180;i++) {
-            if (dateRoomRepository.findByDateRoomId(date.toString().replaceAll("[^0-9]","")+"1")!=null) continue;
-            try {
-                makeDateRoom(2, date);
-                makeDateRoom(1, date);
-            } catch (Exception e) {
-                log.error("초기 6개월치 방 날짜 생성 중 에러 발생", e);
+            if (dateRoomRepository.findById(date.toString().replaceAll("[^0-9]","")+"1")!=null) {
+                try {
+                    makeDateRoom(2, date);
+                    makeDateRoom(1, date);
+                } catch (Exception e) {
+                    log.error("초기 6개월치 방 날짜 생성 중 에러 발생", e);
+                }
             }
             date = date.plusDays(1);
         }
@@ -86,7 +87,7 @@ public class DateRoomService extends Thread {
                 .webClientService(webClientService)
                 .key(holidayKey)
                 .build();
-        return dateRoomRepository.save(dateRoom).getDateRoomId();
+        return dateRoomRepository.save(dateRoom).getId();
     }
 
     @Transactional
@@ -100,7 +101,7 @@ public class DateRoomService extends Thread {
                     .webClientService(webClientService)
                     .key(holidayKey)
                     .build();
-             dateRoomRepository.save(dateRoom).getDateRoomId();
+             dateRoomRepository.save(dateRoom).getId();
             return new GeneralResponseDto(false, -1, "방 생성에 성공했습니다.");
         } catch (Exception e) {
             log.error("방 생성 중 에러 발생", e);

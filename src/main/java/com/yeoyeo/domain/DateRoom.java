@@ -21,7 +21,7 @@ import java.time.LocalDate;
 @Entity
 public class DateRoom {
     @Id
-    private String dateRoomId;
+    private String id;
 
     @Column(nullable = false)
     private LocalDate date;
@@ -40,32 +40,22 @@ public class DateRoom {
     private long roomReservationState; // 0 : 예약 가능, 1 : 예약 완료, 2 : 예약 대기 (Webhook)
 
     @Column(nullable = false)
-    private int reservationCount;
-
-    @Column(nullable = false)
     private boolean isReservable;
-
-    // 굳이 필요가 없음
-//    @Column(nullable = false)
-//    private String merchantUid;
 
     @Builder
     DateRoom(LocalDate date, Room room, WebClientService webClientService, String key) {
+        this.id = date.toString().replaceAll("[^0-9]","") + room.getId();
         this.date = date;
         this.room = room;
         this.roomReservationState = 0;
-        this.dateRoomId = date.toString().replaceAll("[^0-9]","") + room.getId();
         setDefaultPriceType(webClientService, key);
         setPrice();
-        this.reservationCount = 0;
         this.isReservable = true;
-//        this.merchantUid = UUID.randomUUID().toString();
     }
 
     public void setStateBooked() throws RoomReservationException {
         if (this.roomReservationState != 1) {
             this.roomReservationState = 1;
-            this.reservationCount += 1;
         } else {
             throw new RoomReservationException("예약이 불가능한 날짜입니다.");
         }
@@ -84,7 +74,6 @@ public class DateRoom {
             this.roomReservationState = 0;
         } else if (this.roomReservationState == 2) { // Webhook 수신 후 예약 정보 수신 실패
             this.roomReservationState = 0;
-            this.reservationCount += 1;
         }
         else {
             throw new RoomReservationException("예약된 날짜가 아닙니다.");

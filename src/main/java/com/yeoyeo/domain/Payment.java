@@ -1,12 +1,15 @@
 package com.yeoyeo.domain;
 
 import com.yeoyeo.application.payment.etc.exception.PaymentException;
+import com.yeoyeo.application.reservation.etc.exception.ReservationException;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.*;
 
+@Slf4j
 @NoArgsConstructor
 @Getter
 @Entity
@@ -14,9 +17,6 @@ public class Payment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
-
-    @Column(nullable = false)
-    private String merchantUid;
 
     @Column(nullable = false)
     private Integer amount;
@@ -45,7 +45,8 @@ public class Payment {
     @Column(nullable = false)
     private String status;
 
-    @OneToOne(mappedBy = "payment")
+    @OneToOne(mappedBy = "payment", cascade = CascadeType.ALL)
+    @JoinColumn(name = "reservation_id")
     private Reservation reservation;
 
     @Column
@@ -58,9 +59,8 @@ public class Payment {
     private String cancel_receipt_url;
 
     @Builder
-    public Payment(String merchant_uid, Integer amount, String buyer_name, String buyer_tel, String buyer_email, String buyer_addr,
-                   String imp_uid, String pay_method, String receipt_url, String status) {
-        this.merchantUid = merchant_uid;
+    public Payment(Integer amount, String buyer_name, String buyer_tel, String buyer_email, String buyer_addr,
+                   String imp_uid, String pay_method, String receipt_url, String status, Reservation reservation) {
         this.amount = amount;
         this.buyer_name = buyer_name;
         this.buyer_tel = buyer_tel;
@@ -70,11 +70,8 @@ public class Payment {
         this.pay_method = pay_method;
         this.receipt_url = receipt_url;
         this.status = status;
-        this.canceled_amount = 0;
-    }
-
-    public void setReservation(Reservation reservation) {
         this.reservation = reservation;
+        this.canceled_amount = 0;
     }
 
     public Integer getCancelableAmount() throws PaymentException {
@@ -84,9 +81,14 @@ public class Payment {
     }
 
     public void setCanceled(long canceled_amount, String cancel_reason, String cancel_receipt_url) {
-        this.canceled_amount = (int) canceled_amount;
-        this.cancel_reason = cancel_reason;
-        this.cancel_receipt_url = cancel_receipt_url;
-        this.status = "cancelled";
+        try {
+            this.canceled_amount = (int) canceled_amount;
+            this.cancel_reason = cancel_reason;
+            this.cancel_receipt_url = cancel_receipt_url;
+            this.status = "cancelled";
+            this.reservation.setStateCanceled();
+        } catch (ReservationException e) {
+            log.error("reservationState cancel로 변경 중 에러 발생", e.getMessage());
+        }
     }
 }

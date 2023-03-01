@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -70,7 +71,7 @@ public class DateRoomServiceTest {
         String dateRoomId = dateRoomService.makeDateRoom(requestDto);
 
         // Then
-        DateRoom dateRoom = dateRoomRepository.findByDateRoomId(dateRoomId);
+        DateRoom dateRoom = dateRoomRepository.findById(dateRoomId).orElseThrow(NoSuchElementException::new);
         Room room = roomRepository.findById(roomId2).orElseThrow(()->new Exception("존재하지 않는 방입니다."));
         assertThat(dateRoom.getDate()).isEqualTo(now);
         assertThat(dateRoom.getRoom()).isEqualTo(room);
@@ -101,12 +102,12 @@ public class DateRoomServiceTest {
         dateRoomRepository.save(dateRoom2);
 
         // When
-        List<DateRoomInfoByDateDto> dateRoomInfoByDateDtos = dateRoomService.showAllDateRooms();
+        List<DateRoomInfoByDateDto> dateRoomInfoByDateDtoList = dateRoomService.showAllDateRooms();
 
         // Then
-        DateRoomInfoDto dateRoomInfo1 = dateRoomInfoByDateDtos.get(0).getRooms().get(1);
-        DateRoomInfoDto dateRoomInfo2 = dateRoomInfoByDateDtos.get(0).getRooms().get(0);
-        assertThat(dateRoomInfoByDateDtos.get(0).getDate()).isEqualTo(now);
+        DateRoomInfoDto dateRoomInfo1 = dateRoomInfoByDateDtoList.get(0).getRooms().get(0);
+        DateRoomInfoDto dateRoomInfo2 = dateRoomInfoByDateDtoList.get(0).getRooms().get(1);
+        assertThat(dateRoomInfoByDateDtoList.get(0).getDate()).isEqualTo(now);
         assertThat(dateRoomInfo1.getRoomId()).isEqualTo(roomId1);
         assertThat(dateRoomInfo1.getReservationState()).isEqualTo(0);
         assertThat(dateRoomInfo2.getRoomId()).isEqualTo(roomId2);

@@ -19,6 +19,7 @@ import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
@@ -35,9 +36,9 @@ public class ReservationService {
         // 현재 가상계좌 결제를 사용하지 않아 미결제 상태 0이 없음
 
         if (type == 0) { // 전체
-            return reservationRepository.findAllByOrderByDateRoom_Date().stream().map(ReservationInfoDto::new).collect(Collectors.toList());
+            return reservationRepository.findAll().stream().sorted(Comparator.comparing(Reservation::getFirstDate)).map(ReservationInfoDto::new).collect(Collectors.toList());
         } else { // 1 : 숙박 대기, 2 : 숙박 완료, 3 : 예약 취소, 4 : 환불 완료
-            return reservationRepository.findAllByReservationStateOrderByDateRoom_Date(type).stream().map(ReservationInfoDto::new).collect(Collectors.toList());
+            return reservationRepository.findAllByReservationState(type).stream().sorted(Comparator.comparing(Reservation::getFirstDate)).map(ReservationInfoDto::new).collect(Collectors.toList());
         }
     }
 
@@ -46,17 +47,39 @@ public class ReservationService {
     }
 
     @Transactional
-    public long makeReservation(MakeReservationDto reservationDto) throws ReservationException {
+    public long createReservation(MakeReservationDto reservationDto) {
+        List<DateRoom> dateRoomList = reservationDto.getDateRoomList();
+        Guest guest = reservationDto.getGuest();
+        Reservation reservation =  Reservation.builder()
+                .dateRoomList(dateRoomList)
+                .guest(guest)
+                .build();
+        reservationRepository.save(reservation);
+        log.info("{} 고객님의 예약 정보가 생성되었습니다.", reservationDto.getGuest().getName());
+        return reservation.getId();
+    }
+
+    @Transactional
+    public void setReservationPaid(Reservation reservation, Payment payment) throws ReservationException {
         try {
-            Reservation reservation = createReservation(reservationDto);
-            setDataPaid(reservation.getDateRoom(), reservation);
+            for (DateRoom dateRoom:reservation.getDateRoomList()) {
+                log.info("{} : {} 시도", reservation.getGuest().getName(), dateRoom.getDate());
+                dateRoom.setStateBooked();
+                log.info("{} : {} 성공", reservation.getGuest().getName(), dateRoom.getDate());
+            }
+            log.info("예약 함 !! {}", reservation.getGuest().getName());
+            reservation.setPayment(payment);
             reservationRepository.save(reservation);
-            smsService.sendReservationSms(reservation);
-            log.info("{} 고객님의 예약이 완료되었습니다.", reservationDto.getGuest().getName());
-            return reservation.getId();
-        } catch (ReservationException reservationException) {
-            log.error("makeReservation 예외 발생", reservationException);
-            throw reservationException;
+        } catch (RoomReservationException e) {
+            reservation.setStateCanceled();
+            reservationRepository.save(reservation);
+            log.error("예약된 날짜 에러 - {}", reservation.getGuest().getName(), e);
+            throw new ReservationException(e.getMessage());
+        } catch (ObjectOptimisticLockingFailureException | StaleObjectStateException e) {
+            log.error("예약된 날짜 에러(낙관적 락) - {}", reservation.getGuest().getName(), e);
+            throw new ReservationException(e.getMessage());
+        } catch (ReservationException e) {
+            log.error("데이터 변경 중 에러", e);
         }
     }
 
@@ -64,9 +87,9 @@ public class ReservationService {
     public GeneralResponseDto cancel(long reservationId) {
         try {
             Reservation reservation = reservationRepository.findById(reservationId).orElseThrow(NoSuchElementException::new);
-            DateRoom dateRoom = reservation.getDateRoom();
+            List<DateRoom> dateRoomList = reservation.getDateRoomList();
             reservation.setStateCanceled();
-            dateRoom.resetState();
+            for (DateRoom dateRoom:dateRoomList) dateRoom.resetState();
             reservationRepository.save(reservation);
             smsService.sendCancelSms(reservation);
             log.info("{} 고객님의 예약이 취소되었습니다.", reservation.getGuest().getName());
@@ -90,10 +113,10 @@ public class ReservationService {
     }
 
     @Transactional
-    public void cancel(DateRoom dateRoom, Reservation reservation) throws ReservationException {
+    public void cancel(Reservation reservation) throws ReservationException {
         try {
             reservation.setStateRefund();
-            dateRoom.resetState();
+            for (DateRoom dateRoom:reservation.getDateRoomList()) dateRoom.resetState();
             reservationRepository.save(reservation);
             log.info("{} 고객님의 예약이 취소되었습니다.", reservation.getGuest().getName());
         } catch (ReservationException reservationException) {
@@ -102,33 +125,6 @@ public class ReservationService {
         } catch (RoomReservationException e) {
             log.error("Dateroom 상태 변경 에러", e);
             throw new ReservationException(e.getMessage());
-        }
-    }
-
-    private Reservation createReservation(MakeReservationDto reservationDto) {
-        DateRoom dateRoom = reservationDto.getDateRoom();
-        Guest guest = reservationDto.getGuest();
-        Payment payment = reservationDto.getPayment();
-        return Reservation.builder()
-                .dateRoom(dateRoom)
-                .guest(guest)
-                .payment(payment)
-                .build();
-    }
-
-    @Transactional
-    private void setDataPaid(DateRoom dateRoom, Reservation reservation) throws ReservationException {
-        try {
-            reservation.setStatePaid();
-            dateRoom.setStateBooked();
-        } catch (RoomReservationException e) {
-            log.error("예약된 날짜 에러 - {}", reservation.getGuest().getName(), e);
-            throw new ReservationException(e.getMessage());
-        } catch (ObjectOptimisticLockingFailureException | StaleObjectStateException e) {
-            log.error("예약된 날짜 에러(낙관적 락) - {}", reservation.getGuest().getName(), e);
-            throw new ReservationException(e.getMessage());
-        } catch (ReservationException e) {
-            log.error("데이터 변경 중 에러", e);
         }
     }
 

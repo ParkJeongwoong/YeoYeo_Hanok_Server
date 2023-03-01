@@ -1,16 +1,23 @@
 [Todo]
 
-- SMS 인증 구현
-- Redis 사용 (번호만 있으면 됨)
+- SMS 인증 구현 v
+- Redis 사용 (번호만 있으면 됨) v
 - 예약 완료 SMS 보내기 구현 v
+- **여러 일 예약** v
+- 리디렉션 처리 고민 v
+    - 예약정보 선 생성 -> 결제정보 후 생성 (이미 있는 결제면 생성 불가) v
+
+
 - **AWS  보안**
-- 관리자 페이지
 - busy waiting 개선 (reactor pattern)
 - 대기큐 DB 저장 -> 서버 재가동 시 환불 처리
-- **여러 일 예약**
 - **연박 할인**
-- 리디렉션 처리 고민
 - isReservable을 이용해 1년치 미리 생성
+- 관리자 페이지
+  - dateroom 예약 상태 변경
+  - multi-dateroom예약 상태 변경
+  - room 가격 변경
+  - dateroom 가격 변경 (multiple)
 
 [관리자 페이지]
 

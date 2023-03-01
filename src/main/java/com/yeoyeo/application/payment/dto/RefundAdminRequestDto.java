@@ -8,5 +8,5 @@ public class RefundAdminRequestDto {
     private long cancel_request_amount;
     private String reason;
 
-    public String getDateRoomId() { return this.merchant_uid.substring(0,9); }
+    public String getId() { return this.merchant_uid.substring(0,9); }
 }

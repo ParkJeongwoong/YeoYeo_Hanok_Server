@@ -10,7 +10,8 @@ public class ReservationInfoDto {
     // 요약 정보
     private final long reservationId;
     // 방
-    private final LocalDate date;
+    private final LocalDate startDate;
+    private final LocalDate endDate;
     private final String roomName;
     private final long reservationState;
     // 손님
@@ -21,8 +22,9 @@ public class ReservationInfoDto {
 
     public ReservationInfoDto(Reservation entity) {
         this.reservationId = entity.getId();
-        this.date = entity.getDateRoom().getDate();
-        this.roomName = entity.getDateRoom().getRoom().getName();
+        this.startDate = entity.getFirstDateRoom().getDate();
+        this.endDate = entity.getLastDateRoom().getDate().plusDays(1);
+        this.roomName = entity.getFirstDateRoom().getRoom().getName();
         this.reservationState = entity.getReservationState();
         this.guestName = entity.getGuest().getName();
         this.guestCount = entity.getGuest().getGuestCount();

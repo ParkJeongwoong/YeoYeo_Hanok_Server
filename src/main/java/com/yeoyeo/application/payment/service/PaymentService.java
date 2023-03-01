@@ -4,16 +4,13 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yeoyeo.application.common.dto.GeneralResponseDto;
 import com.yeoyeo.application.dateroom.etc.exception.RoomReservationException;
-import com.yeoyeo.application.dateroom.repository.DateRoomRepository;
 import com.yeoyeo.application.general.webclient.WebClientService;
 import com.yeoyeo.application.payment.dto.*;
 import com.yeoyeo.application.payment.etc.exception.PaymentException;
-import com.yeoyeo.application.reservation.dto.MakeReservationHomeDto;
 import com.yeoyeo.application.reservation.etc.exception.ReservationException;
 import com.yeoyeo.application.reservation.repository.ReservationRepository;
 import com.yeoyeo.application.reservation.service.ReservationService;
 import com.yeoyeo.domain.DateRoom;
-import com.yeoyeo.domain.GuestHome;
 import com.yeoyeo.domain.Payment;
 import com.yeoyeo.domain.Reservation;
 import lombok.RequiredArgsConstructor;
@@ -44,7 +41,6 @@ public class PaymentService {
     @Value("${payment.iamport.secret}")
     String imp_secret;
 
-    private final DateRoomRepository dateRoomRepository;
     private final ReservationRepository reservationRepository;
 
     private final WebClientService webClientService;
@@ -55,19 +51,18 @@ public class PaymentService {
         try {
             // 결제 정보 조회
             log.info("imp_uid : {}", requestDto.getImp_uid());
-            log.info("DateRoom ID : {}", requestDto.getDateRoomId());
+            log.info("merchant_uid : {}", requestDto.getMerchant_uid());
             String accessToken = getToken();
             Map<String, Object> paymentData = getPaymentData(requestDto.getImp_uid(), accessToken);
 
-            DateRoom dateRoom = dateRoomRepository.findById(requestDto.getDateRoomId()).orElseThrow(NoSuchElementException::new);
-            GuestHome guest = requestDto.createGuest();
-            Payment payment = makePayment(paymentData);
+            Reservation reservation = reservationRepository.findById(requestDto.getMerchant_uid()).orElseThrow(NoSuchElementException::new);
+            Payment payment = createPayment(paymentData, reservation);
 
             // 결제 검증
-            validatePayment(dateRoom, paymentData, accessToken);
+            validatePayment(reservation, paymentData, accessToken);
 
             // 결제 완료
-            completeReservation(dateRoom, guest, payment);
+            completeReservation(reservation, payment);
 
             return GeneralResponseDto.builder()
                     .success(true)
@@ -87,8 +82,6 @@ public class PaymentService {
         try {
             // 결제 정보 조회
             Reservation reservation = requestDto.getValidatedReservation(reservationRepository);
-            DateRoom dateRoom = reservation.getDateRoom();
-            log.info("DateRoom : {}, Reservation {} {} {}", dateRoom.getDateRoomId(), reservation.getId(), reservation.getDateRoom().getDateRoomId(), reservation.getReservationState());
             Payment payment = reservation.getPayment();
             Integer cancelableAmount = payment.getCancelableAmount();
             long refundAmount = getRefundableAmount(reservation);
@@ -104,7 +97,7 @@ public class PaymentService {
 
             // 환불 완료
             payment.setCanceled(refundAmount, requestDto.getReason(), refundData.get("receipt_url").toString());
-            completeRefund(dateRoom, reservation);
+            completeRefund(reservation);
 
             return GeneralResponseDto.builder()
                     .success(true)
@@ -123,7 +116,7 @@ public class PaymentService {
     public void refund(WaitingWebhookRefundDto refundDto) throws PaymentException {
         log.info("미예약 결제 취소 - 결제번호 : {} / 사유 : {}", refundDto.getImp_uid(), refundDto.getReason());
         // 결제 정보 조회
-        DateRoom dateRoom = refundDto.getDateRoom();
+        Reservation reservation = refundDto.getReservation();
         long refundAmount = refundDto.getRefundAmount();
         Integer cancelableAmount = (Integer) (int) refundAmount;
 
@@ -132,7 +125,7 @@ public class PaymentService {
         sendRefundRequest(refundDto.getReason(), refundAmount, cancelableAmount, refundDto.getImp_uid(), accessToken);
 
         // 환불 완료
-        completeWebhookRefund(dateRoom);
+        completeWebhookRefund(reservation);
         log.info("환불 완료");
     }
 
@@ -221,7 +214,7 @@ public class PaymentService {
         }
     }
 
-    private void validatePayment(DateRoom dateRoom, Map<String, Object> paymentData, String accessToken) throws PaymentException {
+    private void validatePayment(Reservation reservation, Map<String, Object> paymentData, String accessToken) throws PaymentException {
         String status = paymentData.get("status").toString();
         String imp_uid = paymentData.get("imp_uid").toString();
         String merchant_uid = paymentData.get("merchant_uid").toString();
@@ -232,31 +225,29 @@ public class PaymentService {
         if (!status.equals("paid")) {
             throw new PaymentException("결제가 완료되지 않았습니다.");
         }
-        // Todo - Test 완료 후 상품번호 검증 추가
-//        if (!(dateRoom.getDateRoomId()+dateRoom.getReservationCount()).equals(merchant_uid)) {
-//            sendRefundRequest("상품 번호가 유효하지 않은 결제", payedAmount, (int) payedAmount, imp_uid, accessToken);
-//            throw new PaymentException("상품 번호가 유효하지 않은 결제입니다.");
-//        }
-        if (dateRoom.getPrice() != payedAmount) {
+        if (!(String.valueOf(reservation.getId())).equals(merchant_uid)) {
+            sendRefundRequest("상품 번호가 유효하지 않은 결제", payedAmount, (int) payedAmount, imp_uid, accessToken);
+            throw new PaymentException("상품 번호가 유효하지 않은 결제입니다.");
+        }
+        if (reservation.getTotalPrice() != payedAmount) {
             sendRefundRequest("결제 금액과 상품 가격 불일치", payedAmount, (int) payedAmount, imp_uid, accessToken);
             throw new PaymentException("결제 금액이 상품 가격과 일치하지 않습니다.");
         }
     }
 
     @Transactional
-    private void completeReservation(DateRoom dateRoom, GuestHome guest, Payment payment) throws PaymentException {
+    private void completeReservation(Reservation reservation, Payment payment) throws PaymentException {
         try {
             log.info("결제가 완료되었습니다.");
-            MakeReservationHomeDto reservationDto = new MakeReservationHomeDto(dateRoom, guest, payment);
-            reservationService.makeReservation(reservationDto);
+            reservationService.setReservationPaid(reservation, payment);
         } catch (ReservationException reservationException) {
+            sendRefundRequest("예약 불가능한 날짜 (중복 예약)", payment.getAmount(), payment.getAmount(), payment.getImp_uid(), getToken());
             throw new PaymentException(reservationException.getMessage());
         }
     }
 
-    private Payment makePayment(Map<String, Object> paymentData) {
+    private Payment createPayment(Map<String, Object> paymentData, Reservation reservation) {
         return Payment.builder()
-                .merchant_uid(paymentData.get("merchant_uid").toString())
                 .amount((Integer) paymentData.get("amount"))
                 .buyer_name(paymentData.get("buyer_name").toString())
                 .buyer_tel(paymentData.get("buyer_tel").toString())
@@ -266,14 +257,8 @@ public class PaymentService {
                 .pay_method(paymentData.get("pay_method").toString())
                 .receipt_url(paymentData.get("receipt_url").toString())
                 .status(paymentData.get("status").toString())
+                .reservation(reservation)
                 .build();
-    }
-
-    private Reservation getRefundableReservation(DateRoom dateRoom) throws PaymentException {
-        List<Reservation> reservationList = reservationRepository.findByDateRoom_DateRoomIdAndReservationState(dateRoom.getDateRoomId(), 1);
-        log.info("Refundable Reservation Count : {}", reservationList.size());
-        if (reservationList.size() == 0) throw new PaymentException("결제 정보를 찾을 수가 없습니다.");
-        return reservationList.get(0);
     }
 
     private void validateRefunding(long requestedAmount, Integer cancelableAmount) throws PaymentException {
@@ -282,26 +267,26 @@ public class PaymentService {
     }
 
     @Transactional
-    private void completeRefund(DateRoom dateRoom, Reservation reservation) throws PaymentException {
+    private void completeRefund(Reservation reservation) throws PaymentException {
         try {
-            reservationService.cancel(dateRoom, reservation);
+            reservationService.cancel(reservation);
         } catch (ReservationException reservationException) {
             throw new PaymentException(reservationException.getMessage());
         }
     }
 
     @Transactional
-    private void completeWebhookRefund(DateRoom dateRoom) throws PaymentException {
+    private void completeWebhookRefund(Reservation reservation) throws PaymentException {
         try {
-            dateRoom.resetState();
-            dateRoomRepository.save(dateRoom);
+            for (DateRoom dateRoom:reservation.getDateRoomList()) dateRoom.resetState();
+            reservationRepository.save(reservation);
         } catch (RoomReservationException e) {
             throw new PaymentException(e.getMessage());
         }
     }
 
     private long getRefundableAmount(Reservation reservation) {
-        LocalDate reservationDate = reservation.getDateRoom().getDate();
+        LocalDate reservationDate = reservation.getFirstDateRoom().getDate();
         LocalDate now = LocalDate.now();
         Period diff = Period.between(now, reservationDate);
         long paidPrice = reservation.getPayment().getAmount();

@@ -61,13 +61,16 @@ public class SmsService {
 
     public SendMessageResponseDto sendReservationSms(Reservation reservation) {
         // Todo - 예약 완료 문자
-        LocalDate date = reservation.getDateRoom().getDate();
-        String date_room = date.getYear()+"년 "+date.getMonthValue()+"월"+date.getDayOfMonth()+"일 "+reservation.getDateRoom().getRoom().getName();
+        LocalDate startDate = reservation.getFirstDateRoom().getDate();
+        LocalDate endDate = reservation.getLastDateRoom().getDate().plusDays(1);
+        String startDate_string = startDate.getYear()+"년 "+startDate.getMonthValue()+"월"+startDate.getDayOfMonth()+"일";
+        String endDate_string = endDate.getYear()+"년 "+endDate.getMonthValue()+"월"+endDate.getDayOfMonth()+"일 ";
+        String room = reservation.getFirstDateRoom().getRoom().getName();
         String to = reservation.getGuest().getNumberOnlyPhoneNumber();
         String subject = "[한옥스테이 여여] 예약 확정 안내 문자입니다.";
         String content = "[한옥스테이 여여 예약 확정 안내]\n\n" +
                 "안녕하세요, 한옥스테이 여여입니다.\n" +
-                "고객님의 "+date_room+" 예약이 확정되셨습니다.\n" +
+                "고객님의 "+startDate_string+" ~ "+endDate_string+room+" 예약이 확정되셨습니다.\n" +
                 "(예약번호 :"+reservation.getId()+")\n\n" +
                 "입실은 15시부터 이면 퇴실은 11시입니다.\n\n" +
                 "한옥스테이 여여에서 여유롭고 행복한 시간 보내시길 바라겠습니다.\n" +
@@ -77,13 +80,16 @@ public class SmsService {
 
     public SendMessageResponseDto sendCancelSms(Reservation reservation) {
         // Todo - 예약 취소 문자
-        LocalDate date = reservation.getDateRoom().getDate();
-        String date_room = date.getYear()+"년 "+date.getMonthValue()+"월"+date.getDayOfMonth()+"일 "+reservation.getDateRoom().getRoom().getName();
+        LocalDate startDate = reservation.getFirstDateRoom().getDate();
+        LocalDate endDate = reservation.getLastDateRoom().getDate().plusDays(1);
+        String startDate_string = startDate.getYear()+"년 "+startDate.getMonthValue()+"월"+startDate.getDayOfMonth()+"일";
+        String endDate_string = endDate.getYear()+"년 "+endDate.getMonthValue()+"월"+endDate.getDayOfMonth()+"일 ";
+        String room = reservation.getFirstDateRoom().getRoom().getName();
         String to = reservation.getGuest().getNumberOnlyPhoneNumber();
         String subject = "[한옥스테이 여여] 예약 취소 문자입니다.";
         String content = "[한옥스테이 여여 예약 취소 안내]\n\n" +
                 "안녕하세요, 한옥스테이 여여입니다.\n" +
-                "고객님의 "+date_room+" 예약이 정상적으로 취소되셨습니다.\n" +
+                "고객님의 "+startDate_string+" ~ "+endDate_string+room+" 예약이 정상적으로 취소되셨습니다.\n" +
                 "(예약번호 :"+reservation.getId()+")\n" +
                 "결제하신 내역은 환불 규정에 따라 진행될 예정입니다.\n\n" +
                 "감사합니다.";

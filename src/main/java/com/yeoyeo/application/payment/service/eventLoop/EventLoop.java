@@ -1,14 +1,14 @@
 package com.yeoyeo.application.payment.service.eventLoop;
 
-import com.yeoyeo.application.dateroom.repository.DateRoomRepository;
 import com.yeoyeo.application.payment.dto.WaitingWebhookDto;
 import com.yeoyeo.application.payment.dto.WaitingWebhookRefundDto;
 import com.yeoyeo.application.payment.etc.exception.PaymentException;
 import com.yeoyeo.application.payment.repository.PaymentRepository;
 import com.yeoyeo.application.payment.service.PaymentService;
+import com.yeoyeo.application.reservation.repository.ReservationRepository;
 import com.yeoyeo.application.sms.service.SmsService;
-import com.yeoyeo.domain.DateRoom;
 import com.yeoyeo.domain.Payment;
+import com.yeoyeo.domain.Reservation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -26,8 +26,7 @@ public class EventLoop extends Thread {
     private static final long SLEEP_INTERVAL_BY_MINUTE = 360;
 
     private final WaitingWebhookQueue waitingWebhookQueue;
-    private final PaymentRepository paymentRepository;
-    private final DateRoomRepository dateRoomRepository;
+    private final ReservationRepository reservationRepository;
     private final PaymentService paymentService;
     private final SmsService smsService;
 
@@ -64,25 +63,31 @@ public class EventLoop extends Thread {
         try {
             log.info("Webhook 검증 - 결제번호 : {} / 상품번호 : {}", waitingWebhookDto.getImp_uid(), waitingWebhookDto.getMerchant_uid());
                 String imp_uid = waitingWebhookDto.getImp_uid();
-            String merchant_uid = waitingWebhookDto.getMerchant_uid();
+            long merchant_uid = waitingWebhookDto.getMerchant_uid();
             long payedAmount = waitingWebhookDto.getPayedAmount();
-            DateRoom dateRoom = dateRoomRepository.findById(waitingWebhookDto.getDateRoomId()).orElseThrow(()->new PaymentException("존재하지 않는 방입니다."));
-            Payment payment = paymentRepository.findByMerchantUid(merchant_uid);
-            if (dateRoom.getRoomReservationState() != 1 || payment == null) {
+            Reservation reservation = reservationRepository.findById(waitingWebhookDto.getMerchant_uid()).orElseThrow(()->new PaymentException("존재하지 않는 방입니다."));
+            if (reservation == null) {
                 WaitingWebhookRefundDto refundDto = WaitingWebhookRefundDto.builder()
-                        .imp_uid(imp_uid).refundAmount(payedAmount).dateRoom(dateRoom).reason("이미 예약된 방에 결제 발생").build();
+                        .imp_uid(imp_uid).refundAmount(payedAmount).reason("예약 정보가 없는 결제 발생").build();
                 paymentService.refund(refundDto);
                 return;
             }
-            if (!Objects.equals(payment.getMerchantUid(), merchant_uid)) {
+            Payment payment = reservation.getPayment();
+            if (reservation.getReservationState() != 1 || payment == null) {
                 WaitingWebhookRefundDto refundDto = WaitingWebhookRefundDto.builder()
-                        .imp_uid(imp_uid).refundAmount(payedAmount).dateRoom(dateRoom).reason("잘못된 결제 발생").build();
+                        .imp_uid(imp_uid).refundAmount(payedAmount).reservation(reservation).reason("이미 예약된 방에 결제 발생").build();
                 paymentService.refund(refundDto);
                 return;
             }
-            if (dateRoom.getPrice() != payedAmount) {
+            if (!Objects.equals(reservation.getId(), merchant_uid)) {
                 WaitingWebhookRefundDto refundDto = WaitingWebhookRefundDto.builder()
-                        .imp_uid(imp_uid).refundAmount(payedAmount).dateRoom(dateRoom).reason("결제 금액과 상품 가격 불일치").build();
+                        .imp_uid(imp_uid).refundAmount(payedAmount).reservation(reservation).reason("잘못된 결제 발생").build();
+                paymentService.refund(refundDto);
+                return;
+            }
+            if (reservation.getTotalPrice() != payedAmount) {
+                WaitingWebhookRefundDto refundDto = WaitingWebhookRefundDto.builder()
+                        .imp_uid(imp_uid).refundAmount(payedAmount).reservation(reservation).reason("결제 금액과 상품 가격 불일치").build();
                 paymentService.refund(refundDto);
                 return;
             }

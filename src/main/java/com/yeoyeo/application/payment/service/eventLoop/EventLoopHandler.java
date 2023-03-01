@@ -33,12 +33,11 @@ public class EventLoopHandler {
         eventLoop.start();
     }
 
-    public void addWaitingWebHook(String imp_uid, String merchant_uid, long payedAmount, String dateRoomId) {
+    public void addWaitingWebHook(String imp_uid, long merchant_uid, long payedAmount) {
         LocalDateTime expirationTime = LocalDateTime.now().plusMinutes(EXPIRATION_TIME);
         WaitingWebhookDto waitingWebhookDto = WaitingWebhookDto.builder()
                 .imp_uid(imp_uid).merchant_uid(merchant_uid)
-                .payedAmount(payedAmount).dateRoomId(dateRoomId)
-                .expirationTime(expirationTime).build();
+                .payedAmount(payedAmount).expirationTime(expirationTime).build();
         if (!this.waitingWebhookQueue.add(waitingWebhookDto)) {
             log.error("미결제 예약 대기열 추가 실패", new WaitingWebhookException("미결제 예약 대기열 추가 실패"));
         }

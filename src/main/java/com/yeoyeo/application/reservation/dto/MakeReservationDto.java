@@ -6,16 +6,16 @@ import com.yeoyeo.domain.Payment;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Getter
 @NoArgsConstructor
 public class MakeReservationDto {
-    private DateRoom dateRoom;
+    private List<DateRoom> dateRoomList;
     protected Guest guest;
-    private Payment payment;
 
-    public MakeReservationDto(DateRoom dateRoom, Guest guest, Payment payment) {
-        this.dateRoom = dateRoom;
+    public MakeReservationDto(List<DateRoom> dateRoomList, Guest guest) {
+        this.dateRoomList = dateRoomList;
         this.guest = guest;
-        this.payment = payment;
     }
 }

@@ -9,7 +9,8 @@ import java.time.LocalDate;
 public class ReservationDetailInfoDto {
     // 상세 정보
     // 방
-    private final LocalDate date;
+    private final LocalDate startDate;
+    private final LocalDate endDate;
     private final String roomName;
     private final long reservationState;
     // 손님
@@ -26,8 +27,9 @@ public class ReservationDetailInfoDto {
     private final String paymentStatus;
 
     public ReservationDetailInfoDto(Reservation entity) {
-        this.date = entity.getDateRoom().getDate();
-        this.roomName = entity.getDateRoom().getRoom().getName();
+        this.startDate = entity.getFirstDateRoom().getDate();
+        this.roomName = entity.getFirstDateRoom().getRoom().getName();
+        this.endDate = entity.getLastDateRoom().getDate().plusDays(1);
         this.reservationState = entity.getReservationState();
         this.guestName = entity.getGuest().getName();
         this.phoneNumber = entity.getGuest().getPhoneNumber();
@@ -35,7 +37,7 @@ public class ReservationDetailInfoDto {
         this.guestCount = entity.getGuest().getGuestCount();
         this.request = entity.getGuest().getRequest();
         this.reservedFrom = entity.getReservedFrom();
-        this.roomPrice = entity.getDateRoom().getPrice();
+        this.roomPrice = entity.getTotalPrice();
         this.paidAmount = entity.getPayment().getAmount();
         this.canceled_amount = entity.getPayment().getCanceled_amount();
         this.paymentStatus = entity.getPayment().getStatus();

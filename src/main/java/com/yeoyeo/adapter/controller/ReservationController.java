@@ -28,6 +28,14 @@ public class ReservationController {
     private final ReservationService reservationService;
     private final DateRoomRepository dateRoomRepository;
 
+    @ApiOperation(value = "Reservation", notes = "예약 - 아임포트 결제 모듈로 호출 전 예약 정보 생성 => merchant_uid 응답")
+    @Transactional
+    @PostMapping("/reserve")
+    public ResponseEntity<GeneralResponseDto> createReservation(@RequestBody MakeReservationHomeRequestDto requestDto) {
+        long reservationId = reservationService.createReservation(requestDto.getMakeReservationHomeDto(dateRoomRepository));
+        return ResponseEntity.status(HttpStatus.OK).body(GeneralResponseDto.builder().success(true).resultId(reservationId).message("예약 정보 생성 완료").build());
+    }
+
     @ApiOperation(value = "Reservation List", notes = "(관리자용) 관리자의 예약 관리용 예약 정보 조회 (0 : 전체, 1 : 숙박 대기, 2 : 숙박 완료, 3 : 예약 취소, 4 : 환불 완료")
     @GetMapping("/list/{type}")
     public ResponseEntity<List<ReservationInfoDto>> showReservations(@PathVariable("type") int type) {
@@ -42,19 +50,6 @@ public class ReservationController {
         } catch (ReservationException e) {
             log.error("예약 정보 조회 실패", e);
             return ResponseEntity.status(HttpStatus.OK).body(null);
-        }
-    }
-
-    @ApiOperation(value = "Reservation", notes = "(관리자용) 관리자의 해당 날짜 예약 처리")
-    @Transactional
-    @PostMapping("/home")
-    public ResponseEntity<GeneralResponseDto> createReservation(@RequestBody MakeReservationHomeRequestDto requestDto) {
-        try {
-            reservationService.makeReservation(requestDto.getMakeReservationHomeDto(dateRoomRepository));
-            return ResponseEntity.status(HttpStatus.OK).body(GeneralResponseDto.builder().success(true).message("예약이 확정되었습니다.").build());
-        } catch (ReservationException e) {
-            log.error("createReservation 에러", e);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(GeneralResponseDto.builder().success(false).message("예약 중 오류가 발생했습니다.").build());
         }
     }
 

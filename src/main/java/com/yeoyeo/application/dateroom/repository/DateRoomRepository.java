@@ -10,8 +10,7 @@ import java.util.List;
 
 public interface DateRoomRepository extends JpaRepository<DateRoom, String> {
 //    @Lock(LockModeType.OPTIMISTIC)
-    @Lock(LockModeType.PESSIMISTIC_WRITE)
-    DateRoom findByDateRoomId(String dateRoomId);
+//    @Lock(LockModeType.PESSIMISTIC_WRITE)
     List<DateRoom> findAllByOrderByDate();
     List<DateRoom> findAllByDateBetweenOrderByDate(LocalDate startDate, LocalDate endDate);
     List<DateRoom> findAllByDate(LocalDate date);

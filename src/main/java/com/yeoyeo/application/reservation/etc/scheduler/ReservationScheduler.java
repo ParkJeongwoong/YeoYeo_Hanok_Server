@@ -10,7 +10,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -21,12 +23,12 @@ public class ReservationScheduler {
 
     @Transactional
     @Scheduled(cron = "0 1 0 * * *")
-    private void dailyRoomCreation() {
+    private void dailyReservationCompletion() {
         LocalDate today = LocalDate.now();
-        List<Reservation> reservationList = reservationRepository.findAllByReservationStateOrderByDateRoom_Date(1);
+        List<Reservation> reservationList = reservationRepository.findAllByReservationState(1).stream().sorted(Comparator.comparing(Reservation::getFirstDate)).collect(Collectors.toList());
         try {
             for (Reservation reservation : reservationList) {
-                if (reservation.getDateRoom().getDate().isBefore(today)) reservation.setStateComplete();
+                if (reservation.getFirstDateRoom().getDate().isBefore(today)) reservation.setStateComplete();
                 else break;
             }
             reservationRepository.saveAll(reservationList);
