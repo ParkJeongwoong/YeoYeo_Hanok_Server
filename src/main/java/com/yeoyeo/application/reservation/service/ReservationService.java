@@ -47,8 +47,9 @@ public class ReservationService {
     }
 
     @Transactional
-    public long createReservation(MakeReservationDto reservationDto) {
+    public long createReservation(MakeReservationDto reservationDto) throws ReservationException {
         List<DateRoom> dateRoomList = reservationDto.getDateRoomList();
+        for (DateRoom dateRoom:dateRoomList) if (dateRoom.getRoomReservationState() != 0) throw new ReservationException("이미 예약이 완료된 방입니다.");
         Guest guest = reservationDto.getGuest();
         Reservation reservation =  Reservation.builder()
                 .dateRoomList(dateRoomList)

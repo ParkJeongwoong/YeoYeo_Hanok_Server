@@ -32,8 +32,12 @@ public class ReservationController {
     @Transactional
     @PostMapping("/reserve")
     public ResponseEntity<GeneralResponseDto> createReservation(@RequestBody MakeReservationHomeRequestDto requestDto) {
-        long reservationId = reservationService.createReservation(requestDto.getMakeReservationHomeDto(dateRoomRepository));
-        return ResponseEntity.status(HttpStatus.OK).body(GeneralResponseDto.builder().success(true).resultId(reservationId).message("예약 정보 생성 완료").build());
+        try {
+            long reservationId = reservationService.createReservation(requestDto.getMakeReservationHomeDto(dateRoomRepository));
+            return ResponseEntity.status(HttpStatus.OK).body(GeneralResponseDto.builder().success(true).resultId(reservationId).message("예약 정보 생성 완료").build());
+        } catch (ReservationException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(GeneralResponseDto.builder().success(false).message(e.getMessage()).build());
+        }
     }
 
     @ApiOperation(value = "Reservation List", notes = "(관리자용) 관리자의 예약 관리용 예약 정보 조회 (0 : 전체, 1 : 숙박 대기, 2 : 숙박 완료, 3 : 예약 취소, 4 : 환불 완료")

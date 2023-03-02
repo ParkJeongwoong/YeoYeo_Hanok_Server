@@ -5,6 +5,7 @@ import com.yeoyeo.application.dateroom.repository.DateRoomRepository;
 import com.yeoyeo.application.payment.repository.PaymentRepository;
 import com.yeoyeo.application.reservation.dto.MakeReservationAirbnbDto;
 import com.yeoyeo.application.reservation.dto.MakeReservationHomeDto;
+import com.yeoyeo.application.reservation.etc.exception.ReservationException;
 import com.yeoyeo.application.reservation.repository.ReservationRepository;
 import com.yeoyeo.application.reservation.service.ReservationService;
 import com.yeoyeo.domain.*;
@@ -146,8 +147,12 @@ public class ReservationServiceTest {
         log.info("createReservation 테스트 진행");
         long reservationId1 = 0;
         long reservationId2 =0;
-        reservationId1 = reservationService.createReservation(requestDto1);
-        reservationId2 = reservationService.createReservation(requestDto2);
+        try {
+            reservationId1 = reservationService.createReservation(requestDto1);
+            reservationId2 = reservationService.createReservation(requestDto2);
+        } catch (ReservationException e) {
+            log.error(e.getMessage(), e);
+        }
 
         // Then
         log.info("createReservation 테스트 결과 검증");
@@ -165,7 +170,7 @@ public class ReservationServiceTest {
 
     @Test
     @Transactional
-    public void test_createReservation_concurrency() throws InterruptedException {
+    public void test_createReservation_concurrency() {
         log.info("createReservation 동시성 테스트 시작");
         // Given
         log.info("createReservation 동시성 테스트 준비");
@@ -200,10 +205,14 @@ public class ReservationServiceTest {
 
         // When
         log.info("createReservation 동시성 테스트 진행");
-        reservationService.createReservation(requestDto1);
-        reservationService.createReservation(requestDto2);
-        reservationService.createReservation(requestDto3);
-        reservationService.createReservation(requestDto4);
+        try {
+            reservationService.createReservation(requestDto1);
+            reservationService.createReservation(requestDto2);
+            reservationService.createReservation(requestDto3);
+            reservationService.createReservation(requestDto4);
+        } catch (ReservationException e) {
+            log.error(e.getMessage(), e);
+        }
 
         // Then
         log.info("createReservation 동시성 테스트 결과 검증");

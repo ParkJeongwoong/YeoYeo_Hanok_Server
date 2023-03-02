@@ -5,6 +5,7 @@ import com.yeoyeo.application.dateroom.repository.DateRoomRepository;
 import com.yeoyeo.application.payment.repository.PaymentRepository;
 import com.yeoyeo.application.payment.service.PaymentService;
 import com.yeoyeo.application.reservation.dto.MakeReservationHomeDto;
+import com.yeoyeo.application.reservation.etc.exception.ReservationException;
 import com.yeoyeo.application.reservation.repository.ReservationRepository;
 import com.yeoyeo.application.reservation.service.ReservationService;
 import com.yeoyeo.domain.DateRoom;
@@ -109,10 +110,14 @@ public class PaymentServiceTest {
         MakeReservationHomeDto requestDto3 = new MakeReservationHomeDto(dateRoomList1, guest3);
         MakeReservationHomeDto requestDto4 = new MakeReservationHomeDto(dateRoomList1, guest4);
         log.info("createReservation 동시성 테스트 진행");
-        reservationService.createReservation(requestDto1);
-        reservationService.createReservation(requestDto2);
-        reservationService.createReservation(requestDto3);
-        reservationService.createReservation(requestDto4);
+        try {
+            reservationService.createReservation(requestDto1);
+            reservationService.createReservation(requestDto2);
+            reservationService.createReservation(requestDto3);
+            reservationService.createReservation(requestDto4);
+        } catch (ReservationException e) {
+            log.error(e.getMessage(), e);
+        }
         List<Reservation> reservations = reservationRepository.findAll();
         Reservation reservation1 = reservations.get(0);
         Reservation reservation2 = reservations.get(1);
