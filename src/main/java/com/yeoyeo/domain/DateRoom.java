@@ -14,6 +14,8 @@ import org.json.simple.parser.ParseException;
 import javax.persistence.*;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Slf4j
 @Getter
@@ -41,6 +43,9 @@ public class DateRoom {
 
     @Column(nullable = false)
     private boolean isReservable;
+
+    @OneToMany(mappedBy = "dateRoom")
+    private final List<MapDateRoomReservation> mapDateRoomReservations = new ArrayList<>();
 
     @Builder
     DateRoom(LocalDate date, Room room, WebClientService webClientService, String key) {

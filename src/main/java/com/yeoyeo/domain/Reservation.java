@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -19,9 +20,8 @@ public class Reservation extends BaseTimeEntity {
     @Id
     private long id;
 
-    @OneToMany(fetch = FetchType.LAZY)
-    @JoinColumn(name = "dateRoom_id")
-    private List<DateRoom> dateRoomList;
+    @OneToMany(mappedBy = "reservation", cascade = CascadeType.ALL)
+    private final List<MapDateRoomReservation> mapDateRoomReservations = new ArrayList<>();
 
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "guest_id", nullable = false)
@@ -43,11 +43,15 @@ public class Reservation extends BaseTimeEntity {
     @Builder
     public Reservation(List<DateRoom> dateRoomList, Guest guest) {
         this.id = System.currentTimeMillis();
-        this.dateRoomList = dateRoomList;
+        this.mapDateRoomReservations.addAll(dateRoomList.stream().map(dateRoom -> new MapDateRoomReservation(dateRoom, this)).collect(Collectors.toList()));
         this.guest = guest;
         this.reservedFrom = guest.getClass().getSimpleName();
         this.reservationState = 0;
 //        this.uniqueId = UUID.randomUUID().toString();
+    }
+
+    public List<DateRoom> getDateRoomList() {
+        return this.mapDateRoomReservations.stream().map(MapDateRoomReservation::getDateRoom).collect(Collectors.toList());
     }
 
     public void setPayment(Payment payment) throws ReservationException {
@@ -88,13 +92,13 @@ public class Reservation extends BaseTimeEntity {
     }
 
     public DateRoom getFirstDateRoom() {
-        if (this.dateRoomList.size()==0) return null;
-        return this.dateRoomList.stream().sorted(Comparator.comparing(DateRoom::getDate)).collect(Collectors.toList()).get(0);
+        if (this.mapDateRoomReservations.size()==0) return null;
+        return getDateRoomList().stream().sorted(Comparator.comparing(DateRoom::getDate)).collect(Collectors.toList()).get(0);
     }
 
     public DateRoom getLastDateRoom() {
-        if (this.dateRoomList.size()==0) return null;
-        return this.dateRoomList.stream().sorted(Comparator.comparing(DateRoom::getDate)).collect(Collectors.toList()).get(this.dateRoomList.size()-1);
+        if (this.mapDateRoomReservations.size()==0) return null;
+        return getDateRoomList().stream().sorted(Comparator.comparing(DateRoom::getDate)).collect(Collectors.toList()).get(this.mapDateRoomReservations.size()-1);
     }
 
     public LocalDate getFirstDate() {
@@ -104,8 +108,8 @@ public class Reservation extends BaseTimeEntity {
 
     public int getTotalPrice() {
         int totalPrice = 0;
-        for (DateRoom dateRoom:this.dateRoomList) {
-            totalPrice += dateRoom.getPrice();
+        for (MapDateRoomReservation mapDateRoomReservation:this.mapDateRoomReservations) {
+            totalPrice += mapDateRoomReservation.getDateRoom().getPrice();
         }
         return totalPrice;
     }

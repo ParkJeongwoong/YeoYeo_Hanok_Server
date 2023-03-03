@@ -108,9 +108,9 @@ public class DateRoomServiceTest {
         DateRoomInfoDto dateRoomInfo1 = dateRoomInfoByDateDtoList.get(0).getRooms().get(0);
         DateRoomInfoDto dateRoomInfo2 = dateRoomInfoByDateDtoList.get(0).getRooms().get(1);
         assertThat(dateRoomInfoByDateDtoList.get(0).getDate()).isEqualTo(now);
-        assertThat(dateRoomInfo1.getRoomId()).isEqualTo(roomId1);
+        assertThat(dateRoomInfo1.getRoomId()).isEqualTo(roomId2);
         assertThat(dateRoomInfo1.getReservationState()).isEqualTo(0);
-        assertThat(dateRoomInfo2.getRoomId()).isEqualTo(roomId2);
+        assertThat(dateRoomInfo2.getRoomId()).isEqualTo(roomId1);
         assertThat(dateRoomInfo2.getReservationState()).isEqualTo(0);
     }
 

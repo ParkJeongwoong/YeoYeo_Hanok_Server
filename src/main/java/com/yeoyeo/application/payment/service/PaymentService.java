@@ -230,6 +230,7 @@ public class PaymentService {
             throw new PaymentException("상품 번호가 유효하지 않은 결제입니다.");
         }
         if (reservation.getTotalPrice() != payedAmount) {
+            log.info("상품금액 : {} / 결제금액 : {}", reservation.getTotalPrice(), payedAmount);
             sendRefundRequest("결제 금액과 상품 가격 불일치", payedAmount, (int) payedAmount, imp_uid, accessToken);
             throw new PaymentException("결제 금액이 상품 가격과 일치하지 않습니다.");
         }
