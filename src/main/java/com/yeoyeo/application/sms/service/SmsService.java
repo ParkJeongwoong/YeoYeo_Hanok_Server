@@ -17,9 +17,12 @@ import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.Base64;
+import java.util.List;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -27,6 +30,7 @@ import java.util.concurrent.TimeUnit;
 public class SmsService {
 
     static final String NCLOUD_SMS_URL = "https://sens.apigw.ntruss.com";
+    static final List<String> ADMIN_LIST = Arrays.asList("01020339091", "01089599091", "01026669091", "01020199091");
 
     @Value("${sms.ncloud.key}")
     String smsKey;
@@ -96,13 +100,34 @@ public class SmsService {
         return null;
     }
 
+    public SendMessageResponseDto sendAdminSms(String message) {
+        // Todo - 관리자 알림 문자
+        String subject = "[한옥스테이 여여] 관리자 알림 문자입니다.";
+        String content = "[한옥스테이 여여 관리자 알림 문자]\n\n" +
+                "관리자 알림 문자입니다.\n" +
+                "내용 : [\n" +
+                message +
+                "]\n" +
+                "서버 데이터를 확인 바랍니다.";
+        return sendMultipleSMS(subject, content, ADMIN_LIST);
+    }
+
     private SendMessageResponseDto sendSMS(String subject, String content, String to) {
         String uri = "/sms/v2/services/"+smsKey+"/messages";
         String url = NCLOUD_SMS_URL+uri;
         String timestamp = getTimestamp();
         String signature = getSignature("POST", uri, timestamp);
 
-        return webClientService.sendSms(url, subject, content, to, timestamp, accessKey, signature);
+        return webClientService.sendSms(url, subject, content, getNumberOnly(to), timestamp, accessKey, signature);
+    }
+
+    private SendMessageResponseDto sendMultipleSMS(String subject, String content, List<String> phoneNumberList) {
+        String uri = "/sms/v2/services/"+smsKey+"/messages";
+        String url = NCLOUD_SMS_URL+uri;
+        String timestamp = getTimestamp();
+        String signature = getSignature("POST", uri, timestamp);
+
+        return webClientService.sendMultipleSms(url, subject, content, phoneNumberList.stream().map(this::getNumberOnly).collect(Collectors.toList()), timestamp, accessKey, signature);
     }
 
     private String getSignature(String method, String uri, String timestamp) {
@@ -154,6 +179,10 @@ public class SmsService {
             return redisTemplate.delete(phoneNumber);
         }
         return false;
+    }
+
+    private String getNumberOnly(String string) {
+        return string.replaceAll("[^0-9]","");
     }
 
 }

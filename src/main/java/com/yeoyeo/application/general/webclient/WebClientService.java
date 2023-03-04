@@ -14,6 +14,8 @@ import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.util.DefaultUriBuilderFactory;
 
+import java.util.List;
+
 @Slf4j
 @Service
 public class WebClientService {
@@ -67,6 +69,23 @@ public class WebClientService {
 
     public SendMessageResponseDto sendSms(String url, String subject, String content, String to, String timestamp, String accessKey, String signature) {
         SendMessageRequestDto requestDto = new SendMessageRequestDto(subject, content, to);
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            String jsonString = mapper.writeValueAsString(requestDto);
+            return smsWebClient(timestamp, accessKey, signature).post()
+                    .uri(url)
+                    .body(BodyInserters.fromValue(jsonString))
+                    .retrieve()
+                    .bodyToMono(SendMessageResponseDto.class)
+                    .block();
+        } catch (JsonProcessingException e) {
+            log.error("requestDto JSON 변환 에러", e);
+        }
+        return null;
+    }
+
+    public SendMessageResponseDto sendMultipleSms(String url, String subject, String content, List<String> phoneNumberList, String timestamp, String accessKey, String signature) {
+        SendMessageRequestDto requestDto = new SendMessageRequestDto(subject, content, phoneNumberList);
         ObjectMapper mapper = new ObjectMapper();
         try {
             String jsonString = mapper.writeValueAsString(requestDto);

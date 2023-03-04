@@ -17,4 +17,8 @@ public class ImpWebHookDto {
         this.merchant_uid = merchant_uid;
         this.status = status;
     }
+
+    public PaymentRequestDto getPaymentRequestDto() {
+        return new PaymentRequestDto(this.imp_uid, this.merchant_uid);
+    }
 }

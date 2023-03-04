@@ -10,6 +10,7 @@ import com.yeoyeo.application.payment.etc.exception.PaymentException;
 import com.yeoyeo.application.reservation.etc.exception.ReservationException;
 import com.yeoyeo.application.reservation.repository.ReservationRepository;
 import com.yeoyeo.application.reservation.service.ReservationService;
+import com.yeoyeo.application.sms.service.SmsService;
 import com.yeoyeo.domain.DateRoom;
 import com.yeoyeo.domain.Payment;
 import com.yeoyeo.domain.Reservation;
@@ -23,7 +24,6 @@ import org.springframework.web.reactive.function.BodyInserters;
 
 import java.time.LocalDate;
 import java.time.Period;
-import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
@@ -45,6 +45,7 @@ public class PaymentService {
 
     private final WebClientService webClientService;
     private final ReservationService reservationService;
+    private final SmsService smsService;
 
     @Transactional
     public GeneralResponseDto pay(PaymentRequestDto requestDto) {
@@ -56,13 +57,18 @@ public class PaymentService {
             Map<String, Object> paymentData = getPaymentData(requestDto.getImp_uid(), accessToken);
 
             Reservation reservation = reservationRepository.findById(requestDto.getMerchant_uid()).orElseThrow(NoSuchElementException::new);
-            Payment payment = createPayment(paymentData, reservation);
+            if (reservation.getPayment() == null) {
+                Payment payment = createPayment(paymentData, reservation);
 
-            // 결제 검증
-            validatePayment(reservation, paymentData, accessToken);
+                // 결제 검증
+                validatePayment(reservation, paymentData, accessToken);
 
-            // 결제 완료
-            completeReservation(reservation, payment);
+                // 결제 완료
+                completeReservation(reservation, payment);
+            } else {
+                Payment payment = reservation.getPayment();
+                validatePaymentData(payment, paymentData);
+            }
 
             return GeneralResponseDto.builder()
                     .success(true)
@@ -226,13 +232,35 @@ public class PaymentService {
             throw new PaymentException("결제가 완료되지 않았습니다.");
         }
         if (!(String.valueOf(reservation.getId())).equals(merchant_uid)) {
-            sendRefundRequest("상품 번호가 유효하지 않은 결제", payedAmount, (int) payedAmount, imp_uid, accessToken);
-            throw new PaymentException("상품 번호가 유효하지 않은 결제입니다.");
+            // 잘못된 예약 번호가 올 때 환불하는 건 다른 사람의 예약번호를 보내 다른 사람의 예약을 취소시키는 문제가 발생할 수 있음 -> 그냥 중단
+//            sendRefundRequest("상품 번호가 유효하지 않은 결제", payedAmount, (int) payedAmount, imp_uid, accessToken);
+            throw new PaymentException("예약 번호가 유효하지 않은 결제입니다.");
         }
         if (reservation.getTotalPrice() != payedAmount) {
             log.info("상품금액 : {} / 결제금액 : {}", reservation.getTotalPrice(), payedAmount);
             sendRefundRequest("결제 금액과 상품 가격 불일치", payedAmount, (int) payedAmount, imp_uid, accessToken);
             throw new PaymentException("결제 금액이 상품 가격과 일치하지 않습니다.");
+        }
+    }
+
+    private void validatePaymentData(Payment payment, Map<String, Object> paymentData) throws PaymentException {
+        String status = paymentData.get("status").toString();
+        String imp_uid = paymentData.get("imp_uid").toString();
+        long payedAmount = (long) (Integer) paymentData.get("amount");
+
+        log.info("status : {}", status);
+        log.info("amount : {}", payedAmount);
+        if (!status.equals("paid")) {
+            smsService.sendAdminSms("결제 오류 알림 - 완료되지 않은 결제 수신. 서버 데이터 확인 필요");
+            throw new PaymentException("결제가 완료되지 않았습니다.");
+        }
+        if (!(String.valueOf(payment.getImp_uid())).equals(imp_uid)) {
+            smsService.sendAdminSms("결제 오류 알림 - 저장되지 않은 결제번호 수신. 서버 데이터 확인 필요");
+            throw new PaymentException("잘못된 결제 정보입니다. 저장된 결제번호 : "+payment.getImp_uid()+" / 수신된 결제번호 : "+imp_uid);
+        }
+        if (payment.getAmount() != payedAmount) {
+            smsService.sendAdminSms("결제 오류 알림 - 잘못된 결제금액 수신. 서버 데이터 확인 필요");
+            throw new PaymentException("잘못된 결제 정보입니다. 저장된 결재금액 : "+payment.getAmount()+" / 지불된 결제금액 : "+payedAmount);
         }
     }
 
@@ -242,7 +270,7 @@ public class PaymentService {
             log.info("결제가 완료되었습니다.");
             reservationService.setReservationPaid(reservation, payment);
         } catch (ReservationException reservationException) {
-            sendRefundRequest("예약 불가능한 날짜 (중복 예약)", payment.getAmount(), payment.getAmount(), payment.getImp_uid(), getToken());
+            sendRefundRequest("예약 불가능한 날짜 (중복된 예약)", payment.getAmount(), payment.getAmount(), payment.getImp_uid(), getToken());
             throw new PaymentException(reservationException.getMessage());
         }
     }

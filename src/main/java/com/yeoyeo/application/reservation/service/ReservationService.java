@@ -74,7 +74,7 @@ public class ReservationService {
         } catch (RoomReservationException e) {
             reservation.setStateCanceled();
             reservationRepository.save(reservation);
-            log.error("예약된 날짜 에러 - {}", reservation.getGuest().getName(), e);
+            log.error("이미 예약된 날짜입니다.", e);
             throw new ReservationException(e.getMessage());
         } catch (ObjectOptimisticLockingFailureException | StaleObjectStateException e) {
             log.error("예약된 날짜 에러(낙관적 락) - {}", reservation.getGuest().getName(), e);

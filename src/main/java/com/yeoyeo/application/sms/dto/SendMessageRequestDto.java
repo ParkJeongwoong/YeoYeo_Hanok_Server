@@ -31,4 +31,15 @@ public class SendMessageRequestDto {
         this.messages.add(new MessageDto(to));
     }
 
+    public SendMessageRequestDto(String subject, String content, List<String> phoneNumberList) {
+        this.type = "SMS";
+        this.contentType = "COMM";
+        this.countryCode = "82";
+        this.from = "01020339091"; // Todo : 법인 계정 생성 후 수정 필요
+        this.subject = subject;
+        this.content = content;
+        this.messages = new ArrayList<>();
+        phoneNumberList.forEach(phoneNumber -> this.messages.add(new MessageDto(phoneNumber)));
+    }
+
 }
