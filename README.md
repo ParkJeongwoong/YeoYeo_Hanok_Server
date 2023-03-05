@@ -7,12 +7,13 @@
 - 리디렉션 처리 고민 v
     - 예약정보 선 생성 -> 결제정보 후 생성 (이미 있는 결제면 생성 불가) v
 - **AWS  보안** v
+- 대기큐 DB 저장 -> 서버 재가동 시 환불 처리 x
+- **연박 할인** v
+- busy waiting 개선 (reactor pattern) x
 
 
 - confirm Process 신청 후 등록 (https://portone.gitbook.io/docs/tip/confirm-process)
-- busy waiting 개선 (reactor pattern)
-- 대기큐 DB 저장 -> 서버 재가동 시 환불 처리
-- **연박 할인**
+- 스케쥴 작업 체크
 - isReservable을 이용해 1년치 미리 생성
 - 관리자 페이지
   - dateroom 예약 상태 변경

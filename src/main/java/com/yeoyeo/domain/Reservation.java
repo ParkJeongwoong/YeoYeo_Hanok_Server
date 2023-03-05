@@ -111,6 +111,7 @@ public class Reservation extends BaseTimeEntity {
         for (MapDateRoomReservation mapDateRoomReservation:this.mapDateRoomReservations) {
             totalPrice += mapDateRoomReservation.getDateRoom().getPrice();
         }
+        totalPrice -= 20000*(this.mapDateRoomReservations.size()-1);
         return totalPrice;
     }
 

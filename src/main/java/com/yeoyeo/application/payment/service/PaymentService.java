@@ -50,20 +50,15 @@ public class PaymentService {
     @Transactional
     public GeneralResponseDto pay(PaymentRequestDto requestDto) {
         try {
-            // 결제 정보 조회
             log.info("imp_uid : {}", requestDto.getImp_uid());
             log.info("merchant_uid : {}", requestDto.getMerchant_uid());
             String accessToken = getToken();
             Map<String, Object> paymentData = getPaymentData(requestDto.getImp_uid(), accessToken);
-
             Reservation reservation = reservationRepository.findById(requestDto.getMerchant_uid()).orElseThrow(NoSuchElementException::new);
+
             if (reservation.getPayment() == null) {
                 Payment payment = createPayment(paymentData, reservation);
-
-                // 결제 검증
                 validatePayment(reservation, paymentData, accessToken);
-
-                // 결제 완료
                 completeReservation(reservation, payment);
             } else {
                 Payment payment = reservation.getPayment();
