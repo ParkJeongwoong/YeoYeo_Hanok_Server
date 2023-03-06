@@ -20,7 +20,7 @@ public class Reservation extends BaseTimeEntity {
     @Id
     private long id;
 
-    @OneToMany(mappedBy = "reservation", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "reservation", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private final List<MapDateRoomReservation> mapDateRoomReservations = new ArrayList<>();
 
     @OneToOne(cascade = CascadeType.ALL)
