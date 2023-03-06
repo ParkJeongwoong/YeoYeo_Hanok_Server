@@ -10,10 +10,13 @@
 - 대기큐 DB 저장 -> 서버 재가동 시 환불 처리 x
 - **연박 할인** v
 - busy waiting 개선 (reactor pattern) x
+- confirm Process 신청 후 등록 (https://portone.gitbook.io/docs/tip/confirm-process) v
 
+[3월17일 개발완료 예정]
 
-- confirm Process 신청 후 등록 (https://portone.gitbook.io/docs/tip/confirm-process)
+- 로그인
 - 스케쥴 작업 체크
+  - 날짜 지난 Reservation 제거 작업 추가 여부
 - isReservable을 이용해 1년치 미리 생성
 - 관리자 페이지
   - dateroom 예약 상태 변경

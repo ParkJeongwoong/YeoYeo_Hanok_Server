@@ -24,6 +24,7 @@ import org.springframework.web.reactive.function.BodyInserters;
 
 import java.time.LocalDate;
 import java.time.Period;
+import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
@@ -50,8 +51,6 @@ public class PaymentService {
     @Transactional
     public GeneralResponseDto pay(PaymentRequestDto requestDto) {
         try {
-            log.info("imp_uid : {}", requestDto.getImp_uid());
-            log.info("merchant_uid : {}", requestDto.getMerchant_uid());
             String accessToken = getToken();
             Map<String, Object> paymentData = getPaymentData(requestDto.getImp_uid(), accessToken);
             Reservation reservation = reservationRepository.findById(requestDto.getMerchant_uid()).orElseThrow(NoSuchElementException::new);
@@ -76,6 +75,26 @@ public class PaymentService {
                     .message(paymentException.getMessage())
                     .build();
         }
+    }
+
+    public GeneralResponseDto confirm(ImpConfirmDto confirmDto) {
+        try {
+            Reservation reservation = reservationRepository.findById(confirmDto.getMerchant_uid()).orElseThrow(NoSuchElementException::new);
+            if (reservation.getTotalPrice() != confirmDto.getAmount()) throw new PaymentException("결제 금액이 일치하지 않습니다.");
+            List<DateRoom> dateRoomList = reservation.getDateRoomList();
+            for (DateRoom dateRoom:dateRoomList) if (dateRoom.getRoomReservationState()!=0) throw new PaymentException("이미 예약이 완료된 날짜입니다.");
+            return GeneralResponseDto.builder()
+                    .success(true)
+                    .message("결제 가능한 상태입니다.")
+                    .build();
+        } catch (PaymentException paymentException) {
+            log.error("Confirm 검증 과정 중 실패", paymentException);
+            return GeneralResponseDto.builder()
+                    .success(false)
+                    .message(paymentException.getMessage())
+                    .build();
+        }
+
     }
 
     @Transactional

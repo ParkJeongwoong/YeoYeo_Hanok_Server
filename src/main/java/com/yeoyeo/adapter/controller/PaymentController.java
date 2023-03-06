@@ -1,6 +1,7 @@
 package com.yeoyeo.adapter.controller;
 
 import com.yeoyeo.application.common.dto.GeneralResponseDto;
+import com.yeoyeo.application.payment.dto.ImpConfirmDto;
 import com.yeoyeo.application.payment.dto.PaymentRequestDto;
 import com.yeoyeo.application.payment.dto.ImpWebHookDto;
 import com.yeoyeo.application.payment.dto.RefundClientRequestDto;
@@ -25,6 +26,15 @@ public class PaymentController {
         if (!responseDto.getSuccess()) return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseDto);
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
+
+    @ApiOperation(value = "Confirm", notes = "결제 전 확인 - 아임포트 결제 모듈의 confirm_url 항목에 입력된 값. 결제 전 결제 가능 여부를 확인하는 역할")
+    @PostMapping("/confirm")
+    public ResponseEntity<GeneralResponseDto> confirm(@RequestBody ImpConfirmDto confirmDto) {
+        GeneralResponseDto responseDto = paymentService.confirm(confirmDto);
+        if (!responseDto.getSuccess()) return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseDto);
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
 
     @ApiOperation(value = "Refund", notes = "환불")
     @DeleteMapping("/refund")
