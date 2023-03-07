@@ -56,7 +56,7 @@ public class SmsService {
                 "인증번호 : "+authKey+"\n" +
                 "인증번호를 입력해 주세요.";
         registerAuthKey(to, authKey);
-        return null;
+        return sendSMS(subject, content, to);
     }
 
     public Boolean validateAuthenticationKey(String phoneNumber, String authKey) {
@@ -64,7 +64,6 @@ public class SmsService {
     }
 
     public SendMessageResponseDto sendReservationSms(Reservation reservation) {
-        // Todo - 예약 완료 문자
         LocalDate startDate = reservation.getFirstDateRoom().getDate();
         LocalDate endDate = reservation.getLastDateRoom().getDate().plusDays(1);
         String startDate_string = startDate.getYear()+"년 "+startDate.getMonthValue()+"월"+startDate.getDayOfMonth()+"일";
@@ -79,11 +78,10 @@ public class SmsService {
                 "입실은 15시부터 이면 퇴실은 11시입니다.\n\n" +
                 "한옥스테이 여여에서 여유롭고 행복한 시간 보내시길 바라겠습니다.\n" +
                 "감사합니다.:)";
-        return null;
+        return sendSMS(subject, content, to);
     }
 
     public SendMessageResponseDto sendCancelSms(Reservation reservation) {
-        // Todo - 예약 취소 문자
         LocalDate startDate = reservation.getFirstDateRoom().getDate();
         LocalDate endDate = reservation.getLastDateRoom().getDate().plusDays(1);
         String startDate_string = startDate.getYear()+"년 "+startDate.getMonthValue()+"월"+startDate.getDayOfMonth()+"일";
@@ -97,11 +95,10 @@ public class SmsService {
                 "(예약번호 :"+reservation.getId()+")\n" +
                 "결제하신 내역은 환불 규정에 따라 진행될 예정입니다.\n\n" +
                 "감사합니다.";
-        return null;
+        return sendSMS(subject, content, to);
     }
 
     public SendMessageResponseDto sendAdminSms(String message) {
-        // Todo - 관리자 알림 문자
         String subject = "[한옥스테이 여여] 관리자 알림 문자입니다.";
         String content = "[한옥스테이 여여 관리자 알림 문자]\n\n" +
                 "관리자 알림 문자입니다.\n" +
