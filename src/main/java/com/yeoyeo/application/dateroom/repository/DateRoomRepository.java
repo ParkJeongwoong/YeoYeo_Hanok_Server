@@ -13,5 +13,6 @@ public interface DateRoomRepository extends JpaRepository<DateRoom, String> {
 //    @Lock(LockModeType.PESSIMISTIC_WRITE)
     List<DateRoom> findAllByOrderByDate();
     List<DateRoom> findAllByDateBetweenOrderByDate(LocalDate startDate, LocalDate endDate);
+    List<DateRoom> findAllByDateBetweenAndRoom_Id(LocalDate startDate, LocalDate endDate, long roomId);
     List<DateRoom> findAllByDate(LocalDate date);
 }

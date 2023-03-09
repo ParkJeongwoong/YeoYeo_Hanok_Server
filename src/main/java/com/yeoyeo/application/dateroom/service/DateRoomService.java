@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -114,6 +115,16 @@ public class DateRoomService extends Thread {
         List<DateRoom> dateRoomList = dateRoomRepository.findAllByDate(date);
         dateRoomList.forEach(DateRoom::setUnReservable);
         dateRoomRepository.saveAll(dateRoomList);
+    }
+
+    public Integer getTotalPrice(long roomId, String checkInDate, String checkOutDate) {
+        LocalDate startDate = LocalDate.parse(checkInDate, DateTimeFormatter.ofPattern("yyyyMMdd"));
+        LocalDate endDate = LocalDate.parse(checkOutDate, DateTimeFormatter.ofPattern("yyyyMMdd")).minusDays(1);
+        List<DateRoom> dateRoomList = dateRoomRepository.findAllByDateBetweenAndRoom_Id(startDate, endDate, roomId);
+        int totalPrice = 0;
+        for (DateRoom dateRoom:dateRoomList) totalPrice += dateRoom.getPrice();
+        totalPrice -= 20000*(dateRoomList.size()-1);
+        return totalPrice;
     }
 
     private List<DateRoomInfoByDateDto> getDateRoomInfoList(List<DateRoom> dateRoomList) {

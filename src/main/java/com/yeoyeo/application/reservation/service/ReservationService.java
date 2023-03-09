@@ -2,6 +2,7 @@ package com.yeoyeo.application.reservation.service;
 
 import com.yeoyeo.application.common.dto.GeneralResponseDto;
 import com.yeoyeo.application.dateroom.etc.exception.RoomReservationException;
+import com.yeoyeo.application.dateroom.repository.DateRoomRepository;
 import com.yeoyeo.application.reservation.dto.MakeReservationDto;
 import com.yeoyeo.application.reservation.dto.ReservationDetailInfoDto;
 import com.yeoyeo.application.reservation.dto.ReservationInfoDto;
@@ -62,11 +63,12 @@ public class ReservationService {
 
     @Transactional
     public void setReservationPaid(Reservation reservation, Payment payment) throws ReservationException {
+        List<DateRoom> dateRoomList = reservation.getDateRoomList();
         try {
-            for (DateRoom dateRoom:reservation.getDateRoomList()) {
-                log.info("{} : {} 시도", reservation.getGuest().getName(), dateRoom.getDate());
+            for (DateRoom dateRoom:dateRoomList) {
+                log.info("{} : {} {} 예약시도", reservation.getGuest().getName(), dateRoom.getDate(), dateRoom.getRoom().getId());
                 dateRoom.setStateBooked();
-                log.info("{} : {} 성공", reservation.getGuest().getName(), dateRoom.getDate());
+                log.info("{} : {} {} 예약성공", reservation.getGuest().getName(), dateRoom.getDate(), dateRoom.getRoom().getId());
             }
             log.info("예약 함 !! {}", reservation.getGuest().getName());
             reservation.setPayment(payment);
