@@ -127,14 +127,15 @@ public class DateRoomService extends Thread {
         dateRoomRepository.saveAll(dateRoomList);
     }
 
-    public Integer getTotalPrice(long roomId, String checkInDate, String checkOutDate) {
+    public DateRoomPriceInfoDto getTotalPrice(long roomId, String checkInDate, String checkOutDate) {
         LocalDate startDate = LocalDate.parse(checkInDate, DateTimeFormatter.ofPattern("yyyyMMdd"));
         LocalDate endDate = LocalDate.parse(checkOutDate, DateTimeFormatter.ofPattern("yyyyMMdd")).minusDays(1);
         List<DateRoom> dateRoomList = dateRoomRepository.findAllByDateBetweenAndRoom_Id(startDate, endDate, roomId);
-        int totalPrice = 0;
-        for (DateRoom dateRoom:dateRoomList) totalPrice += dateRoom.getPrice();
-        totalPrice -= 20000*(dateRoomList.size()-1);
-        return totalPrice;
+        int totalPrice;
+        int originalPrice = 0;
+        for (DateRoom dateRoom:dateRoomList) originalPrice += dateRoom.getPrice();
+        totalPrice = originalPrice - 20000*(dateRoomList.size()-1);
+        return new DateRoomPriceInfoDto(totalPrice, originalPrice, 20000*(dateRoomList.size()-1), dateRoomList.size());
     }
 
     private List<DateRoomInfoByDateDto> getDateRoomInfoList(List<DateRoom> dateRoomList) {

@@ -32,7 +32,7 @@ public class DateRoomController {
 
     @ApiOperation(value = "Get Total Price", notes = "8자리 시작일, 종료일을 바탕으로 비용 계산")
     @GetMapping("/price/{roomId}/{checkInDate}/{checkOutDate}")
-    public ResponseEntity<Integer> getTotalPrice(@PathVariable("roomId") long roomId, @PathVariable("checkInDate") String checkInDate, @PathVariable("checkOutDate") String checkOutDate) {
+    public ResponseEntity<DateRoomPriceInfoDto> getTotalPrice(@PathVariable("roomId") long roomId, @PathVariable("checkInDate") String checkInDate, @PathVariable("checkOutDate") String checkOutDate) {
         return ResponseEntity.status(HttpStatus.OK).body(dateRoomService.getTotalPrice(roomId, checkInDate, checkOutDate));
     }
 
