@@ -47,7 +47,7 @@ public class PaymentController {
     @ApiOperation(value = "WebHook", notes = "(서버전용) 아임포트 서버와 결제 정보 동기화 용도")
     @PostMapping("/webhook")
     public ResponseEntity<GeneralResponseDto> webhook(@RequestBody ImpWebHookDto webHookDto) {
-        GeneralResponseDto responseDto = paymentService.pay(webHookDto.getPaymentRequestDto());
+        GeneralResponseDto responseDto = paymentService.webhook(webHookDto);
         if (!responseDto.getSuccess()) return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseDto);
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }

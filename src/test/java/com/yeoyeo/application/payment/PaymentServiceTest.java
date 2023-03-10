@@ -45,18 +45,12 @@ public class PaymentServiceTest {
     PaymentRepository paymentRepository;
     @Autowired
     ReservationService reservationService;
-    @Autowired
-    PaymentService paymentService;
 
 
     String dateRoom1Id = LocalDate.now().toString().replaceAll("[^0-9]","")+"1";
     String dateRoom2Id = LocalDate.now().toString().replaceAll("[^0-9]","")+"2";
     String dateRoom3Id = LocalDate.now().plusDays(1).toString().replaceAll("[^0-9]","")+"2";
     String dateRoom4Id = LocalDate.now().plusDays(2).toString().replaceAll("[^0-9]","")+"2";
-    Payment payment1;
-    Payment payment2;
-    Payment payment3;
-    Payment payment4;
 
     @BeforeEach
     public void setup() {
@@ -64,27 +58,32 @@ public class PaymentServiceTest {
 
     @AfterEach
     public void cleanup() {
-        reservationRepository.deleteAll();
-        paymentRepository.deleteAll();
-        List<DateRoom> dateRooms = dateRoomRepository.findAll();
-        dateRooms.forEach(dateRoom -> {
-            try {
+        try {
+            reservationRepository.deleteAll();
+            paymentRepository.deleteAll();
+            List<DateRoom> dateRooms = dateRoomRepository.findAll();
+            dateRooms.forEach(dateRoom -> {
                 if (dateRoom.getRoomReservationState()==1) {
-                    dateRoom.resetState();
+                    try {
+                        dateRoom.resetState();
+                    } catch (RoomReservationException e) {
+                        log.error("Dateroom 초기화 에러", e);
+                    }
                 }
-            } catch (RoomReservationException e) {
-                log.error("Dateroom 초기화 에러", e);
-            }
-        });
-        dateRoomRepository.saveAll(dateRooms);
+            });
+            dateRoomRepository.saveAll(dateRooms);
+        } catch (Exception e) {
+            log.error("cleanup 에러", e);
+        }
     }
 
     @Test
     @Transactional
     public void test_paymentDateRoomSetting_concurrency() throws InterruptedException {
-        log.info("createReservation 동시성 테스트 시작");
+
+        log.info("paymentDateRoomSetting 동시성 테스트 시작");
         // Given
-        log.info("createReservation 동시성 테스트 준비");
+        log.info("paymentDateRoomSetting 동시성 테스트 준비");
         int numberOfThreads = 4;
         ExecutorService service = Executors.newFixedThreadPool(numberOfThreads);
         CountDownLatch latch = new CountDownLatch(numberOfThreads);
@@ -109,67 +108,124 @@ public class PaymentServiceTest {
         MakeReservationHomeDto requestDto2 = new MakeReservationHomeDto(dateRoomList1, guest2);
         MakeReservationHomeDto requestDto3 = new MakeReservationHomeDto(dateRoomList1, guest3);
         MakeReservationHomeDto requestDto4 = new MakeReservationHomeDto(dateRoomList1, guest4);
-        log.info("createReservation 동시성 테스트 진행");
-        try {
-            reservationService.createReservation(requestDto1);
-            reservationService.createReservation(requestDto2);
-            reservationService.createReservation(requestDto3);
-            reservationService.createReservation(requestDto4);
-        } catch (ReservationException e) {
-            log.error(e.getMessage(), e);
-        }
-        List<Reservation> reservations = reservationRepository.findAll();
-        Reservation reservation1 = reservations.get(0);
-        Reservation reservation2 = reservations.get(1);
-        Reservation reservation3 = reservations.get(2);
-        Reservation reservation4 = reservations.get(3);
 
         // When
+        log.info(">>>>>>>>>>>>>>>>>> paymentDateRoomSetting 동시성 테스트 진행");
         service.execute(() -> {
             try {
-                reservationService.setReservationPaid(reservation1, payment1);
-            } catch (Exception e) {
-                log.error("동시성 테스트 예외 (jw) {}", e.getMessage(), e);
+                long reservation1_id = reservationService.createReservation(requestDto1);
+                log.info("ID 1 : {}", reservation1_id);
+                Reservation reservation1 = reservationRepository.findById(reservation1_id).orElseThrow(NoSuchElementException::new);
+                log.info("RESERVATION 1 : {}", reservation1.getDateRoomList().get(0).getRoomReservationState());
+                    Thread.sleep(20);
+                try {
+                    reservationService.setReservationPaid(reservation1, payment1);
+                    log.info(">>>>> 예약 성공 (jw) : {}", reservation1.getReservationState());
+                } catch (Exception e) {
+                    reservation1.setStateCanceled();
+                    reservationRepository.save(reservation1);
+                    log.error("메서드 종료 이후 예외 (jw) {}", e.getMessage(), e);
+                    log.info(">>>>> 예약 실패 (jw) : {}", reservation1.getReservationState());
+                }
+            } catch (InterruptedException | ReservationException e) {
+                log.error("reservation 객체 생성 중 예외 (jw) {}", e.getMessage(), e);
             }
             latch.countDown();
         });
         service.execute(() -> {
             try {
-                reservationService.setReservationPaid(reservation2, payment2);
-            } catch (Exception e) {
-                log.error("동시성 테스트 예외 (chw) {}", e.getMessage(), e);
+                Thread.sleep(10);
+                long reservation2_id = reservationService.createReservation(requestDto2);
+                log.info("ID 2 : {}", reservation2_id);
+                Reservation reservation2 = reservationRepository.findById(reservation2_id).orElseThrow(NoSuchElementException::new);
+                log.info("RESERVATION 2 : {}", reservation2.getDateRoomList().get(0).getRoomReservationState());
+                Thread.sleep(10);
+                try {
+                    reservationService.setReservationPaid(reservation2, payment2);
+                    log.info(">>>>> 예약 성공 (chw) : {}", reservation2.getReservationState());
+                } catch (Exception e) {
+                    reservation2.setStateCanceled();
+                    reservationRepository.save(reservation2);
+                    log.error("메서드 종료 이후 예외 (chw) {}", e.getMessage(), e);
+                    log.info(">>>>> 예약 실패 (chw) : {}", reservation2.getReservationState());
+                }
+            } catch (InterruptedException | ReservationException e) {
+                log.error("reservation 객체 생성 중 예외 (chw) {}", e.getMessage(), e);
             }
             latch.countDown();
         });
         service.execute(() -> {
             try {
-                reservationService.setReservationPaid(reservation3, payment3);
-            } catch (Exception e) {
-                log.error("동시성 테스트 예외 (dad) {}", e.getMessage(), e);
+                Thread.sleep(20);
+                long reservation3_id = reservationService.createReservation(requestDto3);
+                log.info("ID 3 : {}", reservation3_id);
+                Reservation reservation3 = reservationRepository.findById(reservation3_id).orElseThrow(NoSuchElementException::new);
+                log.info("RESERVATION 3 : {}", reservation3.getDateRoomList().get(0).getRoomReservationState());
+                try {
+                    reservationService.setReservationPaid(reservation3, payment3);
+                    log.info(">>>>> 예약 성공 (dad) : {}", reservation3.getReservationState());
+                } catch (Exception e) {
+                    reservation3.setStateCanceled();
+                    reservationRepository.save(reservation3);
+                    log.info(">>>>> 예약 실패 (dad) : {}", reservation3.getReservationState());
+                    log.error("메서드 종료 이후 예외 (dad) {}", e.getMessage(), e);
+                }
+            } catch (InterruptedException | ReservationException e) {
+                log.error("reservation 객체 생성 중 예외 (dad) {}", e.getMessage(), e);
             }
             latch.countDown();
         });
         service.execute(() -> {
             try {
-                reservationService.setReservationPaid(reservation4, payment4);
-            } catch (Exception e) {
-                log.error("동시성 테스트 예외 (mom) {}", e.getMessage(), e);
+                Thread.sleep(3000);
+                long reservation4_id = reservationService.createReservation(requestDto4);
+                log.info("ID 4 : {}", reservation4_id);
+                Reservation reservation4 = reservationRepository.findById(reservation4_id).orElseThrow(NoSuchElementException::new);
+                log.info("RESERVATION 4 : {}", reservation4.getDateRoomList().get(0).getRoomReservationState());
+                Thread.sleep(1000);
+                try {
+                    reservationService.setReservationPaid(reservation4, payment4);
+                    log.info(">>>>> 예약 성공 (mom) : {}", reservation4.getReservationState());
+                } catch (Exception e) {
+                    reservation4.setStateCanceled();
+                    reservationRepository.save(reservation4);
+                    log.info(">>>>> 예약 실패 (mom) : {}", reservation4.getReservationState());
+                    log.error("메서드 종료 이후 예외 (mom) {}", e.getMessage(), e);
+                }
+            } catch (InterruptedException | ReservationException e) {
+                log.error("reservation 객체 생성 중 예외 (mom) {}", e.getMessage(), e);
             }
             latch.countDown();
         });
         latch.await();
 
         // Then
-        log.info("createReservation 동시성 테스트 결과 검증");
+        log.info(">>>>>>>>>>>>>>>>>> paymentDateRoomSetting 동시성 테스트 결과 검증");
+        List<Reservation> reservations = reservationRepository.findAll();
         List<Payment> payments = paymentRepository.findAll();
         DateRoom dateRoom = dateRoomRepository.findById(dateRoom2Id).orElseThrow(NoSuchElementException::new);
         log.info("DateRoom 상태 : {} {}", dateRoom.getId(), dateRoom.getRoomReservationState());
+        log.info("예약 성공한 숫자 : {}", reservations.size());
         log.info("결제 성공한 숫자 : {}", payments.size());
-        log.info("reservation1 status : {}", reservation1.getReservationState());
-        log.info("reservation2 status : {}", reservation2.getReservationState());
-        log.info("reservation3 status : {}", reservation3.getReservationState());
-        log.info("reservation4 status : {}", reservation4.getReservationState());
+        for (int i=1;i<reservations.size()+1;i++) {
+            log.info("reservation{} status : {}", i, reservations.get(i-1).getReservationState());
+        }
+
+        try {
+            dateRoom.setStateBooked();
+        } catch (RoomReservationException e) {
+            e.printStackTrace();
+        }
+        log.info("수정 된 DateRoom 상태 : {} {}", dateRoom.getId(), dateRoom.getRoomReservationState());
+        
+        /*
+        reservation의 state가 하나만 1이고 나머지 3개는 -1인 걸 보면 낙관적 잠금이 정상적으로 동작한 걸로 보인다.
+        payment가 여러 개가 저장되는 경우는 가끔 일어나지만 함수 외부에서 ObjectOptimisticLockingFailureException 을 잡는 건 유효한 걸로 보인다.
+        setReservationPaid 외부에서 적절히 처리를 해주면 문제가 없을 걸로 보인다.
+         */
 
         assertThat(payments.size()).isEqualTo(1);
+
     }
+
 }

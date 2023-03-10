@@ -30,6 +30,7 @@ import java.util.stream.Collectors;
 @Service
 public class ReservationService {
 
+    private final DateRoomRepository dateRoomRepository;
     private final ReservationRepository reservationRepository;
     private final SmsService smsService;
 
@@ -63,19 +64,22 @@ public class ReservationService {
 
     @Transactional
     public void setReservationPaid(Reservation reservation, Payment payment) throws ReservationException {
-        List<DateRoom> dateRoomList = reservation.getDateRoomList();
+//        List<DateRoom> dateRoomList = reservation.getDateRoomList();
+        List<String> dateRoomIdList = reservation.getDateRoomIdList();
         try {
-            for (DateRoom dateRoom:dateRoomList) {
+//            for (DateRoom dateRoom:dateRoomList) {
+            for (String dateRoomId:dateRoomIdList) {
+                DateRoom dateRoom = dateRoomRepository.findById(dateRoomId).orElseThrow(NoSuchElementException::new);
                 log.info("{} : {} {} 예약시도", reservation.getGuest().getName(), dateRoom.getDate(), dateRoom.getRoom().getId());
                 dateRoom.setStateBooked();
+                dateRoomRepository.save(dateRoom);
+//                dateRoomRepository.saveAndFlush(dateRoom); // 이렇게 해야 메서드 내에서 ObjectOptimisticLockingFailureException 발생
                 log.info("{} : {} {} 예약성공", reservation.getGuest().getName(), dateRoom.getDate(), dateRoom.getRoom().getId());
             }
-            log.info("예약 함 !! {}", reservation.getGuest().getName());
             reservation.setPayment(payment);
             reservationRepository.save(reservation);
+            log.info("{} 고객 예약성공!!", reservation.getGuest().getName());
         } catch (RoomReservationException e) {
-            reservation.setStateCanceled();
-            reservationRepository.save(reservation);
             log.error("이미 예약된 날짜입니다.", e);
             throw new ReservationException(e.getMessage());
         } catch (ObjectOptimisticLockingFailureException | StaleObjectStateException e) {

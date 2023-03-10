@@ -52,7 +52,7 @@ public class DateRoomService extends Thread {
         LocalDate date = LocalDate.now();
         log.info("TODAY : {}", date);
         for (int i=0;i<180;i++) {
-            if (dateRoomRepository.findById(date.toString().replaceAll("[^0-9]","")+"1")!=null) {
+            if (dateRoomRepository.findById(date.toString().replaceAll("[^0-9]", "") + "1").isPresent()) {
                 try {
                     makeDateRoom(2, date);
                     makeDateRoom(1, date);
@@ -63,32 +63,42 @@ public class DateRoomService extends Thread {
             date = date.plusDays(1);
         }
         log.info("Last Day : {}", date);
+        dateRoomRepository.flush();
     }
 
     @Transactional
     public void makeDateRoom(long roomId, LocalDate date) throws Exception {
         Room room = roomRepository.findById(roomId).orElseThrow(()->new Exception("존재하지 않는 방입니다."));
-        // Todo - 존재하는 방이면 생성 X
-        DateRoom dateRoom = DateRoom.builder()
-                .date(date)
-                .room(room)
-                .webClientService(webClientService)
-                .key(holidayKey)
-                .build();
-        dateRoomRepository.save(dateRoom);
+        String dateRoomId = date.toString().replaceAll("[^0-9]","")+roomId;
+        if (dateRoomRepository.findById(dateRoomId).isPresent()) {
+            DateRoom dateRoom = DateRoom.builder()
+                    .date(date)
+                    .room(room)
+                    .webClientService(webClientService)
+                    .key(holidayKey)
+                    .build();
+            dateRoomRepository.save(dateRoom);
+        } else {
+            log.info("이미 존재하는 방입니다. {}", dateRoomId);
+        }
     }
 
     @Transactional
     public String makeDateRoom(MakeDateRoomDto makeDateRoomDto) throws Exception {
         Room room = roomRepository.findById(makeDateRoomDto.getRoomId()).orElseThrow(()->new Exception("존재하지 않는 방입니다."));
-        // Todo - 존재하는 방이면 생성 X
-        DateRoom dateRoom = DateRoom.builder()
-                .date(makeDateRoomDto.getDate())
-                .room(room)
-                .webClientService(webClientService)
-                .key(holidayKey)
-                .build();
-        return dateRoomRepository.save(dateRoom).getId();
+        String dateRoomId = makeDateRoomDto.getDate().toString().replaceAll("[^0-9]","")+makeDateRoomDto.getRoomId();
+        if (dateRoomRepository.findById(dateRoomId).isPresent()) {
+            DateRoom dateRoom = DateRoom.builder()
+                    .date(makeDateRoomDto.getDate())
+                    .room(room)
+                    .webClientService(webClientService)
+                    .key(holidayKey)
+                    .build();
+            return dateRoomRepository.save(dateRoom).getId();
+        } else {
+            log.info("이미 존재하는 방입니다. {}", dateRoomId);
+            return dateRoomId;
+        }
     }
 
     @Transactional
@@ -102,7 +112,7 @@ public class DateRoomService extends Thread {
                     .webClientService(webClientService)
                     .key(holidayKey)
                     .build();
-             dateRoomRepository.save(dateRoom).getId();
+             dateRoomRepository.save(dateRoom);
             return new GeneralResponseDto(false, -1, "방 생성에 성공했습니다.");
         } catch (Exception e) {
             log.error("방 생성 중 에러 발생", e);

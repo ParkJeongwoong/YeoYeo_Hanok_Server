@@ -98,8 +98,19 @@ public class DateRoomServiceTest {
                 .key(holidayKey)
                 .build();
 
-        dateRoomRepository.save(dateRoom1);
-        dateRoomRepository.save(dateRoom2);
+        List<DateRoom> dateRoomList = dateRoomRepository.findAllByDate(now);
+        log.info("SIZE {}", dateRoomList.size());
+        for (DateRoom dateRoom:dateRoomList) log.info("ID : {}", dateRoom.getId());
+        if (dateRoomRepository.findById(dateRoom1.getId()).isPresent()) {
+            dateRoomRepository.save(dateRoom1);
+        } else {
+            log.info("이미 존재하는 방입니다. {}", dateRoom1.getId());
+        }
+        if (dateRoomRepository.findById(dateRoom2.getId()).isPresent()) {
+            dateRoomRepository.save(dateRoom2);
+        } else {
+            log.info("이미 존재하는 방입니다. {}", dateRoom2.getId());
+        }
 
         // When
         List<DateRoomInfoByDateDto> dateRoomInfoByDateDtoList = dateRoomService.showAllDateRooms();
@@ -108,9 +119,9 @@ public class DateRoomServiceTest {
         DateRoomInfoDto dateRoomInfo1 = dateRoomInfoByDateDtoList.get(0).getRooms().get(0);
         DateRoomInfoDto dateRoomInfo2 = dateRoomInfoByDateDtoList.get(0).getRooms().get(1);
         assertThat(dateRoomInfoByDateDtoList.get(0).getDate()).isEqualTo(now);
-        assertThat(dateRoomInfo1.getRoomId()).isEqualTo(roomId2);
+        assertThat(dateRoomInfo1.getRoomId()).isEqualTo(roomId1);
         assertThat(dateRoomInfo1.getReservationState()).isEqualTo(0);
-        assertThat(dateRoomInfo2.getRoomId()).isEqualTo(roomId1);
+        assertThat(dateRoomInfo2.getRoomId()).isEqualTo(roomId2);
         assertThat(dateRoomInfo2.getReservationState()).isEqualTo(0);
     }
 

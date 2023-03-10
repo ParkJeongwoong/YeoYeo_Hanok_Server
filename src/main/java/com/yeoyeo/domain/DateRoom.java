@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.annotations.OptimisticLocking;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -21,6 +22,8 @@ import java.util.List;
 @Getter
 @NoArgsConstructor
 @Entity
+@Cacheable // 2차 캐시 활성화
+@OptimisticLocking
 public class DateRoom {
     @Id
     private String id;
@@ -46,6 +49,9 @@ public class DateRoom {
 
     @OneToMany(mappedBy = "dateRoom")
     private final List<MapDateRoomReservation> mapDateRoomReservations = new ArrayList<>();
+
+    @Version
+    private int version;
 
     @Builder
     DateRoom(LocalDate date, Room room, WebClientService webClientService, String key) {
