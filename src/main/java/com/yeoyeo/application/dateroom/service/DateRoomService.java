@@ -52,13 +52,15 @@ public class DateRoomService extends Thread {
         LocalDate date = LocalDate.now();
         log.info("TODAY : {}", date);
         for (int i=0;i<180;i++) {
-            if (dateRoomRepository.findById(date.toString().replaceAll("[^0-9]", "") + "1").isPresent()) {
+            if (!dateRoomRepository.findById(date.toString().replaceAll("[^0-9]", "") + "1").isPresent()) {
                 try {
                     makeDateRoom(2, date);
                     makeDateRoom(1, date);
                 } catch (Exception e) {
                     log.error("초기 6개월치 방 날짜 생성 중 에러 발생", e);
                 }
+            } else {
+                log.info("방 생성 실패 {}", date.toString().replaceAll("[^0-9]", "") + "1");
             }
             date = date.plusDays(1);
         }
@@ -70,7 +72,7 @@ public class DateRoomService extends Thread {
     public void makeDateRoom(long roomId, LocalDate date) throws Exception {
         Room room = roomRepository.findById(roomId).orElseThrow(()->new Exception("존재하지 않는 방입니다."));
         String dateRoomId = date.toString().replaceAll("[^0-9]","")+roomId;
-        if (dateRoomRepository.findById(dateRoomId).isPresent()) {
+        if (!dateRoomRepository.findById(dateRoomId).isPresent()) {
             DateRoom dateRoom = DateRoom.builder()
                     .date(date)
                     .room(room)
@@ -87,7 +89,7 @@ public class DateRoomService extends Thread {
     public String makeDateRoom(MakeDateRoomDto makeDateRoomDto) throws Exception {
         Room room = roomRepository.findById(makeDateRoomDto.getRoomId()).orElseThrow(()->new Exception("존재하지 않는 방입니다."));
         String dateRoomId = makeDateRoomDto.getDate().toString().replaceAll("[^0-9]","")+makeDateRoomDto.getRoomId();
-        if (dateRoomRepository.findById(dateRoomId).isPresent()) {
+        if (!dateRoomRepository.findById(dateRoomId).isPresent()) {
             DateRoom dateRoom = DateRoom.builder()
                     .date(makeDateRoomDto.getDate())
                     .room(room)

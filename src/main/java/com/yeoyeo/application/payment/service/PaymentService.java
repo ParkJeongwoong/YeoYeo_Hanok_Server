@@ -310,7 +310,6 @@ public class PaymentService {
             throw new PaymentException("예약 불가능한 날짜 (중복된 예약)");
         } catch (ObjectOptimisticLockingFailureException objectOptimisticLockingFailureException) {
             log.info("낙관적 락 예외 발생 - 결제 취소 처리");
-
             throw new PaymentException("낙관적 락 예외 발생 - 결제 취소 처리");
         }
     }
