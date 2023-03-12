@@ -11,6 +11,7 @@
 - **연박 할인** v
 - busy waiting 개선 (reactor pattern) x
 - confirm Process 신청 후 등록 (https://portone.gitbook.io/docs/tip/confirm-process) v
+- 인증번호 ip 제한 (10회)
 
 [3월17일 개발완료 예정]
 

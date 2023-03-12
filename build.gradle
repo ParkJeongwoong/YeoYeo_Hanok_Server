@@ -51,6 +51,10 @@ dependencies {
 
     // Redis
     implementation('org.springframework.boot:spring-boot-starter-data-redis')
+
+    // Auth
+    implementation('org.springframework.boot:spring-boot-starter-security')
+    testImplementation("org.springframework.security:spring-security-test")
 }
 
 targetCompatibility = JavaVersion.VERSION_1_9
