@@ -1,4 +1,5 @@
-const SERVER_URL = "http://localhost:8080"
+//const SERVER_URL = "http://localhost:8080"
+const SERVER_URL = "http://3.35.98.5:8080"
 
 function signup() {
     let userId = document.querySelector('#userId').value

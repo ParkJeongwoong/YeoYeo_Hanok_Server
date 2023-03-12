@@ -56,11 +56,10 @@ public class DateRoomService extends Thread {
                 try {
                     makeDateRoom(2, date);
                     makeDateRoom(1, date);
+                    log.info("발 생성 날짜 완료 날짜 : {}", date);
                 } catch (Exception e) {
                     log.error("초기 6개월치 방 날짜 생성 중 에러 발생", e);
                 }
-            } else {
-                log.info("방 생성 실패 {}", date.toString().replaceAll("[^0-9]", "") + "1");
             }
             date = date.plusDays(1);
         }

@@ -122,10 +122,10 @@ function certificate() {
 
 function logout() {
     jQuery.ajax({
-        "url": "http://localhost:8080/admin/logout",
+        "url": SERVER_URL+"/admin/logout",
         "type": "POST"
     }).done(function(result) {
-        window.location.replace("http://localhost:8080/login.html")
+        window.location.replace(SERVER_URL+"/login.html")
     }).fail(function(error) {
         alert("로그아웃 실패");
     });
