@@ -45,4 +45,17 @@ public class ReservationScheduler {
         }
     }
 
+    @Transactional
+    @Scheduled(cron = "0 1 3 * * *")
+    private void dailyReservationClearing() {
+        LocalDate yesterday = LocalDate.now().minusDays(1);
+        log.info("{} 일자 미결제 예약 삭제 처리 시작", yesterday);
+        List<Reservation> reservationList = reservationRepository.findAllByReservationState(0).stream().sorted(Comparator.comparing(Reservation::getFirstDate)).collect(Collectors.toList());
+        log.info("삭제 예정 미결제 예약 건수 : {}건", reservationList.size());
+        for (Reservation reservation : reservationList) {
+            if (reservation.getFirstDateRoom().getDate().isBefore(yesterday)) reservationRepository.delete(reservation);
+            else break;
+        }
+    }
+
 }
