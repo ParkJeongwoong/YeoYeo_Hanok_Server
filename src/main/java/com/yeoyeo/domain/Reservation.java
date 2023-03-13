@@ -107,7 +107,7 @@ public class Reservation extends BaseTimeEntity {
     }
 
     public LocalDate getFirstDate() {
-        if (getFirstDateRoom()==null) return null;
+        if (getFirstDateRoom()==null) return LocalDate.of(3999,12,31);
         return getFirstDateRoom().getDate();
     }
 
