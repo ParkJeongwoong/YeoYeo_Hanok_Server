@@ -102,10 +102,7 @@ public class SmsService {
         String subject = "[한옥스테이 여여] 관리자 알림 문자입니다.";
         String content = "[한옥스테이 여여 관리자 알림 문자]\n\n" +
                 "관리자 알림 문자입니다.\n" +
-                "내용 : [\n" +
-                message +
-                "]\n" +
-                "서버 데이터를 확인 바랍니다.";
+                "내용 : " + message;
         return sendMultipleSMS(subject, content, ADMIN_LIST);
     }
 

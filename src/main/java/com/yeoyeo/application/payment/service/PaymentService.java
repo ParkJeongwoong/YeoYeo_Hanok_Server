@@ -287,6 +287,10 @@ public class PaymentService {
 
         log.info("status : {}", status);
         log.info("amount : {}", payedAmount);
+        if (status.equals("cancelled")) {
+            smsService.sendAdminSms("관리자 콘솔 환불 알림 - 환불되었습니다.");
+            return;
+        }
         if (!status.equals("paid")) {
             smsService.sendAdminSms("결제 오류 알림 - 완료되지 않은 결제 수신. 서버 데이터 확인 필요");
             throw new ReservationException("결제가 완료되지 않았습니다.");
