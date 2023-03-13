@@ -1,6 +1,7 @@
 package com.yeoyeo.application.reservation.dto;
 
 import com.yeoyeo.domain.DateRoom;
+import com.yeoyeo.domain.Payment;
 import com.yeoyeo.domain.Reservation;
 import lombok.Getter;
 
@@ -24,6 +25,8 @@ public class ReservationInfoDto {
     public ReservationInfoDto(Reservation entity) {
         DateRoom firstDateRoom = entity.getFirstDateRoom();
         DateRoom lastDateRoom = entity.getLastDateRoom();
+        Payment payment = entity.getPayment();
+
         this.reservationId = entity.getId();
         if (firstDateRoom!=null) this.checkInDate = firstDateRoom.getDate(); else this.checkInDate = null;
         if (lastDateRoom!=null) this.checkOutDate = lastDateRoom.getDate().plusDays(1); else this.checkOutDate = null;
@@ -31,6 +34,6 @@ public class ReservationInfoDto {
         this.reservationState = entity.getReservationState();
         this.guestName = entity.getGuest().getName();
         this.guestCount = entity.getGuest().getGuestCount();
-        this.paymentStatus = entity.getPayment().getStatus();
+        if (payment!=null) this.paymentStatus = entity.getPayment().getStatus(); else this.paymentStatus = "unPaid";
     }
 }
