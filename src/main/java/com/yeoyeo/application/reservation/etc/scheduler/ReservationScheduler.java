@@ -22,14 +22,14 @@ public class ReservationScheduler {
 
     private final ReservationRepository reservationRepository;
 
-    @PostConstruct
-    private void init() {
-        dailyReservationCompletion();
-    }
+//    @PostConstruct
+//    private void init() {
+//        dailyReservationCompletion();
+//    }
 
     @Transactional
     @Scheduled(cron = "0 1 0 * * *")
-    private void dailyReservationCompletion() {
+    protected void dailyReservationCompletion() {
         LocalDate today = LocalDate.now();
         log.info("{} 예약 처리 시작", today);
         List<Reservation> reservationList = reservationRepository.findAllByReservationState(1).stream().sorted(Comparator.comparing(Reservation::getFirstDate)).collect(Collectors.toList());
