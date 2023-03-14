@@ -53,7 +53,8 @@ public class ReservationScheduler {
         List<Reservation> reservationList = reservationRepository.findAllByReservationState(0).stream().sorted(Comparator.comparing(Reservation::getFirstDate)).collect(Collectors.toList());
         log.info("삭제 예정 미결제 예약 건수 : {}건", reservationList.size());
         for (Reservation reservation : reservationList) {
-            if (reservation.getFirstDateRoom().getDate().isBefore(yesterday)) reservationRepository.delete(reservation);
+            if (reservation.getFirstDateRoom()==null) reservationRepository.delete(reservation);
+            else if (reservation.getFirstDateRoom().getDate().isBefore(yesterday)) reservationRepository.delete(reservation);
             else break;
         }
     }
