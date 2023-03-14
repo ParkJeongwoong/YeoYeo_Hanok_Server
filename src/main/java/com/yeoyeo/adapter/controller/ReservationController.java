@@ -67,7 +67,7 @@ public class ReservationController {
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
-    @ApiOperation(value = "Authentication", notes = "[문자 수신] 본인 인증 문자 수신")
+    @ApiOperation(value = "Send Authentication SMS", notes = "[문자 수신] 본인 인증 문자 수신")
     @GetMapping("/sms/authKey/{phoneNumber}")
     public ResponseEntity<SendMessageResponseDto> sendAuthKey(@PathVariable("phoneNumber") String phoneNumber) {
         SendMessageResponseDto responseDto = smsService.sendAuthenticationKeySms(phoneNumber);
@@ -75,7 +75,7 @@ public class ReservationController {
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
-    @ApiOperation(value = "Reservation", notes = "본인 인증 문자 입력")
+    @ApiOperation(value = "Authentication Validation", notes = "본인 인증 문자 입력")
     @GetMapping("/validation/authKey/{phoneNumber}/{authKey}")
     public ResponseEntity<Boolean> validateAuthKey(@PathVariable("phoneNumber") String phoneNumber, @PathVariable("authKey") String authKey) {
         return ResponseEntity.status(HttpStatus.OK).body(smsService.validateAuthenticationKey(phoneNumber, authKey));

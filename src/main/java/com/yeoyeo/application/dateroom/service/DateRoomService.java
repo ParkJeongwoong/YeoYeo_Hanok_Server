@@ -16,6 +16,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -132,11 +133,12 @@ public class DateRoomService extends Thread {
         LocalDate startDate = LocalDate.parse(checkInDate, DateTimeFormatter.ofPattern("yyyyMMdd"));
         LocalDate endDate = LocalDate.parse(checkOutDate, DateTimeFormatter.ofPattern("yyyyMMdd")).minusDays(1);
         List<DateRoom> dateRoomList = dateRoomRepository.findAllByDateBetweenAndRoom_Id(startDate, endDate, roomId);
+        List<DateRoomIdPriceInfoDto> infoDtoList = dateRoomList.stream().map(DateRoomIdPriceInfoDto::new).collect(Collectors.toList());
         int totalPrice;
         int originalPrice = 0;
         for (DateRoom dateRoom:dateRoomList) originalPrice += dateRoom.getPrice();
         totalPrice = originalPrice - 20000*(dateRoomList.size()-1);
-        return new DateRoomPriceInfoDto(totalPrice, originalPrice, 20000*(dateRoomList.size()-1), dateRoomList.size());
+        return new DateRoomPriceInfoDto(totalPrice, originalPrice, 20000*(dateRoomList.size()-1), dateRoomList.size(), infoDtoList);
     }
 
     @Transactional
