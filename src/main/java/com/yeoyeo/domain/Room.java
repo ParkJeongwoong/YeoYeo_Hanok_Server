@@ -1,5 +1,6 @@
 package com.yeoyeo.domain;
 
+import com.yeoyeo.application.admin.dto.ChangeRoomDefaultPriceRequestDto;
 import com.yeoyeo.application.room.dto.MakeRoomDto;
 import lombok.Builder;
 import lombok.Getter;
@@ -53,5 +54,12 @@ public class Room {
         this.priceWeekend = requestDto.getPriceWeekend();
         this.priceWeekdaySpecial = requestDto.getPriceHoliday();
         this.priceWeekendSpecial = requestDto.getPriceSpecial();
+    }
+
+    public void changeDefaultPrice(ChangeRoomDefaultPriceRequestDto dto) {
+        if (dto.getPrice()!= 0) this.price = dto.getPrice();
+        if (dto.getPriceWeekend()!= 0) this.priceWeekend = dto.getPriceWeekend();
+        if (dto.getPriceWeekdaySpecial()!= 0) this.priceWeekdaySpecial = dto.getPriceWeekdaySpecial();
+        if (dto.getPriceWeekendSpecial()!= 0) this.priceWeekendSpecial = dto.getPriceWeekendSpecial();
     }
 }

@@ -139,6 +139,20 @@ public class DateRoomService extends Thread {
         return new DateRoomPriceInfoDto(totalPrice, originalPrice, 20000*(dateRoomList.size()-1), dateRoomList.size());
     }
 
+    @Transactional
+    public GeneralResponseDto changeDateRoomListPrice(ChangeDateRoomListPriceRequestDto requestDto) {
+        List<String> dateRoomIdList = requestDto.getDateRoomIdList();
+        int price = requestDto.getPrice();
+        int priceType = requestDto.getPriceType();
+        List<DateRoom> dateRoomList = dateRoomRepository.findAllById(dateRoomIdList);
+        if (dateRoomList.size()==0) return GeneralResponseDto.builder().success(false).message("유효한 dateroomId가 아닙니다.").build();
+        for (DateRoom dateRoom:dateRoomList) {
+            if (price>0 || priceType == 0) dateRoom.changePrice(price);
+            else dateRoom.changePriceType(priceType);
+        }
+        return GeneralResponseDto.builder().success(true).build();
+    }
+
     private List<DateRoomInfoByDateDto> getDateRoomInfoList(List<DateRoom> dateRoomList) {
         List<DateRoomInfoByDateDto> dateRoomInfoByDateDtos = new ArrayList<>();
         dateRoomList.forEach(dateRoom -> {
