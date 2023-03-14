@@ -22,16 +22,16 @@ public class ReservationScheduler {
 
     private final ReservationRepository reservationRepository;
 
-//    @PostConstruct
-//    private void init() {
-//        dailyReservationCompletion();
-//    }
+    @PostConstruct
+    private void init() {
+        dailyReservationCompletion();
+    }
 
     @Transactional
     @Scheduled(cron = "0 1 0 * * *")
     protected void dailyReservationCompletion() {
         LocalDate today = LocalDate.now();
-        log.info("{} 예약 처리 시작", today);
+        log.info("{} 예약 완료 처리 시작", today);
         List<Reservation> reservationList = reservationRepository.findAllByReservationState(1).stream().sorted(Comparator.comparing(Reservation::getFirstDate)).collect(Collectors.toList());
         log.info("대기 중인 예약 건수 : {}건", reservationList.size());
         try {
@@ -43,6 +43,7 @@ public class ReservationScheduler {
         } catch (ReservationException reservationException) {
             log.error("예약 완료 처리 중 오류 발생", reservationException);
         }
+        log.info("예약 완료 처리 정상 종료");
     }
 
     @Transactional
@@ -57,6 +58,7 @@ public class ReservationScheduler {
             else if (reservation.getFirstDateRoom().getDate().isBefore(yesterday)) reservationRepository.delete(reservation);
             else break;
         }
+        log.info("미결제 예약 삭제 처리 정상 종료");
     }
 
 }

@@ -6,7 +6,6 @@ import com.yeoyeo.application.admin.service.AuthService;
 import com.yeoyeo.application.common.dto.GeneralResponseDto;
 import com.yeoyeo.application.dateroom.dto.ChangeDateRoomListPriceRequestDto;
 import com.yeoyeo.application.dateroom.service.DateRoomService;
-import com.yeoyeo.application.reservation.etc.scheduler.ReservationScheduler;
 import com.yeoyeo.application.room.service.RoomService;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
@@ -42,12 +41,6 @@ public class AdminController {
         GeneralResponseDto responseDto = dateRoomService.changeDateRoomListPrice(requestDto);
         if (!responseDto.getSuccess()) return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseDto);
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
-    }
-
-    private final ReservationScheduler scheduler;
-    @GetMapping("/clearTest")
-    public void clearingTest() {
-        scheduler.dailyReservationClearing();
     }
 
 }

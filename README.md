@@ -22,8 +22,8 @@
 - 관리자 페이지
   - dateroom 예약 상태 변경
   - multi-dateroom예약 상태 변경
-  - room 가격 변경
-  - dateroom 가격 변경 (multiple)
+  - room 가격 변경 v
+  - dateroom 가격 변경 (multiple) v
 
 [관리자 페이지]
 
