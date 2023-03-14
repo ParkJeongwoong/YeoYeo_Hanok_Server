@@ -76,7 +76,7 @@ public class ReservationController {
     }
 
     @ApiOperation(value = "Reservation", notes = "본인 인증 문자 입력")
-    @GetMapping("/sms/authKey/{phoneNumber}/{authKey}")
+    @GetMapping("/validation/authKey/{phoneNumber}/{authKey}")
     public ResponseEntity<Boolean> validateAuthKey(@PathVariable("phoneNumber") String phoneNumber, @PathVariable("authKey") String authKey) {
         return ResponseEntity.status(HttpStatus.OK).body(smsService.validateAuthenticationKey(phoneNumber, authKey));
     }
