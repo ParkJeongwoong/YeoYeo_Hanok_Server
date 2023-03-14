@@ -42,7 +42,7 @@ public class DateRoom {
     private int priceType; // 0 : 직접 설정, 1 : 평일, 2 : 주말, 3 : 평일(특가), 4 : 주말(특가)
 
     @Column(nullable = false)
-    private long roomReservationState; // 0 : 예약 가능, 1 : 예약 완료, 2 : 예약 대기 (Webhook)
+    private long roomReservationState; // 0 : 예약 가능, 1 : 예약 완료, 2 : 예약 대기
 
     @Column(nullable = false)
     private boolean isReservable;
@@ -80,27 +80,19 @@ public class DateRoom {
         }
     }
 
-    public void resetState() throws RoomReservationException {
-        if (this.roomReservationState == 1) {
-            this.roomReservationState = 0;
-        } else if (this.roomReservationState == 2) { // Webhook 수신 후 예약 정보 수신 실패
-            this.roomReservationState = 0;
-        }
-        else {
-            throw new RoomReservationException("예약된 날짜가 아닙니다.");
-        }
+    // 사용하기 전 예약된 건이 없는지 확인하는 로직이 반드시 필요
+    public void resetState() {
+        this.roomReservationState = 0;
     }
 
-    public long changePriceType(int priceType) {
+    public void changePriceType(int priceType) {
         this.priceType = priceType;
         setPrice();
-        return this.priceType;
     }
 
-    public int changePrice(int price) {
+    public void changePrice(int price) {
         this.price = price;
         this.priceType = 0;
-        return this.price;
     }
 
     private void setDefaultPriceType(WebClientService webClientService, String key) {

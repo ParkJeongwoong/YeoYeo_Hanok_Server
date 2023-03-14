@@ -148,22 +148,22 @@ public class PaymentService {
         }
     }
 
-    @Transactional
-    public void refund(WaitingWebhookRefundDto refundDto) throws PaymentException {
-        log.info("미예약 결제 취소 - 결제번호 : {} / 사유 : {}", refundDto.getImp_uid(), refundDto.getReason());
-        // 결제 정보 조회
-        Reservation reservation = refundDto.getReservation();
-        long refundAmount = refundDto.getRefundAmount();
-        Integer cancelableAmount = (Integer) (int) refundAmount;
-
-        // 환불 요청
-        String accessToken = getToken();
-        sendRefundRequest(refundDto.getReason(), refundAmount, cancelableAmount, refundDto.getImp_uid(), accessToken);
-
-        // 환불 완료
-        completeWebhookRefund(reservation);
-        log.info("환불 완료");
-    }
+//    @Transactional
+//    public void refund(WaitingWebhookRefundDto refundDto) throws PaymentException {
+//        log.info("미예약 결제 취소 - 결제번호 : {} / 사유 : {}", refundDto.getImp_uid(), refundDto.getReason());
+//        // 결제 정보 조회
+//        Reservation reservation = refundDto.getReservation();
+//        long refundAmount = refundDto.getRefundAmount();
+//        Integer cancelableAmount = (Integer) (int) refundAmount;
+//
+//        // 환불 요청
+//        String accessToken = getToken();
+//        sendRefundRequest(refundDto.getReason(), refundAmount, cancelableAmount, refundDto.getImp_uid(), accessToken);
+//
+//        // 환불 완료
+//        completeWebhookRefund(reservation);
+//        log.info("환불 완료");
+//    }
 
     private void paymentProcess(Reservation reservation, Map<String, Object> paymentData) throws PaymentException, ReservationException {
         if (reservation.getPayment() == null) {
@@ -347,15 +347,15 @@ public class PaymentService {
         }
     }
 
-    @Transactional
-    private void completeWebhookRefund(Reservation reservation) throws PaymentException {
-        try {
-            for (DateRoom dateRoom:reservation.getDateRoomList()) dateRoom.resetState();
-            reservationRepository.save(reservation);
-        } catch (RoomReservationException e) {
-            throw new PaymentException(e.getMessage());
-        }
-    }
+//    @Transactional
+//    private void completeWebhookRefund(Reservation reservation) throws PaymentException {
+//        try {
+//            for (DateRoom dateRoom:reservation.getDateRoomList()) dateRoom.resetState();
+//            reservationRepository.save(reservation);
+//        } catch (RoomReservationException e) {
+//            throw new PaymentException(e.getMessage());
+//        }
+//    }
 
     private long getRefundableAmount(Reservation reservation) {
         LocalDate reservationDate = reservation.getFirstDateRoom().getDate();

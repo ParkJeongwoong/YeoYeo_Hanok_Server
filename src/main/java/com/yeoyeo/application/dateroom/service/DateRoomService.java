@@ -2,6 +2,7 @@ package com.yeoyeo.application.dateroom.service;
 
 import com.yeoyeo.application.common.dto.GeneralResponseDto;
 import com.yeoyeo.application.dateroom.dto.*;
+import com.yeoyeo.application.dateroom.etc.exception.RoomReservationException;
 import com.yeoyeo.application.dateroom.repository.DateRoomRepository;
 import com.yeoyeo.application.general.webclient.WebClientService;
 import com.yeoyeo.application.room.repository.RoomRepository;
@@ -23,8 +24,8 @@ import java.util.stream.Collectors;
 @Service
 public class DateRoomService extends Thread {
 
-    private final DateRoomRepository dateRoomRepository;
     private final RoomRepository roomRepository;
+    private final DateRoomRepository dateRoomRepository;
 
     private final WebClientService webClientService;
     @Value("${data.holiday.key}")
@@ -151,6 +152,29 @@ public class DateRoomService extends Thread {
         for (DateRoom dateRoom:dateRoomList) {
             if (price>0 || priceType == 0) dateRoom.changePrice(price);
             else dateRoom.changePriceType(priceType);
+        }
+        return GeneralResponseDto.builder().success(true).build();
+    }
+
+    @Transactional
+    public GeneralResponseDto changeDateRoomListStatus(ChangeDateRoomListStatusRequestDto requestDto) {
+        List<String> dateRoomIdList = requestDto.getDateRoomIdList();
+        long roomReservationState = requestDto.getRoomReservationState();
+        List<DateRoom> dateRoomList = dateRoomRepository.findAllById(dateRoomIdList);
+        if (dateRoomList.size()==0) return GeneralResponseDto.builder().success(false).message("유효한 dateroomId가 아닙니다.").build();
+        for (DateRoom dateRoom:dateRoomList) {
+            try {
+                switch ((int) roomReservationState) {
+                    case 0:
+                        List<Reservation> reservations = dateRoom.getMapDateRoomReservations().stream().map(MapDateRoomReservation::getReservation).collect(Collectors.toList());
+                        for (Reservation reservation:reservations) if (reservation.getReservationState() == 1) throw new RoomReservationException("예약되어 있는 날짜입니다.");
+                        dateRoom.resetState();
+                    case 1:
+                        dateRoom.setStateBooked();
+                }
+            } catch (RoomReservationException roomReservationException) {
+                return GeneralResponseDto.builder().success(false).message("해당 날짜의 예약 상태를 변경할 수 없습니다.").build();
+            }
         }
         return GeneralResponseDto.builder().success(true).build();
     }

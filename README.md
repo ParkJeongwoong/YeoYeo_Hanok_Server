@@ -20,10 +20,10 @@
 
 - isReservable을 이용해 1년치 미리 생성
 - 관리자 페이지
-  - dateroom 예약 상태 변경
-  - multi-dateroom예약 상태 변경
+  - dateroom 예약 상태 변경 (multiple) v
   - room 가격 변경 v
   - dateroom 가격 변경 (multiple) v
+  - 환불
 
 [관리자 페이지]
 

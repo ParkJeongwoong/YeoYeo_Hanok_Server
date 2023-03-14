@@ -64,11 +64,7 @@ public class PaymentServiceTest {
             List<DateRoom> dateRooms = dateRoomRepository.findAll();
             dateRooms.forEach(dateRoom -> {
                 if (dateRoom.getRoomReservationState()==1) {
-                    try {
-                        dateRoom.resetState();
-                    } catch (RoomReservationException e) {
-                        log.error("Dateroom 초기화 에러", e);
-                    }
+                    dateRoom.resetState();
                 }
             });
             dateRoomRepository.saveAll(dateRooms);

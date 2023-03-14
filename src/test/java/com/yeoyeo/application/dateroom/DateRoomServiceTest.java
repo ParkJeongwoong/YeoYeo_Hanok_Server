@@ -49,12 +49,8 @@ public class DateRoomServiceTest {
     public void cleanup() {
         List<DateRoom> dateRooms = dateRoomRepository.findAll();
         dateRooms.forEach(dateRoom -> {
-            try {
-                if (dateRoom.getRoomReservationState()==1) {
-                        dateRoom.resetState();
-                }
-            } catch (RoomReservationException e) {
-                log.error("Dateroom 초기화 에러", e);
+            if (dateRoom.getRoomReservationState()==1) {
+                    dateRoom.resetState();
             }
         });
         dateRoomRepository.saveAll(dateRooms);

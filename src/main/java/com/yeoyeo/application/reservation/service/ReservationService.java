@@ -110,12 +110,6 @@ public class ReservationService {
                     .success(false)
                     .message(reservationException.getMessage())
                     .build();
-        } catch (RoomReservationException e) {
-            log.error("Dateroom 상태 변경 에러", e);
-            return GeneralResponseDto.builder()
-                    .success(false)
-                    .message(e.getMessage())
-                    .build();
         }
     }
 
@@ -129,9 +123,6 @@ public class ReservationService {
         } catch (ReservationException reservationException) {
             log.error("Reservation 상태 변경 에러", reservationException);
             throw new ReservationException(reservationException.getMessage());
-        } catch (RoomReservationException e) {
-            log.error("Dateroom 상태 변경 에러", e);
-            throw new ReservationException(e.getMessage());
         }
     }
 

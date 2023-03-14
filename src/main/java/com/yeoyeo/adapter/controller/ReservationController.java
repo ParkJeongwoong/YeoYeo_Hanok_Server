@@ -42,14 +42,8 @@ public class ReservationController {
         }
     }
 
-    @ApiOperation(value = "Reservation List", notes = "(관리자용) 관리자의 예약 관리용 예약 정보 조회 (0 : 전체, 1 : 숙박 대기, 2 : 숙박 완료, 3 : 예약 취소, 4 : 환불 완료")
-    @GetMapping("/list/{type}")
-    public ResponseEntity<List<ReservationInfoDto>> showReservations(@PathVariable("type") int type) {
-        return ResponseEntity.status(HttpStatus.OK).body(reservationService.showReservations(type));
-    }
-
-    @ApiOperation(value = "Reservation Detail", notes = "(관리자용) 예약 상세 정보 조회")
-    @GetMapping("/{reservationId}")
+    @ApiOperation(value = "Reservation Detail", notes = "예약 상세 정보 조회")
+    @GetMapping("/reservation/{reservationId}")
     public ResponseEntity<ReservationDetailInfoDto> getReservationInfo(@PathVariable("reservationId") long reservationId) {
         try {
             return ResponseEntity.status(HttpStatus.OK).body(reservationService.getReservationInfo(reservationId));
@@ -57,14 +51,6 @@ public class ReservationController {
             log.error("예약 정보 조회 실패", e);
             return ResponseEntity.status(HttpStatus.OK).body(null);
         }
-    }
-
-    @ApiOperation(value = "Reservation", notes = "(관리자용) 관리자의 해당 날짜 예약 취소 처리")
-    @DeleteMapping("/{reservationId}")
-    public ResponseEntity<GeneralResponseDto> cancelReservation(@PathVariable("reservationId") long reservationId) {
-        GeneralResponseDto responseDto = reservationService.cancel(reservationId);
-        if (!responseDto.getSuccess()) return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseDto);
-        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
     @ApiOperation(value = "Send Authentication SMS", notes = "[문자 수신] 본인 인증 문자 수신")
