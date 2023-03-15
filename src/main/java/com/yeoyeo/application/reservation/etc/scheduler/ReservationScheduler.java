@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -49,15 +50,18 @@ public class ReservationScheduler {
     @Transactional
     @Scheduled(cron = "0 1 3 * * *")
     public void dailyReservationClearing() {
-        LocalDate theDayBeforeYesterday = LocalDate.now().minusDays(2);
-        log.info("{} 일자 미결제 예약 삭제 처리 시작(2일 전 처리)", theDayBeforeYesterday);
+        LocalDateTime before24hour = LocalDateTime.now().minusDays(1);
+        log.info("{} 시점 기준 미결제 예약 삭제 처리 시작(24시간 전)", before24hour);
         List<Reservation> reservationList = reservationRepository.findAllByReservationState(0).stream().sorted(Comparator.comparing(Reservation::getFirstDate)).collect(Collectors.toList());
-        log.info("삭제 예정 미결제 예약 건수 : {}건", reservationList.size());
+        log.info("미결제 예약 건수 : {}건", reservationList.size());
+        int deletedCnt = 0;
         for (Reservation reservation : reservationList) {
             if (reservation.getFirstDateRoom()==null) reservationRepository.delete(reservation);
-            else if (reservation.getFirstDateRoom().getDate().isBefore(theDayBeforeYesterday)) reservationRepository.delete(reservation);
+            else if (reservation.getCreatedDate().isBefore(before24hour)) reservationRepository.delete(reservation);
             else break;
+            deletedCnt += 1;
         }
+        log.info("미결제 예약 삭제 건수 : {}건", deletedCnt);
         log.info("미결제 예약 삭제 처리 정상 종료");
     }
 
