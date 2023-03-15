@@ -3,7 +3,6 @@ package com.yeoyeo.application.payment.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yeoyeo.application.common.dto.GeneralResponseDto;
-import com.yeoyeo.application.dateroom.etc.exception.RoomReservationException;
 import com.yeoyeo.application.general.webclient.WebClientService;
 import com.yeoyeo.application.payment.dto.*;
 import com.yeoyeo.application.payment.etc.exception.PaymentException;
@@ -99,16 +98,10 @@ public class PaymentService {
             if (reservation.getTotalPrice() != confirmDto.getAmount()) throw new PaymentException("결제 금액이 일치하지 않습니다.");
             List<DateRoom> dateRoomList = reservation.getDateRoomList();
             for (DateRoom dateRoom:dateRoomList) if (dateRoom.getRoomReservationState()!=0) throw new PaymentException("이미 예약이 완료된 날짜입니다.");
-            return GeneralResponseDto.builder()
-                    .success(true)
-                    .message("결제 가능한 상태입니다.")
-                    .build();
+            return GeneralResponseDto.builder().success(true).message("결제 가능한 상태입니다.").build();
         } catch (PaymentException paymentException) {
             log.error("Confirm 검증 과정 중 실패", paymentException);
-            return GeneralResponseDto.builder()
-                    .success(false)
-                    .message(paymentException.getMessage())
-                    .build();
+            return GeneralResponseDto.builder().success(false).message(paymentException.getMessage()).build();
         }
 
     }
@@ -134,36 +127,38 @@ public class PaymentService {
             // 환불 완료
             payment.setCanceled(refundAmount, requestDto.getReason(), refundData.get("receipt_url").toString());
             completeRefund(reservation);
-
-            return GeneralResponseDto.builder()
-                    .success(true)
-                    .message("환불 요청이 완료되었습니다.")
-                    .build();
+            log.info("고객 요청 환불 완료 (예약번호 : {})", reservation.getId());
+            return GeneralResponseDto.builder().success(true).message("환불 요청이 완료되었습니다.").build();
         } catch (PaymentException paymentException) {
-            log.error("환불 오류가 발생했습니다.", paymentException);
-            return GeneralResponseDto.builder()
-                    .success(false)
-                    .message(paymentException.getMessage())
-                    .build();
+            log.error("환불 과정 중 오류가 발생했습니다.", paymentException);
+            return GeneralResponseDto.builder().success(false).message(paymentException.getMessage()).build();
         }
     }
 
-//    @Transactional
-//    public void refund(WaitingWebhookRefundDto refundDto) throws PaymentException {
-//        log.info("미예약 결제 취소 - 결제번호 : {} / 사유 : {}", refundDto.getImp_uid(), refundDto.getReason());
-//        // 결제 정보 조회
-//        Reservation reservation = refundDto.getReservation();
-//        long refundAmount = refundDto.getRefundAmount();
-//        Integer cancelableAmount = (Integer) (int) refundAmount;
-//
-//        // 환불 요청
-//        String accessToken = getToken();
-//        sendRefundRequest(refundDto.getReason(), refundAmount, cancelableAmount, refundDto.getImp_uid(), accessToken);
-//
-//        // 환불 완료
-//        completeWebhookRefund(reservation);
-//        log.info("환불 완료");
-//    }
+    @Transactional
+    public GeneralResponseDto refundByAdmin(long reservationId) {
+        log.info("관리자 전액 환불 및 예약 취소 - 예약번호 : {}", reservationId);
+        try {
+            // 결제 정보 조회
+            Reservation reservation = reservationRepository.findById(reservationId).orElse(null);
+            if (reservation == null) return GeneralResponseDto.builder().success(false).message("존재하지 않은 예약번호입니다.").build();
+            Payment payment = reservation.getPayment();
+            if (payment == null) return GeneralResponseDto.builder().success(false).message("결제되지 않은 예약입니다.").build();
+            long refundAmount = payment.getAmount();
+
+            // 환불 요청
+            String accessToken = getToken();
+            sendRefundRequest("관리자의 환불 요청", refundAmount, (int) refundAmount, payment.getImp_uid(), accessToken);
+
+            // 환불 완료
+            completeRefund(reservation);
+            log.info("관리자 요청 환불 완료 (예약번호 : {})", reservation.getId());
+            return GeneralResponseDto.builder().success(true).message("환불 요청이 완료되었습니다.").build();
+        } catch (PaymentException paymentException) {
+            log.error("환불 과정 중 오류가 발생했습니다.", paymentException);
+            return GeneralResponseDto.builder().success(false).message(paymentException.getMessage()).build();
+        }
+    }
 
     private void paymentProcess(Reservation reservation, Map<String, Object> paymentData) throws PaymentException, ReservationException {
         if (reservation.getPayment() == null) {

@@ -30,7 +30,7 @@ public class DateRoomController {
         return ResponseEntity.status(HttpStatus.OK).body(dateRoomService.show2MonthsDateRooms(year, month));
     }
 
-    @ApiOperation(value = "Get Total Price", notes = "8자리 시작일, 종료일을 바탕으로 비용 계산")
+    @ApiOperation(value = "Get Total Price", notes = "8자리 시작일, 종료일을 바탕으로 비용 계산 (인원 수에 따른 추가금 미포함)")
     @GetMapping("/price/{roomId}/{checkInDate}/{checkOutDate}")
     public ResponseEntity<DateRoomPriceInfoDto> getTotalPrice(@PathVariable("roomId") long roomId, @PathVariable("checkInDate") String checkInDate, @PathVariable("checkOutDate") String checkOutDate) {
         return ResponseEntity.status(HttpStatus.OK).body(dateRoomService.getTotalPrice(roomId, checkInDate, checkOutDate));

@@ -8,9 +8,7 @@ import com.yeoyeo.application.dateroom.dto.ChangeDateRoomListPriceRequestDto;
 import com.yeoyeo.application.dateroom.dto.ChangeDateRoomListStatusRequestDto;
 import com.yeoyeo.application.dateroom.service.DateRoomService;
 import com.yeoyeo.application.payment.service.PaymentService;
-import com.yeoyeo.application.reservation.dto.ReservationDetailInfoDto;
 import com.yeoyeo.application.reservation.dto.ReservationInfoDto;
-import com.yeoyeo.application.reservation.etc.exception.ReservationException;
 import com.yeoyeo.application.reservation.service.ReservationService;
 import com.yeoyeo.application.room.service.RoomService;
 import io.swagger.annotations.ApiOperation;
@@ -58,7 +56,7 @@ public class AdminController {
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
-    @ApiOperation(value = "Change (Multiple) Date Rooms Status", notes = "배열 형태의 dateRoomId를 모아 dateroom 예약 상태 일괄 변경 (0 : 예약 가능, 1 : 예약 완료)")
+    @ApiOperation(value = "Change (Multiple) Date Rooms Status", notes = "배열 형태의 dateRoomId를 모아 dateroom 예약 상태 일괄 변경 (0 : 예약 가능, 1 : 예약 완료) *예약되지 않은 방만 변경 가능")
     @PutMapping("/dateroom/list/status")
     public ResponseEntity<GeneralResponseDto> changeDateRoomListStatus(@PathVariable long roomId, @RequestBody ChangeDateRoomListStatusRequestDto requestDto) {
         GeneralResponseDto responseDto = dateRoomService.changeDateRoomListStatus(requestDto);
@@ -79,7 +77,7 @@ public class AdminController {
         return ResponseEntity.status(HttpStatus.OK).body(reservationService.showReservations(type));
     }
 
-    @ApiOperation(value = "Reservation", notes = "관리자의 해당 날짜 예약 취소 처리")
+    @ApiOperation(value = "Reservation Cancel", notes = "관리자의 해당 날짜 예약 취소 처리 (환불 미포함)")
     @DeleteMapping("/reservation/{reservationId}")
     public ResponseEntity<GeneralResponseDto> cancelReservation(@PathVariable("reservationId") long reservationId) {
         GeneralResponseDto responseDto = reservationService.cancel(reservationId);
@@ -88,5 +86,12 @@ public class AdminController {
     }
 
     // PAYMENT 관련
+    @ApiOperation(value = "Payment Refund", notes = "관리자의 예약 취소 및 환불 처리 (전액 환불)")
+    @DeleteMapping("/payment/{reservationId}")
+    public ResponseEntity<GeneralResponseDto> refundPayment(@PathVariable("reservationId") long reservationId) {
+        GeneralResponseDto responseDto = paymentService.refundByAdmin(reservationId);
+        if (!responseDto.getSuccess()) return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseDto);
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
 
 }

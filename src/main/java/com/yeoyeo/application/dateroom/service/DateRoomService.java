@@ -130,6 +130,7 @@ public class DateRoomService extends Thread {
         dateRoomRepository.saveAll(dateRoomList);
     }
 
+    // 여기엔 인원수에 따른 추가금이 포함되어 있지 않음
     public DateRoomPriceInfoDto getTotalPrice(long roomId, String checkInDate, String checkOutDate) {
         LocalDate startDate = LocalDate.parse(checkInDate, DateTimeFormatter.ofPattern("yyyyMMdd"));
         LocalDate endDate = LocalDate.parse(checkOutDate, DateTimeFormatter.ofPattern("yyyyMMdd")).minusDays(1);
