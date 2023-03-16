@@ -58,13 +58,13 @@ public class PaymentService {
             return GeneralResponseDto.builder().success(true).message("예약이 확정되었습니다.").build();
         } catch (PaymentException paymentException) {
             log.error("결제 오류가 발생했습니다. 환불 작업이 진행됩니다.", paymentException);
-            String imp_uid = paymentData.get("imp_uid").toString();
+            String imp_uid = (String) paymentData.get("imp_uid");
             long payedAmount = (long) (Integer) paymentData.get("amount");
             accessToken = getToken();
             try {
                 Map<String, Object> refundData = sendRefundRequest(paymentException.getMessage(), payedAmount, (int) payedAmount, imp_uid, accessToken);
                 if (reservation.getPayment() != null) {
-                    reservation.getPayment().setCanceled(payedAmount, "예약결제 증 오류 발생", refundData.get("receipt_url").toString());
+                    reservation.getPayment().setCanceled(payedAmount, "예약결제 증 오류 발생", (String) refundData.get("receipt_url"));
                 }
                 reservation.setStateRefund();
             } catch (PaymentException | ReservationException e) {
@@ -125,7 +125,7 @@ public class PaymentService {
                     requestDto.getReason(), refundAmount, cancelableAmount, payment.getImp_uid(), accessToken);
 
             // 환불 완료
-            payment.setCanceled(refundAmount, requestDto.getReason(), refundData.get("receipt_url").toString());
+            payment.setCanceled(refundAmount, requestDto.getReason(), (String) refundData.get("receipt_url"));
             completeRefund(reservation);
             log.info("고객 요청 환불 완료 (예약번호 : {})", reservation.getId());
             return GeneralResponseDto.builder().success(true).message("환불 요청이 완료되었습니다.").build();
@@ -193,11 +193,11 @@ public class PaymentService {
 
             if (response == null) {
                 throw new RuntimeException("IAMPORT Return 데이터 문제");
-            } else if (!response.get("code").toString().equals("0")) {
-                log.info(response.toString());
-                throw new PaymentException(response.get("message").toString());
+            } else if (!response.get("code").equals("0")) {
+                log.info(String.valueOf(response));
+                throw new PaymentException((String) response.get("message"));
             } else {
-                log.info("REFUND DATA : {}", response.get("response").toString());
+                log.info("REFUND DATA : {}", response.get("response"));
                 return mapper.convertValue(response.get("response"), Map.class);
             }
         } catch (JsonProcessingException e) {
@@ -250,14 +250,14 @@ public class PaymentService {
         } else if(response.get("response") == null) {
             throw new RuntimeException("IAMPORT Return 데이터 문제. (response 부재)");
         } else {
-            log.info("PAYMENT DATA : {}", response.get("response").toString());
+            log.info("PAYMENT DATA : {}", response.get("response"));
             return mapper.convertValue(response.get("response"), Map.class);
         }
     }
 
     private void validatePayment(Reservation reservation, Map<String, Object> paymentData) throws PaymentException, ReservationException {
-        String status = paymentData.get("status").toString();
-        String merchant_uid = paymentData.get("merchant_uid").toString();
+        String status = (String) paymentData.get("status");
+        String merchant_uid = (String) paymentData.get("merchant_uid");
         long payedAmount = (long) (Integer) paymentData.get("amount");
 
         log.info("status : {}", status);
@@ -276,8 +276,8 @@ public class PaymentService {
     }
 
     private void validatePaymentData(Payment payment, Map<String, Object> paymentData) throws ReservationException {
-        String status = paymentData.get("status").toString();
-        String imp_uid = paymentData.get("imp_uid").toString();
+        String status = (String) paymentData.get("status");
+        String imp_uid = (String) paymentData.get("imp_uid");
         long payedAmount = (long) (Integer) paymentData.get("amount");
 
         log.info("status : {}", status);
@@ -316,14 +316,14 @@ public class PaymentService {
     private Payment createPayment(Map<String, Object> paymentData, Reservation reservation) {
         return Payment.builder()
                 .amount((Integer) paymentData.get("amount"))
-                .buyer_name(paymentData.get("buyer_name").toString())
-                .buyer_tel(paymentData.get("buyer_tel").toString())
-                .buyer_email(paymentData.get("buyer_email").toString())
-                .buyer_addr(paymentData.get("buyer_addr").toString())
-                .imp_uid(paymentData.get("imp_uid").toString())
-                .pay_method(paymentData.get("pay_method").toString())
-                .receipt_url(paymentData.get("receipt_url").toString())
-                .status(paymentData.get("status").toString())
+                .buyer_name((String) paymentData.get("buyer_name"))
+                .buyer_tel((String) paymentData.get("buyer_tel"))
+                .buyer_email((String) paymentData.get("buyer_email"))
+                .buyer_addr((String) paymentData.get("buyer_addr"))
+                .imp_uid((String) paymentData.get("imp_uid"))
+                .pay_method((String) paymentData.get("pay_method"))
+                .receipt_url((String) paymentData.get("receipt_url"))
+                .status((String) paymentData.get("status"))
                 .reservation(reservation)
                 .build();
     }

@@ -39,6 +39,7 @@ function requestPay() {
 
         // IMP.request_pay(param, callback) 결제창 호출
         IMP.request_pay({ // param
+            confirm_url : "http://3.35.98.5:8080/payment/confirm", // 리얼에서만 사용
     //        pg: "kcp",
     //        pg: "kakaopay",
             pg: "nice",
@@ -49,8 +50,8 @@ function requestPay() {
             buyer_email: "toto9091@naver.com",
             buyer_name: "박정웅",
             buyer_tel: "010-1234-7777",
-            buyer_addr: "서울특별시 강남구 신사동",
-            buyer_postcode: "01181"
+//            buyer_addr: "서울특별시 강남구 신사동",
+//            buyer_postcode: "01181"
         }, function (rsp) { // callback
             if (rsp.success) {
                 alert("결제에 성공하였습니다.");
