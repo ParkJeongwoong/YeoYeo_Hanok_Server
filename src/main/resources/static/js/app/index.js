@@ -1,5 +1,6 @@
 //const SERVER_URL = "http://localhost:8080"
-const SERVER_URL = "http://3.35.98.5:8080"
+//const SERVER_URL = "http://3.35.98.5:8080"
+const SERVER_URL = "https://yeoyeo.kr"
 
 // 고객 입력정보
 const name = '박정웅'
@@ -39,7 +40,7 @@ function requestPay() {
 
         // IMP.request_pay(param, callback) 결제창 호출
         IMP.request_pay({ // param
-            confirm_url : "http://3.35.98.5:8080/payment/confirm", // 리얼에서만 사용
+            confirm_url : "https://yeoyeo.kr/payment/confirm", // 리얼에서만 사용
     //        pg: "kcp",
     //        pg: "kakaopay",
             pg: "nice",

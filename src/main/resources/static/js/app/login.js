@@ -7,12 +7,12 @@ function login() {
 
     jQuery.ajax({
         url: SERVER_URL+"/admin/login",
-        method: "GET",
+        method: "POST",
         headers: { "Content-Type": "application/json" },
-        data: {
+        data: JSON.stringify({
             userId,
             userPassword
-        }
+        })
     }).done(function (data) {
         window.location.replace(SERVER_URL+"/index.html")
     }).fail(function(error) {

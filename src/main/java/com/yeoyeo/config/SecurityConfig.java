@@ -1,17 +1,20 @@
 package com.yeoyeo.config;
 
+import com.yeoyeo.adapter.filter.ApiAuthenticationFilter;
 import com.yeoyeo.adapter.filter.CustomAuthenticationFilter;
 import com.yeoyeo.adapter.handler.*;
-import com.yeoyeo.application.admin.auth.CustomAuthenticationProvider;
+import com.yeoyeo.adapter.provider.CustomAuthenticationProvider;
 import com.yeoyeo.application.admin.repository.AdministratorRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 @EnableWebSecurity
 @Configuration
@@ -68,7 +71,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .and()
 
                 // 사용자 인증 필터 적용;
-                .addFilterBefore(customAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(apiAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
+//                .addFilterBefore(customAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
 
                 // 세션 관리
                 .sessionManagement()
@@ -92,6 +96,15 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         customAuthenticationFilter.setAuthenticationFailureHandler(new CustomLoginFailHandler()); // 로그인 실패 시 실행될 handler bean
         customAuthenticationFilter.afterPropertiesSet();
         return customAuthenticationFilter;
+    }
+
+    @Bean
+    public ApiAuthenticationFilter apiAuthenticationFilter() throws Exception {
+        ApiAuthenticationFilter apiAuthenticationFilter = new ApiAuthenticationFilter(authenticationManager());
+        apiAuthenticationFilter.setAuthenticationSuccessHandler(new CustomLoginSuccessHandler()); // 로그인 성공 시 실행될 handler bean
+        apiAuthenticationFilter.setAuthenticationFailureHandler(new CustomLoginFailHandler()); // 로그인 실패 시 실행될 handler bean
+        apiAuthenticationFilter.afterPropertiesSet();
+        return apiAuthenticationFilter;
     }
 
 }

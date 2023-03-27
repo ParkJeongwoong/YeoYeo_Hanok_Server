@@ -1,4 +1,4 @@
-package com.yeoyeo.application.admin.auth;
+package com.yeoyeo.adapter.provider;
 
 import com.yeoyeo.application.admin.repository.AdministratorRepository;
 import com.yeoyeo.domain.Administrator;
