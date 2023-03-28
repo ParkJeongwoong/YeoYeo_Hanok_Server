@@ -15,6 +15,11 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.Arrays;
 
 @EnableWebSecurity
 @Configuration
@@ -39,8 +44,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.csrf().disable() // csrf 보안 설정 비활성화
-                .headers()
-                .frameOptions().sameOrigin()
+                .cors().configurationSource(corsConfigurationSource())
+//                .headers().frameOptions().sameOrigin()
                 .and()
 
                 .authorizeRequests() // 보호된 리소스 URI에 접근할 수 있는 권한 설정
@@ -105,6 +110,19 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         apiAuthenticationFilter.setAuthenticationFailureHandler(new CustomLoginFailHandler()); // 로그인 실패 시 실행될 handler bean
         apiAuthenticationFilter.afterPropertiesSet();
         return apiAuthenticationFilter;
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOriginPatterns(Arrays.asList("http://localhost:8080", "http://localhost:3005", "http://3.35.98.5:8080/", "https://yeoyeo.co.kr", "https://www.yeoyeo.co.kr"));
+        configuration.addAllowedMethod("*");
+        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Cache-Control", "Content-Type"));
+        configuration.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
     }
 
 }
