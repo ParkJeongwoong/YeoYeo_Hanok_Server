@@ -68,11 +68,12 @@ public class CustomLoginSuccessHandler extends SavedRequestAwareAuthenticationSu
         boolean firstHeader = true;
         for (String header : headers) {
             if (firstHeader) {
-                response.setHeader(HttpHeaders.SET_COOKIE, String.format("%s; %s", header, "SameSite=None"));
+                response.setHeader(HttpHeaders.SET_COOKIE, String.format("%s;%s", header, "SameSite=None;secure;"));
+                System.out.println(String.format("%s;%s", header, "SameSite=None;secure;"));
                 firstHeader = false;
                 continue;
             }
-            response.addHeader(HttpHeaders.SET_COOKIE, String.format("%s; %s", header, "SameSite=None"));
+            response.addHeader(HttpHeaders.SET_COOKIE, String.format("%s;%s", header, "SameSite=None;secure;"));
         }
     }
 
