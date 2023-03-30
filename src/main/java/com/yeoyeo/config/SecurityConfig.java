@@ -13,6 +13,8 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.session.web.http.CookieSerializer;
+import org.springframework.session.web.http.DefaultCookieSerializer;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -121,6 +123,14 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
+    }
+
+    @Bean
+    public CookieSerializer cookieSerializer() {
+        DefaultCookieSerializer serializer = new DefaultCookieSerializer();
+        serializer.setSameSite("none");
+        serializer.setUseSecureCookie(true);
+        return serializer;
     }
 
 }
