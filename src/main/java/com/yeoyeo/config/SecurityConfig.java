@@ -2,6 +2,7 @@ package com.yeoyeo.config;
 
 import com.yeoyeo.adapter.filter.ApiAuthenticationFilter;
 import com.yeoyeo.adapter.filter.CustomAuthenticationFilter;
+import com.yeoyeo.adapter.filter.CustomUsernamePasswordAuthenticationFilter;
 import com.yeoyeo.adapter.handler.*;
 import com.yeoyeo.adapter.provider.CustomAuthenticationProvider;
 import com.yeoyeo.application.admin.repository.AdministratorRepository;
@@ -32,7 +33,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Autowired private WebAccessDeniedHandler webAccessDeniedHandler;
     // 인증되지 않은 사용자 접근에 대한 handler
     @Autowired private WebAuthenticationEntryPoint webAuthenticationEntryPoint;
-    @Autowired private ImplLogoutSuccessHandler logoutSuccessHandler;
+    @Autowired private LogoutSuccessHandler logoutSuccessHandler;
 
     // 스프링 시큐리티가 사용자를 인증하는 방법이 담긴 객체
     @Override
@@ -77,6 +78,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
                 // 사용자 인증 필터 적용;
                 .addFilterBefore(apiAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
+//                .addFilterAt(customAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
 //                .addFilterBefore(customAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
 
                 // 세션 관리
@@ -97,8 +99,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         customAuthenticationFilter.setFilterProcessesUrl("/admin/login");
         customAuthenticationFilter.setUsernameParameter("userId");
         customAuthenticationFilter.setPasswordParameter("userPassword");
-        customAuthenticationFilter.setAuthenticationSuccessHandler(new CustomLoginSuccessHandler()); // 로그인 성공 시 실행될 handler bean
-        customAuthenticationFilter.setAuthenticationFailureHandler(new CustomLoginFailHandler()); // 로그인 실패 시 실행될 handler bean
+        customAuthenticationFilter.setAuthenticationSuccessHandler(new LoginSuccessHandler()); // 로그인 성공 시 실행될 handler bean
+        customAuthenticationFilter.setAuthenticationFailureHandler(new LoginFailHandler()); // 로그인 실패 시 실행될 handler bean
         customAuthenticationFilter.afterPropertiesSet();
         return customAuthenticationFilter;
     }
@@ -106,10 +108,22 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Bean
     public ApiAuthenticationFilter apiAuthenticationFilter() throws Exception {
         ApiAuthenticationFilter apiAuthenticationFilter = new ApiAuthenticationFilter(authenticationManager());
-        apiAuthenticationFilter.setAuthenticationSuccessHandler(new CustomLoginSuccessHandler()); // 로그인 성공 시 실행될 handler bean
-        apiAuthenticationFilter.setAuthenticationFailureHandler(new CustomLoginFailHandler()); // 로그인 실패 시 실행될 handler bean
+        apiAuthenticationFilter.setAuthenticationSuccessHandler(new LoginSuccessHandler()); // 로그인 성공 시 실행될 handler bean
+        apiAuthenticationFilter.setAuthenticationFailureHandler(new LoginFailHandler()); // 로그인 실패 시 실행될 handler bean
         apiAuthenticationFilter.afterPropertiesSet();
         return apiAuthenticationFilter;
+    }
+
+    @Bean
+    public CustomUsernamePasswordAuthenticationFilter getAuthenticationFilter() throws Exception {
+        CustomUsernamePasswordAuthenticationFilter authenticationFilter = new CustomUsernamePasswordAuthenticationFilter();
+        authenticationFilter.setFilterProcessesUrl("/admin/login");
+        authenticationFilter.setAuthenticationManager(this.authenticationManagerBean());
+        authenticationFilter.setUsernameParameter("userId");
+        authenticationFilter.setPasswordParameter("userPassword");
+        authenticationFilter.setAuthenticationSuccessHandler(new LoginSuccessHandler()); // 로그인 성공 시 실행될 handler bean
+        authenticationFilter.setAuthenticationFailureHandler(new LoginFailHandler()); // 로그인 실패 시 실행될 handler bean
+        return authenticationFilter;
     }
 
     @Bean

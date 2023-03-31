@@ -17,9 +17,9 @@ public class WebAuthenticationEntryPoint implements AuthenticationEntryPoint {
                          AuthenticationException authException) throws IOException, ServletException {
         System.out.println("Not authenticated");
         // 방법1. 인증되지 않은 경우 페이지 이동 시 사용
-        response.sendRedirect("/login.html");
+//        response.sendRedirect("/login.html");
         // 방법2. 인증되지 않은 경우 에러코드 반환 시 사용
-//        response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+        response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
     }
 
 }

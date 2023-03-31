@@ -16,8 +16,8 @@ public class WebAccessDeniedHandler implements AccessDeniedHandler {
                        AccessDeniedException accessDeniedException) throws IOException, ServletException {
         System.out.println("AccessDenied - Not authorized");
         // 방법1. 권한이 없는 경우 페이지 이동 시 사용
-        response.sendRedirect("/login.html");
+//        response.sendRedirect("/login.html");
         // 방법2. 권한이 없는 경우 에러코드 반환 시 사용
-//        response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+        response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
     }
 }

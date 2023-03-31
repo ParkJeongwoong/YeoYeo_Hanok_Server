@@ -11,12 +11,11 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 @Component
-public class CustomLoginSuccessHandler extends SavedRequestAwareAuthenticationSuccessHandler {
+public class LoginSuccessHandler extends SavedRequestAwareAuthenticationSuccessHandler {
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws ServletException, IOException {
         System.out.println("LoginSuccess");
-        super.onAuthenticationSuccess(request, response, authentication);
         // Spring Context Holder에 인증 정보 저장
         SecurityContextHolder.getContext().setAuthentication(authentication);
         response.setStatus(HttpServletResponse.SC_OK);
