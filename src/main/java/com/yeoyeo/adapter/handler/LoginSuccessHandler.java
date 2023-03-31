@@ -16,8 +16,8 @@ public class LoginSuccessHandler extends SavedRequestAwareAuthenticationSuccessH
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws ServletException, IOException {
         System.out.println("LoginSuccess");
-        // Spring Context Holder에 인증 정보 저장
-        SecurityContextHolder.getContext().setAuthentication(authentication);
+        clearAuthenticationAttributes(request);
+        SecurityContextHolder.getContext().setAuthentication(authentication); // Spring Context Holder에 인증 정보 저장
         response.setStatus(HttpServletResponse.SC_OK);
     }
 

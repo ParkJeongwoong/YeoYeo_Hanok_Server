@@ -43,9 +43,6 @@ public class Administrator implements UserDetails {
     }
 
     public boolean checkPassword(String rawPassword) {
-        log.info("raw : {}", rawPassword);
-        log.info("encrypted : {}", new BCryptPasswordEncoder().encode(rawPassword));
-        log.info("saved : {}", this.password);
         return new BCryptPasswordEncoder().matches(rawPassword, this.password);
     }
 

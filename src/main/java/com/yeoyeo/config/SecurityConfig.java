@@ -2,7 +2,6 @@ package com.yeoyeo.config;
 
 import com.yeoyeo.adapter.filter.ApiAuthenticationFilter;
 import com.yeoyeo.adapter.filter.CustomAuthenticationFilter;
-import com.yeoyeo.adapter.filter.CustomUsernamePasswordAuthenticationFilter;
 import com.yeoyeo.adapter.handler.*;
 import com.yeoyeo.adapter.provider.CustomAuthenticationProvider;
 import com.yeoyeo.application.admin.repository.AdministratorRepository;
@@ -115,24 +114,13 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     @Bean
-    public CustomUsernamePasswordAuthenticationFilter getAuthenticationFilter() throws Exception {
-        CustomUsernamePasswordAuthenticationFilter authenticationFilter = new CustomUsernamePasswordAuthenticationFilter();
-        authenticationFilter.setFilterProcessesUrl("/admin/login");
-        authenticationFilter.setAuthenticationManager(this.authenticationManagerBean());
-        authenticationFilter.setUsernameParameter("userId");
-        authenticationFilter.setPasswordParameter("userPassword");
-        authenticationFilter.setAuthenticationSuccessHandler(new LoginSuccessHandler()); // 로그인 성공 시 실행될 handler bean
-        authenticationFilter.setAuthenticationFailureHandler(new LoginFailHandler()); // 로그인 실패 시 실행될 handler bean
-        return authenticationFilter;
-    }
-
-    @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOriginPatterns(Arrays.asList("http://localhost:8080", "http://localhost:3005", "http://3.35.98.5:8080/", "https://yeoyeo.co.kr", "https://www.yeoyeo.co.kr"));
         configuration.addAllowedMethod("*");
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Cache-Control", "Content-Type"));
         configuration.setAllowCredentials(true);
+        configuration.addExposedHeader("Set-Cookie");
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
