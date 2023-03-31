@@ -53,7 +53,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/admin/login").permitAll()
                 .antMatchers("/admin/logout").permitAll()
                 .antMatchers("/admin/**").authenticated() // 인증된 사용자만 접근 허용
-                .antMatchers("/index.html").authenticated() // testtest
+                .antMatchers("/index.html").authenticated()
+                .antMatchers("/").authenticated()
                 .anyRequest().permitAll()
                 .and()
 
@@ -127,12 +128,14 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     /* API 주소를 서브도메인으로 바꾸면서 필요없어짐 */
-//    @Bean
-//    public CookieSerializer cookieSerializer() {
-//        DefaultCookieSerializer serializer = new DefaultCookieSerializer();
+    @Bean
+    public CookieSerializer cookieSerializer() {
+        DefaultCookieSerializer serializer = new DefaultCookieSerializer();
 //        serializer.setSameSite("none");
-//        serializer.setUseSecureCookie(true);
-//        return serializer;
-//    }
+        serializer.setUseSecureCookie(true);
+        serializer.setUseHttpOnlyCookie(true);
+        serializer.setDomainName("yeoyeo.co.kr");
+        return serializer;
+    }
 
 }
