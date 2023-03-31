@@ -1,6 +1,6 @@
 //const SERVER_URL = "http://localhost:8080"
 //const SERVER_URL = "http://3.35.98.5:8080"
-const SERVER_URL = "https://yeoyeo.kr"
+const SERVER_URL = "https://api.yeoyeo.co.kr"
 
 // 고객 입력정보
 const name = '박정웅'

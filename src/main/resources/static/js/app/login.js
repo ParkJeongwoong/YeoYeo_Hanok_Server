@@ -1,5 +1,6 @@
 //const SERVER_URL = "http://localhost:8080"
-const SERVER_URL = "http://3.35.98.5:8080"
+//const SERVER_URL = "http://3.35.98.5:8080"
+const SERVER_URL = "https://api.yeoyeo.co.kr"
 
 function login() {
     let userId = document.querySelector('#userId').value
@@ -14,7 +15,7 @@ function login() {
             userPassword
         })
     }).done(function (data) {
-        window.location.replace(SERVER_URL+"/index.html")
+//        window.location.replace(SERVER_URL+"/index.html")
     }).fail(function(error) {
         console.log("실패")
         console.log(error)
