@@ -43,7 +43,7 @@ public class ReservationController {
     }
 
     @ApiOperation(value = "Reservation Detail", notes = "예약 상세 정보 조회")
-    @GetMapping("/reservation/{reservationId}")
+    @GetMapping("/detail/{reservationId}")
     public ResponseEntity<ReservationDetailInfoDto> getReservationInfo(@PathVariable("reservationId") long reservationId) {
         try {
             return ResponseEntity.status(HttpStatus.OK).body(reservationService.getReservationInfo(reservationId));
