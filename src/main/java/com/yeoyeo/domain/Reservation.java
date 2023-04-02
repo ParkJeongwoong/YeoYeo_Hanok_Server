@@ -121,4 +121,8 @@ public class Reservation extends BaseTimeEntity {
         return totalPrice;
     }
 
+    public boolean validatePhoneNumber(String phoneNumber) {
+        return phoneNumber.replaceAll("[^0-9]","").equals(this.guest.getNumberOnlyPhoneNumber());
+    }
+
 }

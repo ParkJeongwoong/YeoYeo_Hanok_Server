@@ -43,10 +43,10 @@ public class ReservationController {
     }
 
     @ApiOperation(value = "Reservation Detail", notes = "예약 상세 정보 조회")
-    @GetMapping("/detail/{reservationId}")
-    public ResponseEntity<ReservationDetailInfoDto> getReservationInfo(@PathVariable("reservationId") long reservationId) {
+    @GetMapping("/detail/{reservationId}/{phoneNumber}")
+    public ResponseEntity<ReservationDetailInfoDto> getReservationInfo(@PathVariable("reservationId") long reservationId, @PathVariable("phoneNumber") String phoneNumber) {
         try {
-            return ResponseEntity.status(HttpStatus.OK).body(reservationService.getReservationInfo(reservationId));
+            return ResponseEntity.status(HttpStatus.OK).body(reservationService.getReservationInfo(reservationId, phoneNumber));
         } catch (ReservationException e) {
             log.error("예약 정보 조회 실패", e);
             return ResponseEntity.status(HttpStatus.OK).body(null);

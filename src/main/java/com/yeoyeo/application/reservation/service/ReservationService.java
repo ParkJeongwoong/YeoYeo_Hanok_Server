@@ -44,8 +44,10 @@ public class ReservationService {
         }
     }
 
-    public ReservationDetailInfoDto getReservationInfo(long reservationId) throws ReservationException {
-        return new ReservationDetailInfoDto(reservationRepository.findById(reservationId).orElseThrow(NoSuchElementException::new));
+    public ReservationDetailInfoDto getReservationInfo(long reservationId, String phoneNumber) throws ReservationException {
+        Reservation reservation = reservationRepository.findById(reservationId).orElseThrow(NoSuchElementException::new);
+        if (reservation.validatePhoneNumber(phoneNumber)) return new ReservationDetailInfoDto(reservation);
+        throw new ReservationException("전화번호가 일치하지 않습니다.");
     }
 
     @Transactional
