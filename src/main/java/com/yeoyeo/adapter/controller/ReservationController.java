@@ -49,7 +49,7 @@ public class ReservationController {
             return ResponseEntity.status(HttpStatus.OK).body(reservationService.getReservationInfo(reservationId, phoneNumber));
         } catch (ReservationException e) {
             log.error("예약 정보 조회 실패", e);
-            return ResponseEntity.status(HttpStatus.OK).body(null);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         }
     }
 
