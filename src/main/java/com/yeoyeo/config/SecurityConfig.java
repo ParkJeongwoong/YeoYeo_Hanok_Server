@@ -117,7 +117,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(Arrays.asList("http://localhost:8080", "http://localhost:3005", "http://3.35.98.5:8080/", "https://yeoyeo.co.kr", "https://www.yeoyeo.co.kr"));
+        configuration.setAllowedOriginPatterns(Arrays.asList("http://localhost:8080", "http://localhost:3005", "http://3.35.98.5:8080/"
+                , "https://yeoyeo.co.kr", "https://www.yeoyeo.co.kr", "https://yeoyeo.kr", "https://www.yeoyeo.kr"));
         configuration.addAllowedMethod("*");
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Cache-Control", "Content-Type"));
         configuration.setAllowCredentials(true);
