@@ -1,7 +1,7 @@
-package com.yeoyeo.application.sms.service;
+package com.yeoyeo.application.message.service;
 
 import com.yeoyeo.application.general.webclient.WebClientService;
-import com.yeoyeo.application.sms.dto.SendMessageResponseDto;
+import com.yeoyeo.application.message.dto.SendMessageResponseDto;
 import com.yeoyeo.domain.Reservation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @RequiredArgsConstructor
 @Service
-public class SmsService {
+public class MessageService {
 
     static final String NCLOUD_SMS_URL = "https://sens.apigw.ntruss.com";
     static final List<String> ADMIN_LIST = Arrays.asList("01020339091", "01089599091", "01026669091", "01020199091");
@@ -44,25 +44,22 @@ public class SmsService {
 
     private final WebClientService webClientService;
 
-    public SendMessageResponseDto test(String subject, String content, String to) {
-        return sendSMS(subject, content, to);
-    }
-
+    // SMS
     public SendMessageResponseDto sendAuthenticationKeySms(String to) {
-        // Todo - 휴대폰 번호 인증 문자
         String authKey = getAuthKey();
         String subject = "[한옥스테이 여여] 휴대폰 인증 문자입니다.";
         String content = "[한옥스테이 여여 문자 인증]\n\n" +
                 "인증번호 : "+authKey+"\n" +
                 "인증번호를 입력해 주세요.";
         registerAuthKey(to, authKey);
-        return sendSMS(subject, content, to);
+        return sendMessage("SMS", subject, content, to);
     }
 
     public Boolean validateAuthenticationKey(String phoneNumber, String authKey) {
         return checkAuthKey(phoneNumber, authKey);
     }
 
+    // LMS
     public SendMessageResponseDto sendReservationSms(Reservation reservation) {
         LocalDate startDate = reservation.getFirstDateRoom().getDate();
         LocalDate endDate = reservation.getLastDateRoom().getDate().plusDays(1);
@@ -78,9 +75,10 @@ public class SmsService {
                 "입실은 15시부터 이면 퇴실은 11시입니다.\n\n" +
                 "한옥스테이 여여에서 여유롭고 행복한 시간 보내시길 바라겠습니다.\n" +
                 "감사합니다.:)";
-        return sendSMS(subject, content, to);
+        return sendMessage("LMS", subject, content, to);
     }
 
+    // LMS
     public SendMessageResponseDto sendCancelSms(Reservation reservation) {
         LocalDate startDate = reservation.getFirstDateRoom().getDate();
         LocalDate endDate = reservation.getLastDateRoom().getDate().plusDays(1);
@@ -95,33 +93,34 @@ public class SmsService {
                 "(예약번호 :"+reservation.getId()+")\n" +
                 "결제하신 내역은 환불 규정에 따라 진행될 예정입니다.\n\n" +
                 "감사합니다.";
-        return sendSMS(subject, content, to);
+        return sendMessage("LMS", subject, content, to);
     }
 
+    // SMS
     public SendMessageResponseDto sendAdminSms(String message) {
         String subject = "[한옥스테이 여여] 관리자 알림 문자입니다.";
         String content = "[한옥스테이 여여 관리자 알림 문자]\n\n" +
                 "관리자 알림 문자입니다.\n" +
                 "내용 : " + message;
-        return sendMultipleSMS(subject, content, ADMIN_LIST);
+        return sendMultipleMessage("SMS", subject, content, ADMIN_LIST);
     }
 
-    private SendMessageResponseDto sendSMS(String subject, String content, String to) {
+    private SendMessageResponseDto sendMessage(String type, String subject, String content, String to) {
         String uri = "/sms/v2/services/"+smsKey+"/messages";
         String url = NCLOUD_SMS_URL+uri;
         String timestamp = getTimestamp();
         String signature = getSignature("POST", uri, timestamp);
 
-        return webClientService.sendSms(url, subject, content, getNumberOnly(to), timestamp, accessKey, signature);
+        return webClientService.sendMessage(type, url, subject, content, getNumberOnly(to), timestamp, accessKey, signature);
     }
 
-    private SendMessageResponseDto sendMultipleSMS(String subject, String content, List<String> phoneNumberList) {
+    private SendMessageResponseDto sendMultipleMessage(String type, String subject, String content, List<String> phoneNumberList) {
         String uri = "/sms/v2/services/"+smsKey+"/messages";
         String url = NCLOUD_SMS_URL+uri;
         String timestamp = getTimestamp();
         String signature = getSignature("POST", uri, timestamp);
 
-        return webClientService.sendMultipleSms(url, subject, content, phoneNumberList.stream().map(this::getNumberOnly).collect(Collectors.toList()), timestamp, accessKey, signature);
+        return webClientService.sendMultipleMessage(type, url, subject, content, phoneNumberList.stream().map(this::getNumberOnly).collect(Collectors.toList()), timestamp, accessKey, signature);
     }
 
     private String getSignature(String method, String uri, String timestamp) {

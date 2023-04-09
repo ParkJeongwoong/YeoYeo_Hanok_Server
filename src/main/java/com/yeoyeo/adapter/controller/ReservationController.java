@@ -4,11 +4,10 @@ import com.yeoyeo.application.common.dto.GeneralResponseDto;
 import com.yeoyeo.application.dateroom.repository.DateRoomRepository;
 import com.yeoyeo.application.reservation.dto.MakeReservationHomeRequestDto;
 import com.yeoyeo.application.reservation.dto.ReservationDetailInfoDto;
-import com.yeoyeo.application.reservation.dto.ReservationInfoDto;
 import com.yeoyeo.application.reservation.etc.exception.ReservationException;
 import com.yeoyeo.application.reservation.service.ReservationService;
-import com.yeoyeo.application.sms.dto.SendMessageResponseDto;
-import com.yeoyeo.application.sms.service.SmsService;
+import com.yeoyeo.application.message.dto.SendMessageResponseDto;
+import com.yeoyeo.application.message.service.MessageService;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,8 +16,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @Slf4j
 @RequiredArgsConstructor
 @RestController
@@ -26,7 +23,7 @@ import java.util.List;
 public class ReservationController {
 
     private final ReservationService reservationService;
-    private final SmsService smsService;
+    private final MessageService messageService;
 
     private final DateRoomRepository dateRoomRepository;
 
@@ -56,7 +53,7 @@ public class ReservationController {
     @ApiOperation(value = "Send Authentication SMS", notes = "[문자 수신] 본인 인증 문자 수신")
     @GetMapping("/sms/authKey/{phoneNumber}")
     public ResponseEntity<SendMessageResponseDto> sendAuthKey(@PathVariable("phoneNumber") String phoneNumber) {
-        SendMessageResponseDto responseDto = smsService.sendAuthenticationKeySms(phoneNumber);
+        SendMessageResponseDto responseDto = messageService.sendAuthenticationKeySms(phoneNumber);
         if (!responseDto.getStatusCode().equals("202")) ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseDto);
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
@@ -64,7 +61,7 @@ public class ReservationController {
     @ApiOperation(value = "Authentication Validation", notes = "본인 인증 문자 입력")
     @GetMapping("/validation/authKey/{phoneNumber}/{authKey}")
     public ResponseEntity<Boolean> validateAuthKey(@PathVariable("phoneNumber") String phoneNumber, @PathVariable("authKey") String authKey) {
-        return ResponseEntity.status(HttpStatus.OK).body(smsService.validateAuthenticationKey(phoneNumber, authKey));
+        return ResponseEntity.status(HttpStatus.OK).body(messageService.validateAuthenticationKey(phoneNumber, authKey));
     }
 
 }

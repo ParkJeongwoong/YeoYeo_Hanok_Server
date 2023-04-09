@@ -9,7 +9,7 @@ import com.yeoyeo.application.payment.etc.exception.PaymentException;
 import com.yeoyeo.application.reservation.etc.exception.ReservationException;
 import com.yeoyeo.application.reservation.repository.ReservationRepository;
 import com.yeoyeo.application.reservation.service.ReservationService;
-import com.yeoyeo.application.sms.service.SmsService;
+import com.yeoyeo.application.message.service.MessageService;
 import com.yeoyeo.domain.DateRoom;
 import com.yeoyeo.domain.Payment;
 import com.yeoyeo.domain.Reservation;
@@ -46,7 +46,7 @@ public class PaymentService {
 
     private final WebClientService webClientService;
     private final ReservationService reservationService;
-    private final SmsService smsService;
+    private final MessageService messageService;
 
     @Transactional
     public GeneralResponseDto pay(PaymentRequestDto requestDto) {
@@ -69,7 +69,7 @@ public class PaymentService {
                 reservation.setStateRefund();
             } catch (PaymentException | ReservationException e) {
                 log.error("비정상 결제 환불 중 오류 빌생", e);
-                smsService.sendAdminSms("결제 오류 알림 - 비정상적인 결제에 대한 환불 작업 중 오류 발생");
+                messageService.sendAdminSms("결제 오류 알림 - 비정상적인 결제에 대한 환불 작업 중 오류 발생");
             }
             return GeneralResponseDto.builder().success(false).message(paymentException.getMessage()).build();
         } catch (ReservationException reservationException) {
@@ -283,19 +283,19 @@ public class PaymentService {
         log.info("status : {}", status);
         log.info("amount : {}", payedAmount);
         if (status.equals("cancelled")) {
-            smsService.sendAdminSms("관리자 콘솔 환불 알림 - 환불되었습니다.");
+            messageService.sendAdminSms("관리자 콘솔 환불 알림 - 환불되었습니다.");
             return;
         }
         if (!status.equals("paid")) {
-            smsService.sendAdminSms("결제 오류 알림 - 완료되지 않은 결제 수신. 서버 데이터 확인 필요");
+            messageService.sendAdminSms("결제 오류 알림 - 완료되지 않은 결제 수신. 서버 데이터 확인 필요");
             throw new ReservationException("결제가 완료되지 않았습니다.");
         }
         if (!(String.valueOf(payment.getImp_uid())).equals(imp_uid)) {
-            smsService.sendAdminSms("결제 오류 알림 - 저장되지 않은 결제번호 수신. 서버 데이터 확인 필요");
+            messageService.sendAdminSms("결제 오류 알림 - 저장되지 않은 결제번호 수신. 서버 데이터 확인 필요");
             throw new ReservationException("잘못된 결제 정보입니다. 저장된 결제번호 : "+payment.getImp_uid()+" / 수신된 결제번호 : "+imp_uid);
         }
         if (payment.getAmount() != payedAmount) {
-            smsService.sendAdminSms("결제 오류 알림 - 잘못된 결제금액 수신. 서버 데이터 확인 필요");
+            messageService.sendAdminSms("결제 오류 알림 - 잘못된 결제금액 수신. 서버 데이터 확인 필요");
             throw new ReservationException("잘못된 결제 정보입니다. 저장된 결재금액 : "+payment.getAmount()+" / 지불된 결제금액 : "+payedAmount);
         }
     }

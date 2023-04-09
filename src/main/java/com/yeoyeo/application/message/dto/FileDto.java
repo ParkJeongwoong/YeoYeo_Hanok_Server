@@ -1,4 +1,4 @@
-package com.yeoyeo.application.sms.dto;
+package com.yeoyeo.application.message.dto;
 
 import lombok.Getter;
 

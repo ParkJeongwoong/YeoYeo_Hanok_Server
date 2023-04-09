@@ -2,8 +2,8 @@ package com.yeoyeo.application.general.webclient;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.yeoyeo.application.sms.dto.SendMessageRequestDto;
-import com.yeoyeo.application.sms.dto.SendMessageResponseDto;
+import com.yeoyeo.application.message.dto.SendMessageRequestDto;
+import com.yeoyeo.application.message.dto.SendMessageResponseDto;
 import lombok.extern.slf4j.Slf4j;
 import org.json.simple.JSONObject;
 import org.springframework.core.ParameterizedTypeReference;
@@ -67,8 +67,8 @@ public class WebClientService {
                 .block();
     }
 
-    public SendMessageResponseDto sendSms(String url, String subject, String content, String to, String timestamp, String accessKey, String signature) {
-        SendMessageRequestDto requestDto = new SendMessageRequestDto(subject, content, to);
+    public SendMessageResponseDto sendMessage(String type, String url, String subject, String content, String to, String timestamp, String accessKey, String signature) {
+        SendMessageRequestDto requestDto = new SendMessageRequestDto(type, subject, content, to);
         ObjectMapper mapper = new ObjectMapper();
         try {
             String jsonString = mapper.writeValueAsString(requestDto);
@@ -84,8 +84,8 @@ public class WebClientService {
         return null;
     }
 
-    public SendMessageResponseDto sendMultipleSms(String url, String subject, String content, List<String> phoneNumberList, String timestamp, String accessKey, String signature) {
-        SendMessageRequestDto requestDto = new SendMessageRequestDto(subject, content, phoneNumberList);
+    public SendMessageResponseDto sendMultipleMessage(String type, String url, String subject, String content, List<String> phoneNumberList, String timestamp, String accessKey, String signature) {
+        SendMessageRequestDto requestDto = new SendMessageRequestDto(type, subject, content, phoneNumberList);
         ObjectMapper mapper = new ObjectMapper();
         try {
             String jsonString = mapper.writeValueAsString(requestDto);

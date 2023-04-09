@@ -8,7 +8,7 @@ import com.yeoyeo.application.reservation.dto.ReservationDetailInfoDto;
 import com.yeoyeo.application.reservation.dto.ReservationInfoDto;
 import com.yeoyeo.application.reservation.etc.exception.ReservationException;
 import com.yeoyeo.application.reservation.repository.ReservationRepository;
-import com.yeoyeo.application.sms.service.SmsService;
+import com.yeoyeo.application.message.service.MessageService;
 import com.yeoyeo.domain.DateRoom;
 import com.yeoyeo.domain.Guest;
 import com.yeoyeo.domain.Payment;
@@ -32,7 +32,7 @@ public class ReservationService {
 
     private final DateRoomRepository dateRoomRepository;
     private final ReservationRepository reservationRepository;
-    private final SmsService smsService;
+    private final MessageService messageService;
 
     public List<ReservationInfoDto> showReservations(int type) {
         // 현재 가상계좌 결제를 사용하지 않아 미결제 상태 0이 없음
@@ -101,7 +101,7 @@ public class ReservationService {
             reservation.setStateCanceled();
             for (DateRoom dateRoom:dateRoomList) dateRoom.resetState();
             reservationRepository.save(reservation);
-            smsService.sendCancelSms(reservation);
+            messageService.sendCancelSms(reservation);
             log.info("{} 고객님의 예약이 취소되었습니다.", reservation.getGuest().getName());
             return GeneralResponseDto.builder()
                     .success(true)
