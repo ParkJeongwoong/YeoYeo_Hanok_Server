@@ -8,13 +8,13 @@ import javax.persistence.Entity;
 
 //@SuperBuilder
 @Getter
-@NoArgsConstructor
 @Entity
 public class GuestAirbnb extends Guest {
 
     @Builder
-    public GuestAirbnb(String name, String phoneNumber, String email, int guestCount, String request) {
-        super(name, phoneNumber, email, guestCount, request);
+    public GuestAirbnb() {
+        String name = "AirBnbGuest";
+        super.name = name;
     }
 
 }

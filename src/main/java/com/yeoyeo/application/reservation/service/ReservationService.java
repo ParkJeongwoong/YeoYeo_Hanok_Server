@@ -56,7 +56,7 @@ public class ReservationService {
         if (dateRoomList.size() == 0) throw new ReservationException("존재하지 않는 방입니다.");
         for (DateRoom dateRoom:dateRoomList) if (dateRoom.getRoomReservationState() != 0) throw new ReservationException("이미 예약이 완료된 방입니다.");
         Guest guest = reservationDto.getGuest();
-        Reservation reservation =  Reservation.builder()
+        Reservation reservation = Reservation.builder()
                 .dateRoomList(dateRoomList)
                 .guest(guest)
                 .build();

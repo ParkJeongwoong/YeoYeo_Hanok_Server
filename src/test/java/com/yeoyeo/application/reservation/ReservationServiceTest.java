@@ -117,7 +117,7 @@ public class ReservationServiceTest {
         // Given
         log.info("createReservation 테스트 준비");
         String guestName1 = "jeongwoong";
-        String guestName2 = "chaewoong";
+        String guestName2 = "AirBnbGuest";
 
         List<DateRoom> dateRoomList1 = new ArrayList<>();
         List<DateRoom> dateRoomList2 = new ArrayList<>();
@@ -130,7 +130,7 @@ public class ReservationServiceTest {
                 .guestCount(1)
                 .request("없습니다.")
                 .build();
-        GuestAirbnb guest2 = GuestAirbnb.builder().name(guestName2).build();
+        GuestAirbnb guest2 = GuestAirbnb.builder().build();
 
         MakeReservationHomeDto requestDto1 = new MakeReservationHomeDto(dateRoomList1, guest1);
         MakeReservationAirbnbDto requestDto2 = new MakeReservationAirbnbDto(dateRoomList2, guest2);
