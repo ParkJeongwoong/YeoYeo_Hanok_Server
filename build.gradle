@@ -58,5 +58,8 @@ dependencies {
 
     // iCal4j
     implementation('org.mnode.ical4j:ical4j:3.2.11')
+
+    // WebClient
+    implementation('org.springframework.boot:spring-boot-starter-webflux')
 }
 targetCompatibility = JavaVersion.VERSION_1_9
