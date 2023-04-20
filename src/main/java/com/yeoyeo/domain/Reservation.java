@@ -33,8 +33,8 @@ public class Reservation extends BaseTimeEntity {
     @Column(nullable = false)
     private long reservationState; // 0 : 미결제, 1 : 숙박 예정, 2 : 숙박 완료 , -1 : 예약 취소, -2 : 환불 완료
 
-//    @Column(nullable = false)
-//    private String uniqueId;
+    @Column
+    private String uniqueId;
 
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "payment_id")
@@ -47,7 +47,10 @@ public class Reservation extends BaseTimeEntity {
         this.guest = guest;
         this.reservedFrom = guest.getClass().getSimpleName();
         this.reservationState = 0;
-//        this.uniqueId = UUID.randomUUID().toString();
+    }
+
+    public void setUniqueId(String iCalendarUID) {
+        this.uniqueId = iCalendarUID;
     }
 
     public List<DateRoom> getDateRoomList() {

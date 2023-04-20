@@ -46,6 +46,10 @@ public class DateRoomController {
     public void test2() {
         calendarService.getAirbnbICSFile();
     }
+    @GetMapping("/test3")
+    public void test3() {
+        calendarService.writeICSFile();
+    }
     @GetMapping("/test/airbnb/a")
     public void testAirbnbA() { calendarService.syncInICSFile_Airbnb_A(); }
     @GetMapping("/test/airbnb/b")

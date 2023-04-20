@@ -9,11 +9,15 @@ import com.yeoyeo.domain.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.fortuna.ical4j.data.CalendarBuilder;
+import net.fortuna.ical4j.data.CalendarOutputter;
 import net.fortuna.ical4j.data.ParserException;
-import net.fortuna.ical4j.model.Calendar;
-import net.fortuna.ical4j.model.Component;
-import net.fortuna.ical4j.model.Property;
+import net.fortuna.ical4j.model.*;
 import net.fortuna.ical4j.model.component.CalendarComponent;
+import net.fortuna.ical4j.model.component.VEvent;
+import net.fortuna.ical4j.model.component.VTimeZone;
+import net.fortuna.ical4j.model.property.Uid;
+import net.fortuna.ical4j.util.FixedUidGenerator;
+import net.fortuna.ical4j.util.UidGenerator;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferUtils;
@@ -25,10 +29,13 @@ import reactor.core.publisher.Flux;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.SocketException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.text.ParseException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -46,6 +53,8 @@ public class CalendarService {
     String AIRBNB_FILE_PATH_A;
     @Value("${ics.airbnb.b.path}")
     String AIRBNB_FILE_PATH_B;
+    @Value("${ics.yeoyeo.path}")
+    String YEOYEO_FILE_PATH;
 
     private final ReservationService reservationService;
     private final DateRoomRepository dateRoomRepository;
@@ -61,25 +70,28 @@ public class CalendarService {
         getIcsFileFromPlatform(AIRBNB_FILE_URL_B, AIRBNB_FILE_PATH_B);
         readIcalendarFile(AIRBNB_FILE_PATH_B, getGuestAirbnb(), getPaymentAirbnb(), 2);
     }
+    public void writeICSFile() { writeIcalendarFile(); }
 
     private void readIcalendarFile(String path, Guest guest, Payment payment, long roomId) {
         try {
             FileInputStream fileInputStream =new FileInputStream(path);
             CalendarBuilder builder = new CalendarBuilder();
             Calendar calendar = builder.build(fileInputStream);
-            List<CalendarComponent> events = calendar.getComponents(Component.VEVENT);
+            log.info(calendar.getProperties().toString());
+            List<VEvent> events = calendar.getComponents(Component.VEVENT);
             log.info("COUNT {}", events.size());
-            for (CalendarComponent event : events) {
-                Property startDate = event.getProperty("DTSTART");
-                Property endDate = event.getProperty("DTEND");
-                log.info("Reservation : {} ~ {}", startDate.getValue(), endDate.getValue());
-                log.info(event.toString());
-                if (checkExceedingAvailableDate(endDate.getValue())) break;
-                List<DateRoom> dateRoomList = getDateRoomList(startDate.getValue(), endDate.getValue(), roomId);
+            for (VEvent event : events) {
+                String startDate = event.getStartDate().getValue();
+                String endDate = event.getEndDate().getValue();
+                log.info("Reservation : {} ~ {}", startDate, endDate);
+                log.info(event.toString()); // TEST 용도
+                if (checkExceedingAvailableDate(endDate)) break;
+                List<DateRoom> dateRoomList = getDateRoomList(startDate, endDate, roomId);
                 if (dateRoomList != null) {
                     MakeReservationDto makeReservationDto = new MakeReservationDto(dateRoomList, guest);
                     long reservationId = reservationService.createReservation(makeReservationDto);
                     Reservation reservation = reservationRepository.findById(reservationId).orElseThrow(() -> new ReservationException("존재하지 않는 예약입니다."));
+                    reservation.setUniqueId(event.getUid().getValue());
                     reservationService.setReservationPaid(reservation, payment);
                 }
             }
@@ -90,6 +102,48 @@ public class CalendarService {
             log.error("readIcalendarFile : CalendarBuilder Build Fail", e);
         } catch (ReservationException e) {
             log.error("readIcalendarFile : Create Reservation Exception", e);
+        }
+    }
+
+    private void writeIcalendarFile() {
+        try {
+            TimeZoneRegistry registry = TimeZoneRegistryFactory.getInstance().createRegistry();
+            TimeZone timeZone = registry.getTimeZone("Asia/Seoul");
+            VTimeZone vTimeZone = timeZone.getVTimeZone();
+
+            Calendar calendar = new Calendar()
+                    .withProdId("-//Hanok stay Yeoyeo Reservation Events Calendar//iCal4j 3.2//KO")
+                    .withDefaults()
+                    .getFluentTarget();
+
+            List<Reservation> reservationList = reservationRepository.findAllByReservationState(1);
+            UidGenerator uidGenerator = new FixedUidGenerator("yeoyeo");
+
+            for (Reservation reservation : reservationList) {
+                String eventName = reservation.getGuest().getName();
+                Date startDT = new Date(reservation.getFirstDate().format(DateTimeFormatter.ofPattern("yyyyMMdd")));
+                Date endDT = new Date(reservation.getLastDateRoom().getDate().plusDays(1).format(DateTimeFormatter.ofPattern("yyyyMMdd")));
+                Uid uid;
+                if (reservation.getUniqueId()==null||reservation.getUniqueId().length()==0) uid = uidGenerator.generateUid();
+                else uid = new Uid(reservation.getUniqueId());
+
+                VEvent event = new VEvent(startDT, endDT, eventName)
+                        .withProperty(vTimeZone.getTimeZoneId())
+                        .withProperty(uid)
+                        .getFluentTarget();
+                calendar.withComponent(event);
+            }
+
+            printICalendarData(calendar); // TEST 용도
+
+            createIcsFile(calendar);
+
+        } catch (SocketException e) {
+            log.error("UidGenerator Issue : InetAddressHostInfo process Error", e);
+        } catch (ParseException e) {
+            log.error("Reservation LocalDate Parse Exception", e);
+        } catch (IOException e) {
+            log.error("ICS File Creation Exception", e);
         }
     }
 
@@ -109,9 +163,15 @@ public class CalendarService {
         log.info("ICS File Download Complete From : {}", downloadUrl);
     }
 
+    private void createIcsFile(Calendar calendar) throws IOException {
+        FileOutputStream fileOutputStream = new FileOutputStream(YEOYEO_FILE_PATH);
+        CalendarOutputter outputter = new CalendarOutputter();
+        outputter.output(calendar, fileOutputStream);
+    }
+
     private boolean checkExceedingAvailableDate(String end) {
         LocalDate lastDate = LocalDate.parse(end, DateTimeFormatter.ofPattern("yyyyMMdd"));
-        LocalDate aYearAfter = LocalDate.now().plusYears(1);
+        LocalDate aYearAfter = LocalDate.now().plusMonths(6);
         return !lastDate.isBefore(aYearAfter);
     }
 
@@ -134,6 +194,16 @@ public class CalendarService {
 
     private WebClient WebClient(String contentType) {
         return WebClient.builder().defaultHeader(HttpHeaders.CONTENT_TYPE, contentType).build();
+    }
+
+    // TEST 용도
+    private void printICalendarData(Calendar calendar) {
+        log.info(calendar.getProperties().toString());
+        List<CalendarComponent> events = calendar.getComponents(Component.VEVENT);
+        log.info("COUNT {}", events.size());
+        for (CalendarComponent event : events) {
+            log.info(event.toString());
+        }
     }
 
     // Todo - Airbnb 에 자동 수신
