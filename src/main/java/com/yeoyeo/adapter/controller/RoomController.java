@@ -2,6 +2,7 @@ package com.yeoyeo.adapter.controller;
 
 import com.yeoyeo.application.room.dto.RoomInfoDto;
 import com.yeoyeo.application.room.service.RoomService;
+import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -10,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Api(tags = {"객실 정보 API"})
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("room")

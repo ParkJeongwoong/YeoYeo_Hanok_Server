@@ -11,6 +11,7 @@ import com.yeoyeo.application.payment.service.PaymentService;
 import com.yeoyeo.application.reservation.dto.ReservationInfoDto;
 import com.yeoyeo.application.reservation.service.ReservationService;
 import com.yeoyeo.application.room.service.RoomService;
+import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Api(tags = {"관리자 API"})
 @Slf4j
 @RequiredArgsConstructor
 @RestController

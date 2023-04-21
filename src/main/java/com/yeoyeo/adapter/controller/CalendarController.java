@@ -1,6 +1,7 @@
 package com.yeoyeo.adapter.controller;
 
 import com.yeoyeo.application.calendar.service.CalendarService;
+import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -9,6 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletResponse;
 
+@Api(tags = {"예약정보 동기화 API"})
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("calendar")

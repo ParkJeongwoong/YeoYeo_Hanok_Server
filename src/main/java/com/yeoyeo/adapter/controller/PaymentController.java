@@ -6,12 +6,14 @@ import com.yeoyeo.application.payment.dto.PaymentRequestDto;
 import com.yeoyeo.application.payment.dto.ImpWebHookDto;
 import com.yeoyeo.application.payment.dto.RefundClientRequestDto;
 import com.yeoyeo.application.payment.service.PaymentService;
+import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+@Api(tags = {"결제 API"})
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("payment")

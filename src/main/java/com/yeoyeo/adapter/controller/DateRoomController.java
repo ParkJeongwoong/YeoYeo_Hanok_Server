@@ -2,6 +2,7 @@ package com.yeoyeo.adapter.controller;
 
 import com.yeoyeo.application.dateroom.dto.*;
 import com.yeoyeo.application.dateroom.service.DateRoomService;
+import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -10,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Api(tags = {"날짜-방 정보 API"})
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("dateroom")
