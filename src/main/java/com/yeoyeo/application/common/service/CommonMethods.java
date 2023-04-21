@@ -11,13 +11,13 @@ import javax.servlet.http.HttpServletRequest;
 @Component
 public class CommonMethods {
 
-    public void printIp() {
+    public void printIp(String from) {
         HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getRequest();
         String ip = request.getHeader("X-FORWARDED-FOR");
-        log.info("X-FORWARDED-FOR : {}", ip);
+        log.info("from {} - X-FORWARDED-FOR : {}", from, ip);
         if (ip == null) {
             ip = request.getRemoteAddr();
-            log.info("getRemoteAddr: {}", ip);
+            log.info("from {} - getRemoteAddr: {}", from, ip);
         }
     }
 
