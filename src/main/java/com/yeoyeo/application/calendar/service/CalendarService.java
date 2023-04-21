@@ -14,7 +14,6 @@ import net.fortuna.ical4j.data.ParserException;
 import net.fortuna.ical4j.model.*;
 import net.fortuna.ical4j.model.component.CalendarComponent;
 import net.fortuna.ical4j.model.component.VEvent;
-import net.fortuna.ical4j.model.component.VTimeZone;
 import net.fortuna.ical4j.model.property.Uid;
 import net.fortuna.ical4j.util.FixedUidGenerator;
 import net.fortuna.ical4j.util.UidGenerator;
@@ -27,10 +26,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import javax.servlet.http.HttpServletResponse;
+import java.io.*;
 import java.net.SocketException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -60,91 +57,97 @@ public class CalendarService {
     private final DateRoomRepository dateRoomRepository;
     private final ReservationRepository reservationRepository;
 
-    public void readAirbnbICSFile() { readIcalendarFile(AIRBNB_FILE_PATH_A, getGuestAirbnb(), getPaymentAirbnb(), 1);}
+    public void syncAirbnbICSFile() { syncIcalendarFile(AIRBNB_FILE_PATH_A, getGuestAirbnb(), getPaymentAirbnb(), 1);}
     public void getAirbnbICSFile() { getIcsFileFromPlatform(AIRBNB_FILE_URL_A, AIRBNB_FILE_PATH_A); }
     public void syncInICSFile_Airbnb_A() {
         getIcsFileFromPlatform(AIRBNB_FILE_URL_A, AIRBNB_FILE_PATH_A);
-        readIcalendarFile(AIRBNB_FILE_PATH_A, getGuestAirbnb(), getPaymentAirbnb(), 1);
+        syncIcalendarFile(AIRBNB_FILE_PATH_A, getGuestAirbnb(), getPaymentAirbnb(), 1);
     }
     public void syncInICSFile_Airbnb_B() {
         getIcsFileFromPlatform(AIRBNB_FILE_URL_B, AIRBNB_FILE_PATH_B);
-        readIcalendarFile(AIRBNB_FILE_PATH_B, getGuestAirbnb(), getPaymentAirbnb(), 2);
+        syncIcalendarFile(AIRBNB_FILE_PATH_B, getGuestAirbnb(), getPaymentAirbnb(), 2);
     }
     public void writeICSFile() { writeIcalendarFile(); }
+    public void sendICalendarData(HttpServletResponse response) {
+        try {
+            Calendar calendar = readIcalendarFile(YEOYEO_FILE_PATH); // 외부 다운로드는 원본인 파일만 가능
+            byte[] iCalFile = generateByteICalendarFile(calendar);
+            response.setContentType(MediaType.TEXT_PLAIN_VALUE);
+            response.setHeader("Content-Disposition", "attachment; filename=calendar.ics");
+            response.getOutputStream().write(iCalFile);
+            response.flushBuffer();
+        } catch (IOException e) {
+            log.error("ICS File Byte Generation Exception", e);
+        }
+    }
 
-    private void readIcalendarFile(String path, Guest guest, Payment payment, long roomId) {
+    private void syncIcalendarFile(String path, Guest guest, Payment payment, long roomId) {
+        Calendar calendar = readIcalendarFile(path);
+        List<VEvent> events = calendar.getComponents(Component.VEVENT);
+        log.info("COUNT {}", events.size());
+        for (VEvent event : events) {
+            registerReservation(event, guest, payment, roomId);
+        }
+    }
+
+    private Calendar readIcalendarFile(String path) {
         try {
             FileInputStream fileInputStream =new FileInputStream(path);
             CalendarBuilder builder = new CalendarBuilder();
             Calendar calendar = builder.build(fileInputStream);
             log.info(calendar.getProperties().toString());
-            List<VEvent> events = calendar.getComponents(Component.VEVENT);
-            log.info("COUNT {}", events.size());
-            for (VEvent event : events) {
-                String startDate = event.getStartDate().getValue();
-                String endDate = event.getEndDate().getValue();
-                log.info("Reservation : {} ~ {}", startDate, endDate);
-                log.info(event.toString()); // TEST 용도
-                if (checkExceedingAvailableDate(endDate)) break;
-                List<DateRoom> dateRoomList = getDateRoomList(startDate, endDate, roomId);
-                if (dateRoomList != null) {
-                    MakeReservationDto makeReservationDto = new MakeReservationDto(dateRoomList, guest);
-                    long reservationId = reservationService.createReservation(makeReservationDto);
-                    Reservation reservation = reservationRepository.findById(reservationId).orElseThrow(() -> new ReservationException("존재하지 않는 예약입니다."));
-                    reservation.setUniqueId(event.getUid().getValue());
-                    reservationService.setReservationPaid(reservation, payment);
-                }
-            }
-
+            return calendar;
         } catch (FileNotFoundException e) {
             log.error("readIcalendarFile : Input File Not Found", e);
         } catch (ParserException|IOException e) {
             log.error("readIcalendarFile : CalendarBuilder Build Fail", e);
+        }
+        return null;
+    }
+
+    private void writeIcalendarFile() {
+        try {
+            List<Reservation> reservationList = reservationRepository.findAllByReservationState(1);
+            Calendar calendar = getCalendar();
+            UidGenerator uidGenerator = new FixedUidGenerator("yeoyeo");
+            for (Reservation reservation : reservationList) {
+                VEvent event = createVEvent(reservation, uidGenerator);
+                calendar.withComponent(event);
+            }
+            printICalendarData(calendar); // TEST 용도
+            createIcsFile(calendar);
+        } catch (SocketException e) {
+            log.error("UidGenerator Issue : InetAddressHostInfo process Error", e);
+        } catch (IOException e) {
+            log.error("ICS File Creation Exception", e);
+        }
+    }
+
+    private void registerReservation(VEvent event, Guest guest, Payment payment, long roomId) {
+        try {
+            String startDate = event.getStartDate().getValue();
+            String endDate = event.getEndDate().getValue();
+            log.info("Reservation : {} ~ {}", startDate, endDate);
+            log.info(event.toString()); // TEST 용도
+            if (checkExceedingAvailableDate(endDate)) return;
+            List<DateRoom> dateRoomList = getDateRoomList(startDate, endDate, roomId);
+            if (dateRoomList != null) {
+                MakeReservationDto makeReservationDto = new MakeReservationDto(dateRoomList, guest);
+                long reservationId = reservationService.createReservation(makeReservationDto);
+                Reservation reservation = reservationRepository.findById(reservationId).orElseThrow(() -> new ReservationException("존재하지 않는 예약입니다."));
+                reservation.setUniqueId(event.getUid().getValue());
+                reservationService.setReservationPaid(reservation, payment);
+            }
         } catch (ReservationException e) {
             log.error("readIcalendarFile : Create Reservation Exception", e);
         }
     }
 
-    private void writeIcalendarFile() {
-        try {
-            TimeZoneRegistry registry = TimeZoneRegistryFactory.getInstance().createRegistry();
-            TimeZone timeZone = registry.getTimeZone("Asia/Seoul");
-            VTimeZone vTimeZone = timeZone.getVTimeZone();
-
-            Calendar calendar = new Calendar()
-                    .withProdId("-//Hanok stay Yeoyeo Reservation Events Calendar//iCal4j 3.2//KO")
-                    .withDefaults()
-                    .getFluentTarget();
-
-            List<Reservation> reservationList = reservationRepository.findAllByReservationState(1);
-            UidGenerator uidGenerator = new FixedUidGenerator("yeoyeo");
-
-            for (Reservation reservation : reservationList) {
-                String eventName = reservation.getGuest().getName();
-                Date startDT = new Date(reservation.getFirstDate().format(DateTimeFormatter.ofPattern("yyyyMMdd")));
-                Date endDT = new Date(reservation.getLastDateRoom().getDate().plusDays(1).format(DateTimeFormatter.ofPattern("yyyyMMdd")));
-                Uid uid;
-                if (reservation.getUniqueId()==null||reservation.getUniqueId().length()==0) uid = uidGenerator.generateUid();
-                else uid = new Uid(reservation.getUniqueId());
-
-                VEvent event = new VEvent(startDT, endDT, eventName)
-                        .withProperty(vTimeZone.getTimeZoneId())
-                        .withProperty(uid)
-                        .getFluentTarget();
-                calendar.withComponent(event);
-            }
-
-            printICalendarData(calendar); // TEST 용도
-
-            createIcsFile(calendar);
-
-        } catch (SocketException e) {
-            log.error("UidGenerator Issue : InetAddressHostInfo process Error", e);
-        } catch (ParseException e) {
-            log.error("Reservation LocalDate Parse Exception", e);
-        } catch (IOException e) {
-            log.error("ICS File Creation Exception", e);
-        }
+    private byte[] generateByteICalendarFile(Calendar calendar) throws IOException {
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        CalendarOutputter calendarOutputter = new CalendarOutputter();
+        calendarOutputter.output(calendar, outputStream);
+        return outputStream.toByteArray();
     }
 
     private void getIcsFileFromPlatform(String downloadUrl, String downloadPath) {
@@ -194,6 +197,30 @@ public class CalendarService {
 
     private WebClient WebClient(String contentType) {
         return WebClient.builder().defaultHeader(HttpHeaders.CONTENT_TYPE, contentType).build();
+    }
+
+    private Calendar getCalendar() {
+        return new Calendar()
+                .withProdId("-//Hanok stay Yeoyeo Reservation Events Calendar//iCal4j 3.2//KO")
+                .withDefaults()
+                .getFluentTarget();
+    }
+
+    private VEvent createVEvent(Reservation reservation, UidGenerator uidGenerator) {
+        try {
+            String eventName = reservation.getGuest().getName();
+            Date startDT = new Date(reservation.getFirstDate().format(DateTimeFormatter.ofPattern("yyyyMMdd")));
+            Date endDT = new Date(reservation.getLastDateRoom().getDate().plusDays(1).format(DateTimeFormatter.ofPattern("yyyyMMdd")));
+            Uid uid;
+            if (reservation.getUniqueId()==null||reservation.getUniqueId().length()==0) uid = uidGenerator.generateUid();
+            else uid = new Uid(reservation.getUniqueId());
+            return new VEvent(startDT, endDT, eventName)
+                    .withProperty(uid)
+                    .getFluentTarget();
+        } catch (ParseException e) {
+            log.error("Reservation LocalDate Parse Exception", e);
+        }
+        return null;
     }
 
     // TEST 용도

@@ -1,7 +1,5 @@
 package com.yeoyeo.adapter.controller;
 
-import com.yeoyeo.application.calendar.service.CalendarService;
-import com.yeoyeo.application.common.dto.GeneralResponseDto;
 import com.yeoyeo.application.dateroom.dto.*;
 import com.yeoyeo.application.dateroom.service.DateRoomService;
 import io.swagger.annotations.ApiOperation;
@@ -36,24 +34,5 @@ public class DateRoomController {
     public ResponseEntity<DateRoomPriceInfoDto> getTotalPrice(@PathVariable("roomId") long roomId, @PathVariable("checkInDate") String checkInDate, @PathVariable("checkOutDate") String checkOutDate) {
         return ResponseEntity.status(HttpStatus.OK).body(dateRoomService.getTotalPrice(roomId, checkInDate, checkOutDate));
     }
-
-    private final CalendarService calendarService;
-    @GetMapping("/test")
-    public void test() {
-        calendarService.readAirbnbICSFile();
-    }
-    @GetMapping("/test2")
-    public void test2() {
-        calendarService.getAirbnbICSFile();
-    }
-    @GetMapping("/test3")
-    public void test3() {
-        calendarService.writeICSFile();
-    }
-    @GetMapping("/test/airbnb/a")
-    public void testAirbnbA() { calendarService.syncInICSFile_Airbnb_A(); }
-    @GetMapping("/test/airbnb/b")
-    public void testAirbnbB() { calendarService.syncInICSFile_Airbnb_B(); }
-
 
 }
