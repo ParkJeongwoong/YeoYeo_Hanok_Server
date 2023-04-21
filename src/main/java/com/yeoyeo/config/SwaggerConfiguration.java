@@ -15,7 +15,7 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 public class SwaggerConfiguration {
 
     private static final String API_NAME = "예약/결제 API";
-    private static final String API_VERSION = "1.0.0";
+    private static final String API_VERSION = "2.0.0";
     private static final String API_DESCRIPTION = "한옥스테이 여여 - 서버";
 
     @Bean
@@ -37,4 +37,5 @@ public class SwaggerConfiguration {
                 .description(API_DESCRIPTION)
                 .build();
     }
+
 }
