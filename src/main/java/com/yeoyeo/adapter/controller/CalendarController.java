@@ -1,6 +1,7 @@
 package com.yeoyeo.adapter.controller;
 
 import com.yeoyeo.application.calendar.service.CalendarService;
+import com.yeoyeo.application.common.service.CommonMethods;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
@@ -16,11 +17,13 @@ import javax.servlet.http.HttpServletResponse;
 @RequestMapping("calendar")
 public class CalendarController {
 
+    private final CommonMethods commonMethods;
     private final CalendarService calendarService;
 
     @ApiOperation(value = "Send to Platform from YeoYeo", notes = "(예약정보 동기화) 데이터 내보내기")
     @GetMapping("/download/yeoyeo-Ab87sf0AD635$PO3-3!E4pjw")
     public void sendingIcalendarData(HttpServletResponse response) {
+        commonMethods.printIp();
         calendarService.sendICalendarData(response);
     }
 
