@@ -5,7 +5,9 @@ import com.yeoyeo.application.common.service.CommonMethods;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -20,7 +22,6 @@ public class CalendarController {
 
     @ApiOperation(value = "Send to Platform from YeoYeo", notes = "(예약정보 동기화) 데이터 내보내기")
     @GetMapping("/download/yeoyeo-Ab87sf0AD635$PO3-3!E4pjw")
-    @RequestMapping(value = "/download/yeoyeo-Ab87sf0AD635$PO3-3!E4pjw", method = {RequestMethod.GET, RequestMethod.POST})
     public void sendingIcalendarData(HttpServletResponse response) {
         commonMethods.printIp("sendingIcalendarData");
         calendarService.sendICalendarData(response);
