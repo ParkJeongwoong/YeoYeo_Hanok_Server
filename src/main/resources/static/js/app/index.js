@@ -40,7 +40,7 @@ function requestPay() {
 
         // IMP.request_pay(param, callback) 결제창 호출
         IMP.request_pay({ // param
-            confirm_url : "https://yeoyeo.kr/payment/confirm", // 리얼에서만 사용
+            confirm_url : "https://api.yeoyeo.co.kr/payment/confirm", // 리얼에서만 사용
     //        pg: "kcp",
     //        pg: "kakaopay",
             pg: "nice",
