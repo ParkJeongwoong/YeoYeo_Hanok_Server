@@ -97,6 +97,7 @@ public class ReservationService {
     public GeneralResponseDto cancel(long reservationId) {
         try {
             Reservation reservation = reservationRepository.findById(reservationId).orElseThrow(NoSuchElementException::new);
+            checkPhoneNumber(reservation);
             List<DateRoom> dateRoomList = reservation.getDateRoomList();
             reservation.setStateCanceled();
             for (DateRoom dateRoom:dateRoomList) dateRoom.resetState();
@@ -127,6 +128,12 @@ public class ReservationService {
             log.error("Reservation 상태 변경 에러", reservationException);
             throw new ReservationException(reservationException.getMessage());
         }
+    }
+
+    // PhoneNumber가 없는 에어비앤비 예약 필터링
+    private void checkPhoneNumber(Reservation reservation) throws ReservationException {
+        String phoneNumber = reservation.getGuest().getPhoneNumber();
+        if (phoneNumber == null || phoneNumber.length() == 0) throw new ReservationException("휴대폰 번호가 없는 예약입니다. (홈페이지 예약이 아님)");
     }
 
 }
