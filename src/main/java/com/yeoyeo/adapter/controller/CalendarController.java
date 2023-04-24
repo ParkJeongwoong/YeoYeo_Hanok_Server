@@ -24,7 +24,24 @@ public class CalendarController {
     @GetMapping("/download/yeoyeo-Ab87sf0AD635$PO3-3!E4pjw")
     public void sendingIcalendarData(HttpServletResponse response) {
         commonMethods.printIp("sendingIcalendarData");
-        calendarService.sendICalendarData(response);
+        calendarService.writeICSFile();
+        calendarService.sendICalendarData(response,1);
+    }
+
+    @ApiOperation(value = "Send to Platform from YeoYeo-A", notes = "(예약정보 동기화) [여유] 데이터 내보내기")
+    @GetMapping("/sync/yeoyeo-Ab83sf0AD5$27Pk3-3!J4pjw")
+    public void sendIcalendarData_A(HttpServletResponse response) {
+        commonMethods.printIp("sendIcalendarData_A");
+        calendarService.writeICSFile();
+        calendarService.sendICalendarData(response,1);
+    }
+
+    @ApiOperation(value = "Send to Platform from YeoYeo-B", notes = "(예약정보 동기화) [여행] 데이터 내보내기")
+    @GetMapping("/sync/yeoyeo-Bk87wf0$D63q1P!3-2$H0pjw")
+    public void sendIcalendarData_B(HttpServletResponse response) {
+        commonMethods.printIp("sendIcalendarData_B");
+        calendarService.writeICSFile();
+        calendarService.sendICalendarData(response,2);
     }
 
     @ApiOperation(value = "Read", notes = "ICS 파일 읽기")

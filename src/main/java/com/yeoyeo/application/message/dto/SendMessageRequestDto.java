@@ -21,7 +21,7 @@ public class SendMessageRequestDto {
 //    private String scheduleCode; // 스케즐 코드 ("every-pm-16")
 
     public SendMessageRequestDto(String type, String subject, String content, String to) {
-        this.type = "SMS";
+        this.type = type;
         this.contentType = "COMM";
         this.countryCode = "82";
         this.from = "01020339091"; // Todo : 법인 계정 생성 후 수정 필요
@@ -32,7 +32,7 @@ public class SendMessageRequestDto {
     }
 
     public SendMessageRequestDto(String type, String subject, String content, List<String> phoneNumberList) {
-        this.type = "SMS";
+        this.type = type;
         this.contentType = "COMM";
         this.countryCode = "82";
         this.from = "01020339091"; // Todo : 법인 계정 생성 후 수정 필요

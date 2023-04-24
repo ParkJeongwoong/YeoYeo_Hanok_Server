@@ -16,6 +16,8 @@ import net.fortuna.ical4j.model.component.CalendarComponent;
 import net.fortuna.ical4j.model.component.VEvent;
 import net.fortuna.ical4j.model.property.Uid;
 import net.fortuna.ical4j.util.FixedUidGenerator;
+import net.fortuna.ical4j.util.HostInfo;
+import net.fortuna.ical4j.util.SimpleHostInfo;
 import net.fortuna.ical4j.util.UidGenerator;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.buffer.DataBuffer;
@@ -50,8 +52,10 @@ public class CalendarService {
     String AIRBNB_FILE_PATH_A;
     @Value("${ics.airbnb.b.path}")
     String AIRBNB_FILE_PATH_B;
-    @Value("${ics.yeoyeo.path}")
-    String YEOYEO_FILE_PATH;
+    @Value("${ics.yeoyeo.a.path}")
+    String YEOYEO_FILE_PATH_A;
+    @Value("${ics.yeoyeo.b.path}")
+    String YEOYEO_FILE_PATH_B;
 
     private final ReservationService reservationService;
     private final DateRoomRepository dateRoomRepository;
@@ -68,9 +72,16 @@ public class CalendarService {
         syncIcalendarFile(AIRBNB_FILE_PATH_B, getGuestAirbnb(), getPaymentAirbnb(), 2);
     }
     public void writeICSFile() { writeIcalendarFile(); }
-    public void sendICalendarData(HttpServletResponse response) {
+    public void sendICalendarData(HttpServletResponse response, long roomId) {
         try {
-            Calendar calendar = readIcalendarFile(YEOYEO_FILE_PATH); // 외부 다운로드는 원본인 파일만 가능
+            String filePath;
+            if (roomId==1) filePath = YEOYEO_FILE_PATH_A;
+            else if (roomId==2) filePath = YEOYEO_FILE_PATH_B;
+            else {
+                log.error("Reservation Room ID is WRONG");
+                return;
+            }
+            Calendar calendar = readIcalendarFile(filePath); // 외부 다운로드는 원본인 파일만 가능
             byte[] iCalFile = generateByteICalendarFile(calendar);
             response.setContentType(MediaType.TEXT_PLAIN_VALUE);
             response.setHeader("Content-Disposition", "attachment; filename=calendar.ics");
@@ -108,14 +119,22 @@ public class CalendarService {
     private void writeIcalendarFile() {
         try {
             List<Reservation> reservationList = reservationRepository.findAllByReservationState(1);
-            Calendar calendar = getCalendar();
-            UidGenerator uidGenerator = new FixedUidGenerator("yeoyeo");
+            Calendar calendar1 = getCalendar(1);
+            Calendar calendar2 = getCalendar(2);
+            UidGenerator uidGenerator = new FixedUidGenerator(new SimpleHostInfo("yeoyeo"), "9091");
             for (Reservation reservation : reservationList) {
                 VEvent event = createVEvent(reservation, uidGenerator);
-                calendar.withComponent(event);
+                if (reservation.getFirstDateRoom().getRoom().getId()==1) calendar1.withComponent(event);
+                else if (reservation.getFirstDateRoom().getRoom().getId()==2) calendar2.withComponent(event);
+                else {
+                    log.error("Reservation Room ID is WRONG");
+                    break;
+                }
             }
-            printICalendarData(calendar); // TEST 용도
-            createIcsFile(calendar);
+            printICalendarData(calendar1); // TEST 용도
+            printICalendarData(calendar2); // TEST 용도
+            createIcsFile(calendar1, 1);
+            createIcsFile(calendar2, 2);
         } catch (SocketException e) {
             log.error("UidGenerator Issue : InetAddressHostInfo process Error", e);
         } catch (IOException e) {
@@ -166,10 +185,17 @@ public class CalendarService {
         log.info("ICS File Download Complete From : {}", downloadUrl);
     }
 
-    private void createIcsFile(Calendar calendar) throws IOException {
-        FileOutputStream fileOutputStream = new FileOutputStream(YEOYEO_FILE_PATH);
-        CalendarOutputter outputter = new CalendarOutputter();
-        outputter.output(calendar, fileOutputStream);
+    private void createIcsFile(Calendar calendar, long roomId) throws IOException {
+        String filePath;
+        if (roomId==1) filePath = YEOYEO_FILE_PATH_A;
+        else if (roomId==2) filePath = YEOYEO_FILE_PATH_B;
+        else {
+            log.error("Reservation Room ID is WRONG");
+            return;
+        }
+        FileOutputStream fileOutputStream = new FileOutputStream(filePath);
+        CalendarOutputter calendarOutputter = new CalendarOutputter();
+        calendarOutputter.output(calendar, fileOutputStream);
     }
 
     private boolean checkExceedingAvailableDate(String end) {
@@ -199,9 +225,9 @@ public class CalendarService {
         return WebClient.builder().defaultHeader(HttpHeaders.CONTENT_TYPE, contentType).build();
     }
 
-    private Calendar getCalendar() {
+    private Calendar getCalendar(long roomId) {
         return new Calendar()
-                .withProdId("-//Hanok stay Yeoyeo Reservation Events Calendar//iCal4j 3.2//KO")
+                .withProdId("-//Hanok stay Yeoyeo Reservation Events Calendar - Roomd Id "+roomId+" //iCal4j 3.2//KO")
                 .withDefaults()
                 .getFluentTarget();
     }
@@ -234,9 +260,6 @@ public class CalendarService {
     }
 
     // Todo - Airbnb 에 자동 수신
-
-    // Todo - Airbnb 송신 로직
-
-    // Todo - Airbnb 에 자동 송신
+    // Todo - Airbnb 충돌 시 취소 로직
 
 }
