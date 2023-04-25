@@ -165,6 +165,7 @@ public class PaymentService {
             Payment payment = createPayment(paymentData, reservation);
             validatePayment(reservation, paymentData);
             completeReservation(reservation, payment);
+            messageService.sendReservationSms(reservation);
         } else {
             Payment payment = reservation.getPayment();
             validatePaymentData(payment, paymentData);
