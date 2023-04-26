@@ -109,9 +109,8 @@ public class PaymentServiceTest {
         log.info(">>>>>>>>>>>>>>>>>> paymentDateRoomSetting 동시성 테스트 진행");
         service.execute(() -> {
             try {
-                long reservation1_id = reservationService.createReservation(requestDto1);
-                log.info("ID 1 : {}", reservation1_id);
-                Reservation reservation1 = reservationRepository.findById(reservation1_id).orElseThrow(NoSuchElementException::new);
+                Reservation reservation1 = reservationService.createReservation(requestDto1);
+                log.info("ID 1 : {}", reservation1.getId());
                 log.info("RESERVATION 1 : {}", reservation1.getDateRoomList().get(0).getRoomReservationState());
                     Thread.sleep(20);
                 try {
@@ -131,9 +130,8 @@ public class PaymentServiceTest {
         service.execute(() -> {
             try {
                 Thread.sleep(10);
-                long reservation2_id = reservationService.createReservation(requestDto2);
-                log.info("ID 2 : {}", reservation2_id);
-                Reservation reservation2 = reservationRepository.findById(reservation2_id).orElseThrow(NoSuchElementException::new);
+                Reservation reservation2 = reservationService.createReservation(requestDto2);
+                log.info("ID 2 : {}", reservation2.getId());
                 log.info("RESERVATION 2 : {}", reservation2.getDateRoomList().get(0).getRoomReservationState());
                 Thread.sleep(10);
                 try {
@@ -153,9 +151,8 @@ public class PaymentServiceTest {
         service.execute(() -> {
             try {
                 Thread.sleep(20);
-                long reservation3_id = reservationService.createReservation(requestDto3);
-                log.info("ID 3 : {}", reservation3_id);
-                Reservation reservation3 = reservationRepository.findById(reservation3_id).orElseThrow(NoSuchElementException::new);
+                Reservation reservation3 = reservationService.createReservation(requestDto3);
+                log.info("ID 3 : {}", reservation3.getId());
                 log.info("RESERVATION 3 : {}", reservation3.getDateRoomList().get(0).getRoomReservationState());
                 try {
                     reservationService.setReservationPaid(reservation3, payment3);
@@ -174,9 +171,8 @@ public class PaymentServiceTest {
         service.execute(() -> {
             try {
                 Thread.sleep(3000);
-                long reservation4_id = reservationService.createReservation(requestDto4);
-                log.info("ID 4 : {}", reservation4_id);
-                Reservation reservation4 = reservationRepository.findById(reservation4_id).orElseThrow(NoSuchElementException::new);
+                Reservation reservation4 = reservationService.createReservation(requestDto4);
+                log.info("ID 4 : {}", reservation4.getId());
                 log.info("RESERVATION 4 : {}", reservation4.getDateRoomList().get(0).getRoomReservationState());
                 Thread.sleep(1000);
                 try {
