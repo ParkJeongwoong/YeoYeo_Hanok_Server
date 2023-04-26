@@ -121,8 +121,7 @@ public class PaymentService {
 
             // 환불 요청
             String accessToken = getToken();
-            Map<String, Object> refundData = sendRefundRequest(
-                    requestDto.getReason(), refundAmount, cancelableAmount, payment.getImp_uid(), accessToken);
+            Map<String, Object> refundData = sendRefundRequest(requestDto.getReason(), refundAmount, cancelableAmount, payment.getImp_uid(), accessToken);
 
             // 환불 완료
             payment.setCanceled(refundAmount, requestDto.getReason(), (String) refundData.get("receipt_url"));
