@@ -195,6 +195,7 @@ public class PaymentService {
             if (response == null) {
                 throw new RuntimeException("IAMPORT Return 데이터 문제");
             } else if (!response.get("code").equals("0")) {
+                log.info("code : {}", String.valueOf(response.get("code")));
                 log.info(String.valueOf(response));
                 throw new PaymentException((String) response.get("message"));
             } else {
