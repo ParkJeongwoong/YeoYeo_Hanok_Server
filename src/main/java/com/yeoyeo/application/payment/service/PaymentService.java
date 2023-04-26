@@ -151,6 +151,7 @@ public class PaymentService {
             sendRefundRequest("관리자의 환불 요청", refundAmount, (int) refundAmount, payment.getImp_uid(), accessToken);
 
             // 환불 완료
+            payment.setCanceled(refundAmount, "관리자 사유 환불", "None");
             completeRefund(reservation);
             log.info("관리자 요청 환불 완료 (예약번호 : {})", reservation.getId());
             return GeneralResponseDto.builder().success(true).message("환불 요청이 완료되었습니다.").build();
