@@ -81,14 +81,9 @@ public class Payment {
     }
 
     public void setCanceled(long canceled_amount, String cancel_reason, String cancel_receipt_url) {
-        try {
-            this.canceled_amount = (int) canceled_amount;
-            this.cancel_reason = cancel_reason;
-            this.cancel_receipt_url = cancel_receipt_url;
-            this.status = "cancelled";
-            this.reservation.setStateCanceled();
-        } catch (ReservationException e) {
-            log.error("reservationState cancel로 변경 중 에러 발생", e.getMessage());
-        }
+        this.canceled_amount = (int) canceled_amount;
+        this.cancel_reason = cancel_reason;
+        this.cancel_receipt_url = cancel_receipt_url;
+        this.status = "cancelled";
     }
 }
