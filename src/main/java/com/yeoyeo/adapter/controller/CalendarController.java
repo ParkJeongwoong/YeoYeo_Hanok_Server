@@ -62,7 +62,7 @@ public class CalendarController {
     @ApiOperation(value = "Sync-Airbnb-A", notes = "에어비앤비 A호실 예약정보 동기화")
     @GetMapping("/test/airbnb/a")
     public void testAirbnbA() { calendarService.syncInICSFile_Airbnb_A(); }
-    @ApiOperation(value = "Sync-Airbnb-B", notes = "에어비앤비 V호실 예약정보 동기화")
+    @ApiOperation(value = "Sync-Airbnb-B", notes = "에어비앤비 B호실 예약정보 동기화")
     @GetMapping("/test/airbnb/b")
     public void testAirbnbB() { calendarService.syncInICSFile_Airbnb_B(); }
 

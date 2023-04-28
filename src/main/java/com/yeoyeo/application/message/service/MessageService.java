@@ -65,7 +65,7 @@ public class MessageService {
         LocalDate endDate = reservation.getLastDateRoom().getDate().plusDays(1);
         String startDate_string = startDate.getYear()+"년 "+startDate.getMonthValue()+"월"+startDate.getDayOfMonth()+"일";
         String endDate_string = endDate.getYear()+"년 "+endDate.getMonthValue()+"월"+endDate.getDayOfMonth()+"일 ";
-        String room = reservation.getFirstDateRoom().getRoom().getName();
+        String room = reservation.getRoom().getName();
         String to = reservation.getGuest().getNumberOnlyPhoneNumber();
         String subject = "[한옥스테이 여여] 예약 확정 안내 문자입니다.";
         String content = "[한옥스테이 여여 예약 확정 안내]\n\n" +
@@ -84,7 +84,7 @@ public class MessageService {
         LocalDate endDate = reservation.getLastDateRoom().getDate().plusDays(1);
         String startDate_string = startDate.getYear()+"년 "+startDate.getMonthValue()+"월"+startDate.getDayOfMonth()+"일";
         String endDate_string = endDate.getYear()+"년 "+endDate.getMonthValue()+"월"+endDate.getDayOfMonth()+"일 ";
-        String room = reservation.getFirstDateRoom().getRoom().getName();
+        String room = reservation.getRoom().getName();
         String to = reservation.getGuest().getNumberOnlyPhoneNumber();
         String subject = "[한옥스테이 여여] 예약 취소 문자입니다.";
         String content = "[한옥스테이 여여 예약 취소 안내]\n\n" +
@@ -111,7 +111,7 @@ public class MessageService {
         LocalDate endDate = reservation.getLastDateRoom().getDate().plusDays(1);
         String startDate_string = startDate.getYear()+"년 "+startDate.getMonthValue()+"월"+startDate.getDayOfMonth()+"일";
         String endDate_string = endDate.getYear()+"년 "+endDate.getMonthValue()+"월"+endDate.getDayOfMonth()+"일 ";
-        String room = reservation.getFirstDateRoom().getRoom().getName();
+        String room = reservation.getRoom().getName();
         String to = reservation.getGuest().getNumberOnlyPhoneNumber();
         String subject = "[한옥스테이 여여] 죄송합니다.";
         String content = "[한옥스테이 여여 예약 취소 안내]\n\n" +

@@ -28,7 +28,7 @@ public class ReservationDetailInfoDto {
 
     public ReservationDetailInfoDto(Reservation entity) {
         this.startDate = entity.getFirstDateRoom().getDate();
-        this.roomName = entity.getFirstDateRoom().getRoom().getName();
+        this.roomName = entity.getRoom().getName();
         this.endDate = entity.getLastDateRoom().getDate().plusDays(1);
         this.reservationState = entity.getReservationState();
         this.guestName = entity.getGuest().getName();

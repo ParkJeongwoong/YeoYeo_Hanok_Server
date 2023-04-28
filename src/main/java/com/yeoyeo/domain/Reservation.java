@@ -84,7 +84,7 @@ public class Reservation extends BaseTimeEntity {
 
     public void setStateCanceled() throws ReservationException {
         System.out.println(reservationState);
-        if (this.reservationState == 1 || this.reservationState == 0) {
+        if (this.reservationState == 1 || this.reservationState == 0 || this.reservationState == 5) {
             this.reservationState = -1;
         } else {
             throw new ReservationException("완료된 예약이 아닙니다.");
@@ -92,7 +92,7 @@ public class Reservation extends BaseTimeEntity {
     }
 
     public void setStateRefund() throws ReservationException {
-        if (this.reservationState == 1 || this.reservationState == 0) {
+        if (this.reservationState == 1 || this.reservationState == 0 || this.reservationState == 5) {
             this.reservationState = -2;
         } else {
             throw new ReservationException("환불 가능한 예약이 아닙니다.");
@@ -128,6 +128,11 @@ public class Reservation extends BaseTimeEntity {
     public LocalDate getFirstDate() {
         if (getFirstDateRoom()==null) return LocalDate.of(3999,12,31);
         return getFirstDateRoom().getDate();
+    }
+
+    public Room getRoom() {
+        if (getFirstDateRoom()==null) return null;
+        return getFirstDateRoom().getRoom();
     }
 
     public int getTotalPrice() {

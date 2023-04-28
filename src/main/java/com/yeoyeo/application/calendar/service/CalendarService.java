@@ -102,12 +102,12 @@ public class CalendarService {
         Calendar calendar = readIcalendarFile(path);
         List<VEvent> events = calendar.getComponents(Component.VEVENT);
         log.info("COUNT {}", events.size());
-        setReservationStateSync(guest.getName()); // 동기화 대상 예약 상태 변경
+        setReservationStateSync(guest.getName(), roomId); // 동기화 대상 예약 상태 변경
         for (VEvent event : events) {
             String uid = event.getUid().getValue();
             String platform = getPlatformName(uid);
             if (!platform.equals("yeoyeo")) {
-                Reservation reservation = findExistingReservation(uid);
+                Reservation reservation = findExistingReservation(uid, roomId, guest.getName());
                 if (reservation == null) registerReservation(event, guest, payment, roomId);
                 else updateReservation(event, reservation);
             }
@@ -137,8 +137,8 @@ public class CalendarService {
             UidGenerator uidGenerator = new FixedUidGenerator(new SimpleHostInfo("yeoyeo"), "9091");
             for (Reservation reservation : reservationList) {
                 VEvent event = createVEvent(reservation, uidGenerator);
-                if (reservation.getFirstDateRoom().getRoom().getId()==1) calendar1.withComponent(event);
-                else if (reservation.getFirstDateRoom().getRoom().getId()==2) calendar2.withComponent(event);
+                if (reservation.getRoom().getId()==1) calendar1.withComponent(event);
+                else if (reservation.getRoom().getId()==2) calendar2.withComponent(event);
                 else {
                     log.error("Reservation Room ID is WRONG");
                     break;
@@ -155,11 +155,13 @@ public class CalendarService {
         }
     }
 
-    private void setReservationStateSync(String guestClassName) {
+    private void setReservationStateSync(String guestClassName, long roomId) {
         List<Reservation> reservationList = reservationRepository.findAllByReservationState(1);
         for (Reservation reservation : reservationList) {
             try {
-                if (reservation.getGuest().getName().equals(guestClassName)) reservation.setStateSyncStart();
+                if (reservation.getRoom().getId()==roomId && reservation.getGuest().getName().equals(guestClassName)) {
+                    reservation.setStateSyncStart();
+                }
             } catch (ReservationException e) {
                 log.error("동기화를 위해 예약 상태를 변경 중 에러 발생 {}", reservation.getId(),e);
             }
@@ -177,13 +179,16 @@ public class CalendarService {
         }
     }
 
-    private Reservation findExistingReservation(String uid) {
-        return reservationRepository.findByUniqueId(uid);
+    private Reservation findExistingReservation(String uid, long roomId, String guestClassName) {
+        List<Reservation> reservationList = reservationRepository.findByUniqueId(uid); // uid가 겹치는 경우가 발생 (uid는 한 calendar 내에서만 유일성 보장)
+        for (Reservation reservation : reservationList) {
+            if (reservation.getRoom().getId() == roomId && reservation.getGuest().getName().equals(guestClassName)) return reservation;
+        }
+        return null;
     }
 
     private void registerReservation(VEvent event, Guest guest, Payment payment, long roomId) {
-        int cnt = 0;
-        while (cnt < 3) {
+        for (int i=0;i<3;i++) {
             String startDate = event.getStartDate().getValue();
             String endDate = event.getEndDate().getValue();
             log.info("Reservation : {} ~ {}", startDate, endDate);
@@ -195,27 +200,27 @@ public class CalendarService {
                     Reservation reservation = reservationService.createReservation(makeReservationDto);
                     reservation.setUniqueId(event.getUid().getValue());
                     reservationService.setReservationPaid(reservation, payment);
-                    cnt = 3;
+                    break;
                 } catch (ReservationException reservationException) {
                     log.info("[예약 충돌 발생] - 동기화 과정 중 중복된 예약 발생. 홈페이지 예약 취소 처리 시작");
                     collidedReservationCancel(dateRoomList);
-                    cnt++;
                 }
-            }
+            } else break;
+            if (i == 2) messageService.sendAdminMsg("동기화 오류 알림 - 중복된 예약을 취소하던 중 오류 발생");
         }
-        if (cnt == 3) messageService.sendAdminMsg("동기화 오류 알림 - 중복된 예약을 취소하던 중 오류 발생");
     }
 
     private void updateReservation(VEvent event, Reservation reservation) {
+        log.info("Reservation Sync - Update : {} / {}~{}", reservation.getRoom(),reservation.getFirstDate(), reservation.getLastDateRoom().getDate());
         String eventStart = event.getStartDate().getValue();
         String eventEnd = event.getEndDate().getValue();
         try {
-        if (!getLocalDateFromString(eventStart).isEqual(reservation.getFirstDate())
-        || !getLocalDateFromString(eventEnd).isEqual(reservation.getLastDateRoom().getDate().plusDays(1))) {
-            reservationService.cancel(reservation);
-            registerReservation(event, reservation.getGuest(), reservation.getPayment(), reservation.getFirstDateRoom().getRoom().getId());
-        }
-        reservation.setStateSyncEnd(); // 동기화 완료
+            if (!getLocalDateFromString(eventStart).isEqual(reservation.getFirstDate())
+            || !getLocalDateFromString(eventEnd).isEqual(reservation.getLastDateRoom().getDate().plusDays(1))) {
+                reservationService.cancel(reservation);
+                registerReservation(event, reservation.getGuest(), reservation.getPayment(), reservation.getRoom().getId());
+            }
+            reservation.setStateSyncEnd(); // 동기화 완료
         } catch (ReservationException e) {
             messageService.sendAdminMsg("동기화 오류 알림 - 수정된 예약정보 반영을 위해 기존 예약 변경 중 오류 발생");
             log.error("달력 동기화 - 수정된 정보 반영 중 에러", e);
