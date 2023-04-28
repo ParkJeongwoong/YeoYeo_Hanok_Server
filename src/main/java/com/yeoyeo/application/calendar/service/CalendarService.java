@@ -211,7 +211,7 @@ public class CalendarService {
     }
 
     private void updateReservation(VEvent event, Reservation reservation) {
-        log.info("Reservation Sync - Update : {} / {}~{}", reservation.getRoom(),reservation.getFirstDate(), reservation.getLastDateRoom().getDate());
+        log.info("Reservation Sync - Update : {} / {}~{} / {}", reservation.getRoom().getName(),reservation.getFirstDate(), reservation.getLastDateRoom().getDate(), reservation.getUniqueId());
         String eventStart = event.getStartDate().getValue();
         String eventEnd = event.getEndDate().getValue();
         try {
