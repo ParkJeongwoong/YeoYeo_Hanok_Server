@@ -105,6 +105,7 @@ public class CalendarService {
         setReservationStateSync(guest.getName(), roomId); // 동기화 대상 예약 상태 변경
         for (VEvent event : events) {
             String uid = event.getUid().getValue();
+            log.info("CALENDAR EVENT UID : {}", uid);
             String platform = getPlatformName(uid);
             if (!platform.equals("yeoyeo")) {
                 Reservation reservation = findExistingReservation(uid, roomId, guest.getName());
@@ -182,7 +183,7 @@ public class CalendarService {
     private Reservation findExistingReservation(String uid, long roomId, String guestClassName) {
         List<Reservation> reservationList = reservationRepository.findByUniqueId(uid); // uid가 겹치는 경우가 발생 (uid는 한 calendar 내에서만 유일성 보장)
         for (Reservation reservation : reservationList) {
-            if (reservation.getRoom().getId() == roomId && reservation.getGuest().getName().equals(guestClassName)) return reservation;
+            if (reservation.getReservationState() == 1 && reservation.getRoom().getId() == roomId && reservation.getGuest().getName().equals(guestClassName)) return reservation;
         }
         return null;
     }
