@@ -11,10 +11,11 @@ import java.util.List;
 
 @Getter
 @NoArgsConstructor
-public class MakeReservationHomeRequestDto extends MakeReservationRequestDto {
+public class MakeReservationAdminRequestDto extends MakeReservationHomeRequestDto {
 
-    public MakeReservationHomeRequestDto(List<String> dateRoomIdList, String name, String phoneNumber, String email, int guestCount, String request) {
-        super(dateRoomIdList, name, phoneNumber, email, guestCount, request);
+    public MakeReservationAdminRequestDto(List<String> dateRoomIdList, String request) {
+        this.dateRoomIdList = dateRoomIdList;
+        this.request = request;
     }
 
     @Override
@@ -22,11 +23,11 @@ public class MakeReservationHomeRequestDto extends MakeReservationRequestDto {
         if (this.dateRoomIdList.size()==0) throw new ReservationException("예약한 날짜 존재하지 않습니다.");
         List<DateRoom> dateRoomList = dateRoomRepository.findAllById(this.dateRoomIdList);
         GuestHome guest = GuestHome.builder()
-                .name(this.name)
-                .phoneNumber(this.phoneNumber)
-                .email(this.email)
-                .guestCount(this.guestCount)
-                .request(this.request)
+                .name("관리자 생성 예약")
+                .phoneNumber("000-0000-0000")
+                .email("yeoyeo@gmail.com")
+                .guestCount(1)
+                .request("관리자가 생성한 예약입니다.")
                 .build();
         return new MakeReservationHomeDto(dateRoomList, guest);
     }

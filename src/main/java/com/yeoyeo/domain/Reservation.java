@@ -31,7 +31,7 @@ public class Reservation extends BaseTimeEntity {
     private String reservedFrom;
 
     @Column(nullable = false)
-    private long reservationState; // 0 : 미결제, 1 : 숙박 예정, 2 : 숙박 완료 , -1 : 예약 취소, -2 : 환불 완료
+    private long reservationState; // 0 : 미결제, 1 : 숙박 예정, 2 : 숙박 완료 , -1 : 예약 취소, -2 : 환불 완료, 5 : 동기화 중
 
     @Column
     private String uniqueId;
@@ -96,6 +96,22 @@ public class Reservation extends BaseTimeEntity {
             this.reservationState = -2;
         } else {
             throw new ReservationException("환불 가능한 예약이 아닙니다.");
+        }
+    }
+
+    public void setStateSyncStart() throws ReservationException {
+        if (this.reservationState == 1) {
+            this.reservationState = 5;
+        } else {
+            throw new ReservationException("동기화 시작 중 에러 발생");
+        }
+    }
+
+    public void setStateSyncEnd() throws ReservationException {
+        if (this.reservationState == 5) {
+            this.reservationState = 1;
+        } else {
+            throw new ReservationException("동기화 종료 중 에러 발생");
         }
     }
 

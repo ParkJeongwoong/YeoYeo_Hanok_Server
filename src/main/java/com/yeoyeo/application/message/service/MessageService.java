@@ -45,7 +45,7 @@ public class MessageService {
     private final WebClientService webClientService;
 
     // SMS
-    public SendMessageResponseDto sendAuthenticationKeySms(String to) {
+    public SendMessageResponseDto sendAuthenticationKeyMsg(String to) {
         String authKey = getAuthKey();
         String subject = "[한옥스테이 여여] 휴대폰 인증 문자입니다.";
         String content = "[한옥스테이 여여 문자 인증]\n\n" +
@@ -60,7 +60,7 @@ public class MessageService {
     }
 
     // LMS
-    public SendMessageResponseDto sendReservationSms(Reservation reservation) {
+    public SendMessageResponseDto sendReservationMsg(Reservation reservation) {
         LocalDate startDate = reservation.getFirstDateRoom().getDate();
         LocalDate endDate = reservation.getLastDateRoom().getDate().plusDays(1);
         String startDate_string = startDate.getYear()+"년 "+startDate.getMonthValue()+"월"+startDate.getDayOfMonth()+"일";
@@ -72,14 +72,14 @@ public class MessageService {
                 "안녕하세요, 한옥스테이 여여입니다.\n" +
                 "고객님의 "+startDate_string+" ~ "+endDate_string+room+" 예약이 확정되셨습니다.\n" +
                 "(예약번호 :"+reservation.getId()+")\n\n" +
-                "입실은 15시부터 이면 퇴실은 11시입니다.\n\n" +
+                "입실은 15시부터 이며 퇴실은 11시입니다.\n\n" +
                 "한옥스테이 여여에서 여유롭고 행복한 시간 보내시길 바라겠습니다.\n" +
                 "감사합니다.:)";
         return sendMessage("LMS", subject, content, to);
     }
 
     // LMS
-    public SendMessageResponseDto sendCancelSms(Reservation reservation) {
+    public SendMessageResponseDto sendCancelMsg(Reservation reservation) {
         LocalDate startDate = reservation.getFirstDateRoom().getDate();
         LocalDate endDate = reservation.getLastDateRoom().getDate().plusDays(1);
         String startDate_string = startDate.getYear()+"년 "+startDate.getMonthValue()+"월"+startDate.getDayOfMonth()+"일";
@@ -96,13 +96,41 @@ public class MessageService {
         return sendMessage("LMS", subject, content, to);
     }
 
-    // SMS
-    public SendMessageResponseDto sendAdminSms(String message) {
+    // LMS
+    public SendMessageResponseDto sendAdminMsg(String message) {
         String subject = "[한옥스테이 여여] 관리자 알림 문자입니다.";
         String content = "[한옥스테이 여여 관리자 알림 문자]\n\n" +
                 "관리자 알림 문자입니다.\n" +
                 "내용 : " + message;
-        return sendMultipleMessage("SMS", subject, content, ADMIN_LIST);
+        return sendMultipleMessage("LMS", subject, content, ADMIN_LIST);
+    }
+
+    // LMS
+    public void sendCollisionMsg(Reservation reservation) {
+        LocalDate startDate = reservation.getFirstDateRoom().getDate();
+        LocalDate endDate = reservation.getLastDateRoom().getDate().plusDays(1);
+        String startDate_string = startDate.getYear()+"년 "+startDate.getMonthValue()+"월"+startDate.getDayOfMonth()+"일";
+        String endDate_string = endDate.getYear()+"년 "+endDate.getMonthValue()+"월"+endDate.getDayOfMonth()+"일 ";
+        String room = reservation.getFirstDateRoom().getRoom().getName();
+        String to = reservation.getGuest().getNumberOnlyPhoneNumber();
+        String subject = "[한옥스테이 여여] 죄송합니다.";
+        String content = "[한옥스테이 여여 예약 취소 안내]\n\n" +
+                "안녕하세요, 한옥스테이 여여입니다.\n\n" +
+                "먼저 죄송하다는 말씀을 드립니다.\n" +
+                "현재 홈페이지의 사정으로 인해 고객님의 "+startDate_string+" ~ "+endDate_string+room+" 예약이 취소되셨습니다.\n" +
+                "(예약번호 :"+reservation.getId()+")\n\n" +
+                "한옥스테이 여여를 찾아 주신 것에 대한 고마움과 죄송한 마음을 담아 현재 연락처로 소정의 선물을 발송해 드리려고 합니다.\n" +
+                "기대하셨을 여행에 실망을 안겨드려 다시 한 번 죄송합니다." +
+                "결제하신 내역은 즉시 전액 환불될 예정이며 예약 취소에 대한 보상 역시 최대한 빠르게 전달해드리겠습니다.\n\n" +
+                "감사합니다.";
+        sendMessage("LMS", subject, content, to);
+
+        String subject4Admin = "[한옥스테이 여여] 플랫폼 간 예약 중복으로 인한 예약 취소 발생";
+        String content4Admin = "[한옥스테이 여여 관리자 알림 문자]\n\n" +
+                "예약 정보 동기화 중 플랫폼 간 예약 중복이 발견되어 예약 취소가 발생되었습니다.\n\n" +
+                "취소된 예약 번호는 "+reservation.getId()+" 이며 "+reservation.getGuest().getName()+" 고객의 연락처는 "+reservation.getGuest().getPhoneNumber()+" 입니다.\n\n" +
+                "빠른 보상 전달 부탁드립니다.";
+        sendMultipleMessage("LMS", subject4Admin, content4Admin, ADMIN_LIST);
     }
 
     private SendMessageResponseDto sendMessage(String type, String subject, String content, String to) {

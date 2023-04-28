@@ -140,8 +140,8 @@ public class ReservationServiceTest {
         long reservationId1 = 0;
         long reservationId2 =0;
         try {
-            reservationId1 = reservationService.createReservation(requestDto1);
-            reservationId2 = reservationService.createReservation(requestDto2);
+            reservationId1 = reservationService.createReservation(requestDto1).getId();
+            reservationId2 = reservationService.createReservation(requestDto2).getId();
         } catch (ReservationException e) {
             log.error(e.getMessage(), e);
         }

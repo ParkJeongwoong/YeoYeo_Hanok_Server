@@ -69,7 +69,7 @@ public class PaymentService {
                 reservation.setStateRefund();
             } catch (PaymentException | ReservationException e) {
                 log.error("비정상 결제 환불 중 오류 빌생", e);
-                messageService.sendAdminSms("결제 오류 알림 - 비정상적인 결제에 대한 환불 작업 중 오류 발생");
+                messageService.sendAdminMsg("결제 오류 알림 - 비정상적인 결제에 대한 환불 작업 중 오류 발생");
             }
             return GeneralResponseDto.builder().success(false).message(paymentException.getMessage()).build();
         } catch (ReservationException reservationException) {
@@ -126,6 +126,7 @@ public class PaymentService {
             // 환불 완료
             payment.setCanceled(refundAmount, requestDto.getReason(), (String) refundData.get("receipt_url"));
             completeRefund(reservation);
+            messageService.sendCancelMsg(reservation);
             log.info("고객 요청 환불 완료 (예약번호 : {})", reservation.getId());
             return GeneralResponseDto.builder().success(true).message("환불 요청이 완료되었습니다.").build();
         } catch (PaymentException paymentException) {
@@ -152,6 +153,32 @@ public class PaymentService {
             // 환불 완료
             payment.setCanceled(refundAmount, "관리자 사유 환불", "None");
             completeRefund(reservation);
+            messageService.sendCancelMsg(reservation);
+            log.info("관리자 요청 환불 완료 (예약번호 : {})", reservation.getId());
+            return GeneralResponseDto.builder().success(true).message("환불 요청이 완료되었습니다.").build();
+        } catch (PaymentException paymentException) {
+            log.error("환불 과정 중 오류가 발생했습니다.", paymentException);
+            return GeneralResponseDto.builder().success(false).message(paymentException.getMessage()).build();
+        }
+    }
+
+    @Transactional
+    public GeneralResponseDto refundBySystem(Reservation reservation) {
+        log.info("관리자 전액 환불 및 예약 취소 - 예약번호 : {}", reservation.getId());
+        try {
+            // 결제 정보 조회
+            Payment payment = reservation.getPayment();
+            if (payment == null) return GeneralResponseDto.builder().success(false).message("결제되지 않은 예약입니다.").build();
+            long refundAmount = payment.getAmount();
+
+            // 환불 요청
+            String accessToken = getToken();
+            sendRefundRequest("관리자의 환불 요청", refundAmount, (int) refundAmount, payment.getImp_uid(), accessToken);
+
+            // 환불 완료
+            payment.setCanceled(refundAmount, "관리자 사유 환불", "None");
+            completeRefund(reservation);
+            messageService.sendCollisionMsg(reservation);
             log.info("관리자 요청 환불 완료 (예약번호 : {})", reservation.getId());
             return GeneralResponseDto.builder().success(true).message("환불 요청이 완료되었습니다.").build();
         } catch (PaymentException paymentException) {
@@ -165,7 +192,7 @@ public class PaymentService {
             Payment payment = createPayment(paymentData, reservation);
             validatePayment(reservation, paymentData);
             completeReservation(reservation, payment);
-            messageService.sendReservationSms(reservation);
+            messageService.sendReservationMsg(reservation);
         } else {
             Payment payment = reservation.getPayment();
             validatePaymentData(payment, paymentData);
@@ -285,19 +312,19 @@ public class PaymentService {
         log.info("status : {}", status);
         log.info("amount : {}", payedAmount);
         if (status.equals("cancelled")) {
-            messageService.sendAdminSms("관리자 콘솔 환불 알림 - 환불되었습니다.");
+            messageService.sendAdminMsg("관리자 콘솔 환불 알림 - 환불되었습니다.");
             return;
         }
         if (!status.equals("paid")) {
-            messageService.sendAdminSms("결제 오류 알림 - 완료되지 않은 결제 수신. 서버 데이터 확인 필요");
+            messageService.sendAdminMsg("결제 오류 알림 - 완료되지 않은 결제 수신. 서버 데이터 확인 필요");
             throw new ReservationException("결제가 완료되지 않았습니다.");
         }
         if (!(String.valueOf(payment.getImp_uid())).equals(imp_uid)) {
-            messageService.sendAdminSms("결제 오류 알림 - 저장되지 않은 결제번호 수신. 서버 데이터 확인 필요");
+            messageService.sendAdminMsg("결제 오류 알림 - 저장되지 않은 결제번호 수신. 서버 데이터 확인 필요");
             throw new ReservationException("잘못된 결제 정보입니다. 저장된 결제번호 : "+payment.getImp_uid()+" / 수신된 결제번호 : "+imp_uid);
         }
         if (payment.getAmount() != payedAmount) {
-            messageService.sendAdminSms("결제 오류 알림 - 잘못된 결제금액 수신. 서버 데이터 확인 필요");
+            messageService.sendAdminMsg("결제 오류 알림 - 잘못된 결제금액 수신. 서버 데이터 확인 필요");
             throw new ReservationException("잘못된 결제 정보입니다. 저장된 결재금액 : "+payment.getAmount()+" / 지불된 결제금액 : "+payedAmount);
         }
     }

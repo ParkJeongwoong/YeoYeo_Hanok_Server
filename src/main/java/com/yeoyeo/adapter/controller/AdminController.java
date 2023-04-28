@@ -7,16 +7,21 @@ import com.yeoyeo.application.common.dto.GeneralResponseDto;
 import com.yeoyeo.application.dateroom.dto.ChangeDateRoomListPriceRequestDto;
 import com.yeoyeo.application.dateroom.dto.ChangeDateRoomListStatusRequestDto;
 import com.yeoyeo.application.dateroom.service.DateRoomService;
+import com.yeoyeo.application.message.service.MessageService;
 import com.yeoyeo.application.payment.service.PaymentService;
+import com.yeoyeo.application.reservation.dto.MakeReservationAdminRequestDto;
 import com.yeoyeo.application.reservation.dto.ReservationInfoDto;
+import com.yeoyeo.application.reservation.etc.exception.ReservationException;
 import com.yeoyeo.application.reservation.service.ReservationService;
 import com.yeoyeo.application.room.service.RoomService;
+import com.yeoyeo.domain.Reservation;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -33,6 +38,7 @@ public class AdminController {
     private final DateRoomService dateRoomService;
     private final ReservationService reservationService;
     private final PaymentService paymentService;
+    private final MessageService messageService;
 
     // TEST 용도
     @PostMapping("/signup")
@@ -77,6 +83,18 @@ public class AdminController {
     @GetMapping("/reservation/list/{type}")
     public ResponseEntity<List<ReservationInfoDto>> showReservations(@PathVariable("type") int type) {
         return ResponseEntity.status(HttpStatus.OK).body(reservationService.showReservations(type));
+    }
+
+    @ApiOperation(value = "Reservation", notes = "관리자의 해당 날짜 예약 불가능 처리")
+    @Transactional
+    @PostMapping("/reserve")
+    public ResponseEntity<GeneralResponseDto> createReservation(@RequestBody MakeReservationAdminRequestDto requestDto) {
+        try {
+            Reservation reservation = reservationService.createReservation(requestDto);
+            return ResponseEntity.status(HttpStatus.OK).body(GeneralResponseDto.builder().success(true).resultId(reservation.getId()).message("예약 정보 생성 완료").build());
+        } catch (ReservationException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(GeneralResponseDto.builder().success(false).message(e.getMessage()).build());
+        }
     }
 
     @ApiOperation(value = "Reservation Cancel", notes = "관리자의 해당 날짜 예약 취소 처리 (환불 미포함)")

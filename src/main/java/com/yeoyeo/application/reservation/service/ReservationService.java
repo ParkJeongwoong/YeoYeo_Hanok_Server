@@ -3,6 +3,7 @@ package com.yeoyeo.application.reservation.service;
 import com.yeoyeo.application.common.dto.GeneralResponseDto;
 import com.yeoyeo.application.dateroom.etc.exception.RoomReservationException;
 import com.yeoyeo.application.dateroom.repository.DateRoomRepository;
+import com.yeoyeo.application.reservation.dto.MakeReservationAdminRequestDto;
 import com.yeoyeo.application.reservation.dto.MakeReservationDto;
 import com.yeoyeo.application.reservation.dto.ReservationDetailInfoDto;
 import com.yeoyeo.application.reservation.dto.ReservationInfoDto;
@@ -51,7 +52,7 @@ public class ReservationService {
     }
 
     @Transactional
-    public long createReservation(MakeReservationDto reservationDto) throws ReservationException {
+    public Reservation createReservation(MakeReservationDto reservationDto) throws ReservationException {
         List<DateRoom> dateRoomList = reservationDto.getDateRoomList();
         if (dateRoomList.size() == 0) throw new ReservationException("존재하지 않는 방입니다.");
         for (DateRoom dateRoom:dateRoomList) if (dateRoom.getRoomReservationState() != 0) throw new ReservationException("이미 예약이 완료된 방입니다.");
@@ -62,7 +63,16 @@ public class ReservationService {
                 .build();
         reservationRepository.save(reservation);
         log.info("{} 고객님의 예약 정보가 생성되었습니다.", reservationDto.getGuest().getName());
-        return reservation.getId();
+        return reservation;
+    }
+
+    @Transactional
+    public Reservation createReservation(MakeReservationAdminRequestDto reservationDto) throws ReservationException {
+        Reservation reservation = createReservation(reservationDto.getMakeReservationDto(dateRoomRepository));
+        Payment adminPayment = Payment.builder()
+                .amount(reservation.getTotalPrice()).buyer_name("AdminGuest").buyer_tel("000-0000-0000").imp_uid("none").pay_method("airbnb").receipt_url("none").status("paid").build();
+        setReservationPaid(reservation, adminPayment);
+        return reservation;
     }
 
     @Transactional
@@ -102,7 +112,7 @@ public class ReservationService {
             reservation.setStateCanceled();
             for (DateRoom dateRoom:dateRoomList) dateRoom.resetState();
             reservationRepository.save(reservation);
-            messageService.sendCancelSms(reservation);
+            messageService.sendCancelMsg(reservation);
             log.info("{} 고객님의 예약이 취소되었습니다.", reservation.getGuest().getName());
             return GeneralResponseDto.builder()
                     .success(true)

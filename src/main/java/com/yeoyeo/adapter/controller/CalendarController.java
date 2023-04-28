@@ -39,7 +39,7 @@ public class CalendarController {
     @ApiOperation(value = "Send to Platform from YeoYeo-B", notes = "(예약정보 동기화) [여행] 데이터 내보내기")
     @GetMapping("/sync/yeoyeo-Bk87wf0$D63q1P!3-2$H0pjw")
     public void sendIcalendarData_B(HttpServletResponse response) {
-        commonMethods.printIp("sendIcalendarData_B");
+        commonMethods.printIp("sendIcalendarData_B  ");
         calendarService.writeICSFile();
         calendarService.sendICalendarData(response,2);
     }

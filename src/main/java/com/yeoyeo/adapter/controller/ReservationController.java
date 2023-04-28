@@ -8,6 +8,7 @@ import com.yeoyeo.application.reservation.etc.exception.ReservationException;
 import com.yeoyeo.application.reservation.service.ReservationService;
 import com.yeoyeo.application.message.dto.SendMessageResponseDto;
 import com.yeoyeo.application.message.service.MessageService;
+import com.yeoyeo.domain.Reservation;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
@@ -34,8 +35,8 @@ public class ReservationController {
     @PostMapping("/reserve")
     public ResponseEntity<GeneralResponseDto> createReservation(@RequestBody MakeReservationHomeRequestDto requestDto) {
         try {
-            long reservationId = reservationService.createReservation(requestDto.getMakeReservationHomeDto(dateRoomRepository));
-            return ResponseEntity.status(HttpStatus.OK).body(GeneralResponseDto.builder().success(true).resultId(reservationId).message("예약 정보 생성 완료").build());
+            Reservation reservation = reservationService.createReservation(requestDto.getMakeReservationDto(dateRoomRepository));
+            return ResponseEntity.status(HttpStatus.OK).body(GeneralResponseDto.builder().success(true).resultId(reservation.getId()).message("예약 정보 생성 완료").build());
         } catch (ReservationException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(GeneralResponseDto.builder().success(false).message(e.getMessage()).build());
         }
@@ -55,7 +56,7 @@ public class ReservationController {
     @ApiOperation(value = "Send Authentication SMS", notes = "[문자 수신] 본인 인증 문자 수신")
     @GetMapping("/sms/authKey/{phoneNumber}")
     public ResponseEntity<SendMessageResponseDto> sendAuthKey(@PathVariable("phoneNumber") String phoneNumber) {
-        SendMessageResponseDto responseDto = messageService.sendAuthenticationKeySms(phoneNumber);
+        SendMessageResponseDto responseDto = messageService.sendAuthenticationKeyMsg(phoneNumber);
         if (!responseDto.getStatusCode().equals("202")) ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseDto);
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
