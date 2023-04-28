@@ -120,7 +120,6 @@ public class CalendarService {
             FileInputStream fileInputStream =new FileInputStream(path);
             CalendarBuilder builder = new CalendarBuilder();
             Calendar calendar = builder.build(fileInputStream);
-            log.info(calendar.getProperties().toString());
             return calendar;
         } catch (FileNotFoundException e) {
             log.error("readIcalendarFile : Input File Not Found", e);
@@ -188,7 +187,6 @@ public class CalendarService {
             String startDate = event.getStartDate().getValue();
             String endDate = event.getEndDate().getValue();
             log.info("Reservation : {} ~ {}", startDate, endDate);
-            log.info(event.toString()); // TEST 용도
             if (checkExceedingAvailableDate(endDate)) return;
             List<DateRoom> dateRoomList = getDateRoomList(startDate, endDate, roomId);
             if (dateRoomList != null) {
