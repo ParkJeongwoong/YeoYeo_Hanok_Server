@@ -182,10 +182,11 @@ public class CalendarService {
     }
 
     private void registerReservation(VEvent event, Guest guest, Payment payment, long roomId) {
+        log.info("Reservation Sync - Register : {} / {} / {}", guest.getName(), roomId, event.getUid().getValue());
         for (int i=0;i<3;i++) {
             String startDate = event.getStartDate().getValue();
             String endDate = event.getEndDate().getValue();
-            log.info("Reservation : {} ~ {}", startDate, endDate);
+            log.info("Reservation between : {} ~ {}", startDate, endDate);
             if (checkExceedingAvailableDate(endDate)) return;
             List<DateRoom> dateRoomList = getDateRoomList(startDate, endDate, roomId);
             if (dateRoomList != null) {
@@ -211,6 +212,7 @@ public class CalendarService {
         try {
             if (!getLocalDateFromString(eventStart).isEqual(reservation.getFirstDate())
             || !getLocalDateFromString(eventEnd).isEqual(reservation.getLastDateRoom().getDate().plusDays(1))) {
+                log.info("Update 중 날짜 변동사항 발견 - 예약취소 후 재등록");
                 reservationService.cancel(reservation);
                 registerReservation(event, reservation.getGuest(), reservation.getPayment(), reservation.getRoom().getId());
             }
@@ -226,6 +228,7 @@ public class CalendarService {
             List<Reservation> reservationList = dateRoom.getMapDateRoomReservations().stream().map(MapDateRoomReservation::getReservation).collect(Collectors.toList());
             for (Reservation collidedReservation : reservationList) {
                 if (collidedReservation.getReservationState() == 1) {
+                    log.info("{} 날짜의 {} 방 예약 취소 - 예약번호 : {}", dateRoom.getDate(), dateRoom.getRoom().getName(), collidedReservation.getId());
                     GeneralResponseDto response = paymentService.refundBySystem(collidedReservation);
                     if (!response.getSuccess()) return false;
                 }
