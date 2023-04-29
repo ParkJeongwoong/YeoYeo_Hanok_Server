@@ -5,10 +5,7 @@ import com.yeoyeo.application.common.service.CommonMethods;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -38,11 +35,11 @@ public class CalendarController {
     }
 
     @ApiOperation(value = "Sync-Airbnb-A", notes = "에어비앤비 A호실 예약정보 동기화")
-    @PostMapping("/manual/airbnb/a")
+    @PutMapping("/manual/airbnb/a")
     public void syncAirbnbA() { calendarService.syncInICSFile_Airbnb_A(); }
 
     @ApiOperation(value = "Sync-Airbnb-B", notes = "에어비앤비 B호실 예약정보 동기화")
-    @PostMapping("/manual/airbnb/b")
+    @PutMapping("/manual/airbnb/b")
     public void syncAirbnbB() { calendarService.syncInICSFile_Airbnb_B(); }
 
 
