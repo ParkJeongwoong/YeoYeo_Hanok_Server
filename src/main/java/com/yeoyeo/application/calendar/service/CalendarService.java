@@ -255,7 +255,7 @@ public class CalendarService {
                 .bodyToFlux(DataBuffer.class);
 
         Path path = Paths.get(downloadPath);
-        DataBufferUtils.write(dataBufferFlux, path, StandardOpenOption.CREATE).block();
+        DataBufferUtils.write(dataBufferFlux, path, StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING).block();
 
         log.info("ICS File Download Complete From : {}", downloadUrl);
     }
