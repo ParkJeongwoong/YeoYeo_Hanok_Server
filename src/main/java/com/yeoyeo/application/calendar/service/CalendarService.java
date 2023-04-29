@@ -15,7 +15,6 @@ import net.fortuna.ical4j.data.CalendarBuilder;
 import net.fortuna.ical4j.data.CalendarOutputter;
 import net.fortuna.ical4j.data.ParserException;
 import net.fortuna.ical4j.model.*;
-import net.fortuna.ical4j.model.component.CalendarComponent;
 import net.fortuna.ical4j.model.component.VEvent;
 import net.fortuna.ical4j.model.property.Uid;
 import net.fortuna.ical4j.util.FixedUidGenerator;
@@ -67,8 +66,8 @@ public class CalendarService {
     private final DateRoomRepository dateRoomRepository;
     private final ReservationRepository reservationRepository;
 
-    public void syncAirbnbICSFile() { syncIcalendarFile(AIRBNB_FILE_PATH_A, getGuestAirbnb(), getPaymentAirbnb(), 1);}
-    public void getAirbnbICSFile() { getIcsFileFromPlatform(AIRBNB_FILE_URL_A, AIRBNB_FILE_PATH_A); }
+    public void readICSFile_Airbnb_A() { syncIcalendarFile(AIRBNB_FILE_PATH_A, getGuestAirbnb(), getPaymentAirbnb(), 1);}
+    public void getICSFile_Airbnb_A() { getIcsFileFromPlatform(AIRBNB_FILE_URL_A, AIRBNB_FILE_PATH_A); }
     public void syncInICSFile_Airbnb_A() {
         getIcsFileFromPlatform(AIRBNB_FILE_URL_A, AIRBNB_FILE_PATH_A);
         syncIcalendarFile(AIRBNB_FILE_PATH_A, getGuestAirbnb(), getPaymentAirbnb(), 1);
@@ -77,7 +76,7 @@ public class CalendarService {
         getIcsFileFromPlatform(AIRBNB_FILE_URL_B, AIRBNB_FILE_PATH_B);
         syncIcalendarFile(AIRBNB_FILE_PATH_B, getGuestAirbnb(), getPaymentAirbnb(), 2);
     }
-    public void writeICSFile() { writeIcalendarFile(); }
+    public void writeICSFile(long roomId) { writeIcalendarFile(roomId); }
     public void sendICalendarData(HttpServletResponse response, long roomId) {
         try {
             String filePath;
@@ -120,8 +119,7 @@ public class CalendarService {
         try {
             FileInputStream fileInputStream =new FileInputStream(path);
             CalendarBuilder builder = new CalendarBuilder();
-            Calendar calendar = builder.build(fileInputStream);
-            return calendar;
+            return builder.build(fileInputStream);
         } catch (FileNotFoundException e) {
             log.error("readIcalendarFile : Input File Not Found", e);
         } catch (ParserException|IOException e) {
@@ -130,25 +128,20 @@ public class CalendarService {
         return null;
     }
 
-    private void writeIcalendarFile() {
+    private void writeIcalendarFile(long roomId) {
         try {
             List<Reservation> reservationList = reservationRepository.findAllByReservationState(1);
-            Calendar calendar1 = getCalendar(1);
-            Calendar calendar2 = getCalendar(2);
+            Calendar calendar = getCalendar(roomId);
             UidGenerator uidGenerator = new FixedUidGenerator(new SimpleHostInfo("yeoyeo"), "9091");
             for (Reservation reservation : reservationList) {
                 VEvent event = createVEvent(reservation, uidGenerator);
-                if (reservation.getRoom().getId()==1) calendar1.withComponent(event);
-                else if (reservation.getRoom().getId()==2) calendar2.withComponent(event);
+                if (reservation.getRoom().getId()==roomId) calendar.withComponent(event);
                 else {
                     log.error("Reservation Room ID is WRONG");
                     break;
                 }
             }
-            printICalendarData(calendar1); // TEST 용도
-            printICalendarData(calendar2); // TEST 용도
-            createIcsFile(calendar1, 1);
-            createIcsFile(calendar2, 2);
+            createIcsFile(calendar, roomId);
         } catch (SocketException e) {
             log.error("UidGenerator Issue : InetAddressHostInfo process Error", e);
         } catch (IOException e) {
@@ -338,14 +331,14 @@ public class CalendarService {
     }
 
     // TEST 용도
-    private void printICalendarData(Calendar calendar) {
-        log.info(calendar.getProperties().toString());
-        List<CalendarComponent> events = calendar.getComponents(Component.VEVENT);
-        log.info("COUNT {}", events.size());
-        for (CalendarComponent event : events) {
-            log.info(event.toString());
-        }
-    }
+//    private void printICalendarData(Calendar calendar) {
+//        log.info(calendar.getProperties().toString());
+//        List<CalendarComponent> events = calendar.getComponents(Component.VEVENT);
+//        log.info("COUNT {}", events.size());
+//        for (CalendarComponent event : events) {
+//            log.info(event.toString());
+//        }
+//    }
 
     // Todo - Airbnb 에 자동 수신
 
