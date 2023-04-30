@@ -7,7 +7,6 @@ import com.yeoyeo.application.common.dto.GeneralResponseDto;
 import com.yeoyeo.application.dateroom.dto.ChangeDateRoomListPriceRequestDto;
 import com.yeoyeo.application.dateroom.dto.ChangeDateRoomListStatusRequestDto;
 import com.yeoyeo.application.dateroom.service.DateRoomService;
-import com.yeoyeo.application.message.service.MessageService;
 import com.yeoyeo.application.payment.service.PaymentService;
 import com.yeoyeo.application.reservation.dto.MakeReservationAdminRequestDto;
 import com.yeoyeo.application.reservation.dto.ReservationInfoDto;
@@ -38,7 +37,6 @@ public class AdminController {
     private final DateRoomService dateRoomService;
     private final ReservationService reservationService;
     private final PaymentService paymentService;
-    private final MessageService messageService;
 
     // TEST 용도
     @PostMapping("/signup")

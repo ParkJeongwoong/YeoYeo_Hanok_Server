@@ -25,6 +25,7 @@ import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -72,7 +73,8 @@ public class CalendarService {
     public void getICSFile_Airbnb_A() { getIcsFileFromPlatform(AIRBNB_FILE_URL_A, AIRBNB_FILE_PATH_A); }
     public void getICSFile_Airbnb_B() { getIcsFileFromPlatform(AIRBNB_FILE_URL_B, AIRBNB_FILE_PATH_B); }
 
-    public void syncInICSFile(long roomId) {
+    @Async
+    public void syncInICSFile_Reservation(long roomId) {
         if (roomId == 1) syncInICSFile_Airbnb_A();
         else if (roomId == 2) syncInICSFile_Airbnb_B();
         else log.error("Reservation Room ID is WRONG");

@@ -1,7 +1,9 @@
 package com.yeoyeo.adapter.controller;
 
+import com.yeoyeo.application.calendar.service.CalendarService;
 import com.yeoyeo.application.common.dto.GeneralResponseDto;
 import com.yeoyeo.application.dateroom.repository.DateRoomRepository;
+import com.yeoyeo.application.reservation.dto.MakeReservationHomeDto;
 import com.yeoyeo.application.reservation.dto.MakeReservationHomeRequestDto;
 import com.yeoyeo.application.reservation.dto.ReservationDetailInfoDto;
 import com.yeoyeo.application.reservation.etc.exception.ReservationException;
@@ -27,6 +29,7 @@ public class ReservationController {
 
     private final ReservationService reservationService;
     private final MessageService messageService;
+    private final CalendarService calendarService;
 
     private final DateRoomRepository dateRoomRepository;
 
@@ -35,7 +38,9 @@ public class ReservationController {
     @PostMapping("/reserve")
     public ResponseEntity<GeneralResponseDto> createReservation(@RequestBody MakeReservationHomeRequestDto requestDto) {
         try {
-            Reservation reservation = reservationService.createReservation(requestDto.getMakeReservationDto(dateRoomRepository));
+            MakeReservationHomeDto reservationHomeDto = requestDto.getMakeReservationDto(dateRoomRepository);
+            calendarService.syncInICSFile_Reservation(reservationHomeDto.getDateRoomList().get(0).getRoom().getId());
+            Reservation reservation = reservationService.createReservation(reservationHomeDto);
             return ResponseEntity.status(HttpStatus.OK).body(GeneralResponseDto.builder().success(true).resultId(reservation.getId()).message("예약 정보 생성 완료").build());
         } catch (ReservationException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(GeneralResponseDto.builder().success(false).message(e.getMessage()).build());
