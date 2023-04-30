@@ -27,8 +27,8 @@ public class RoomService {
     // 초기 방 생성 완료로 사용 X
     @Transactional
     public void makeRoom() {
-        if (roomRepository.findByName("A호실")==null) roomRepository.save(Room.builder().name("A호실").build());
-        if (roomRepository.findByName("B호실")==null) roomRepository.save(Room.builder().name("B호실").build());
+        if (roomRepository.findByName("여유")==null) roomRepository.save(Room.builder().name("여유").build());
+        if (roomRepository.findByName("여행")==null) roomRepository.save(Room.builder().name("여행").build());
     }
 
     @Transactional

@@ -100,7 +100,7 @@ public class CalendarService {
     private void syncIcalendarFile(String path, Guest guest, Payment payment, long roomId) {
         Calendar calendar = readIcalendarFile(path);
         List<VEvent> events = calendar.getComponents(Component.VEVENT);
-        log.info("COUNT {}", events.size());
+        log.info("EVENT COUNT : {}", events.size());
         setReservationStateSync(guest.getName(), roomId); // 동기화 대상 예약 상태 변경
         for (VEvent event : events) {
             String uid = event.getUid().getValue();
@@ -174,10 +174,14 @@ public class CalendarService {
     }
 
     private Reservation findExistingReservation(String uid, long roomId, String guestClassName) {
-        List<Reservation> reservationList = reservationRepository.findByUniqueId(uid); // uid가 겹치는 경우가 발생 (uid는 한 calendar 내에서만 유일성 보장)
+        List<Reservation> reservationList = reservationRepository.findAllByUniqueId(uid); // uid가 겹치는 경우가 발생 (uid는 한 calendar 내에서만 유일성 보장)
+        log.info("찾은 reservation 개수 : {}", reservationList.size());
+        log.info("{} {} {}", uid, roomId, guestClassName);
         for (Reservation reservation : reservationList) {
-            if (reservation.getReservationState() == 1 && reservation.getRoom().getId() == roomId && reservation.getGuest().getName().equals(guestClassName)) return reservation;
+            if (reservation.getReservationState() == 5 && reservation.getRoom().getId() == roomId && reservation.getGuest().getName().equals(guestClassName)) return reservation;
+            log.info("{} {} {}", reservation.getReservationState(), reservation.getRoom().getId(), reservation.getGuest().getName());
         }
+        log.info("일치하는 reservation 없음");
         return null;
     }
 

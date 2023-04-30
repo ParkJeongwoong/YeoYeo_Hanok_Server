@@ -8,5 +8,5 @@ import java.util.List;
 
 public interface ReservationRepository extends JpaRepository<Reservation, Long> {
     List<Reservation> findAllByReservationState(long reservationState);
-    List<Reservation> findByUniqueId(String uniqueId);
+    List<Reservation> findAllByUniqueId(String uniqueId);
 }
