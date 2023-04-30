@@ -181,7 +181,6 @@ public class CalendarService {
         List<Reservation> reservationList = reservationRepository.findAllByReservationState(5);
         for (Reservation reservation : reservationList) {
             try {
-                log.info("취소 예약 : {} / {} / {} / {} ~ {}", reservation.getId(), reservation.getRoom().getName(), reservation.getGuest().getName(), reservation.getFirstDate(), reservation.getLastDateRoom().getDate());
                 reservationService.cancel(reservation);
             } catch (ReservationException e) {
                 log.error("동기화 되지 않은 예약 취소 중 에러 발생 {}", reservation.getId(),e);
@@ -191,12 +190,8 @@ public class CalendarService {
 
     private Reservation findExistingReservation(String uid, long roomId, String guestClassName) {
         List<Reservation> reservationList = reservationRepository.findAllByUniqueId(uid);
-        log.info("찾은 reservation 개수 : {}", reservationList.size());
-        log.info("{} {} {}", uid, roomId, guestClassName);
         for (Reservation reservation : reservationList) {
             if (reservation.getReservationState() == 5 && reservation.getRoom().getId() == roomId && reservation.getGuest().getName().equals(guestClassName)) return reservation;
-            log.info("{} {} {} {} {}", reservation.getReservationState(), reservation.getRoom().getId(), reservation.getGuest().getName(), reservation.getId(), uid);
-            log.info("{} {} {} {}", reservation.getReservationState() == 5, reservation.getRoom().getId() == roomId, reservation.getGuest().getName().equals(guestClassName));
         }
         log.info("일치하는 reservation 없음");
         return null;
@@ -204,7 +199,7 @@ public class CalendarService {
 
     @Transactional
     private void registerReservation(VEvent event, Guest guest, Payment payment, long roomId) {
-        log.info("Reservation Sync - Register : {} / {} / {}", guest.getName(), roomId, event.getUid().getValue());
+        log.info("Reservation Sync - Register : {} / roomId : {} / uid : {}", guest.getName(), roomId, event.getUid().getValue());
         for (int i=0;i<3;i++) {
             String startDate = event.getStartDate().getValue();
             String endDate = event.getEndDate().getValue();
@@ -229,8 +224,7 @@ public class CalendarService {
 
     @Transactional
     private void updateReservation(VEvent event, Reservation reservation) {
-        log.info("Reservation Sync - Update : {} / {}~{} / {}", reservation.getRoom().getName(),reservation.getFirstDate(), reservation.getLastDateRoom().getDate(), reservation.getUniqueId());
-        log.info("{} {} {} {} {}", reservation.getReservationState(), reservation.getRoom().getId(), reservation.getGuest().getName(), reservation.getId(), reservation.getUniqueId());
+        log.info("Reservation Sync - Update : {} {}~{} / {}", reservation.getRoom().getName(),reservation.getFirstDate(), reservation.getLastDateRoom().getDate(), reservation.getUniqueId());
         String eventStart = event.getStartDate().getValue();
         String eventEnd = event.getEndDate().getValue();
         try {
@@ -241,7 +235,6 @@ public class CalendarService {
                 registerReservation(event, reservation.getGuest(), reservation.getPayment(), reservation.getRoom().getId());
             }
             reservation.setStateSyncEnd(); // 동기화 완료
-            log.info("TEST... END : {}", reservation.getReservationState());
         } catch (ReservationException e) {
             messageService.sendAdminMsg("동기화 오류 알림 - 수정된 예약정보 반영을 위해 기존 예약 변경 중 오류 발생");
             log.error("달력 동기화 - 수정된 정보 반영 중 에러", e);
@@ -359,17 +352,5 @@ public class CalendarService {
     private LocalDate getLocalDateFromString(String date) {
         return LocalDate.parse(date, DateTimeFormatter.ofPattern("yyyyMMdd"));
     }
-
-    // TEST 용도
-//    private void printICalendarData(Calendar calendar) {
-//        log.info(calendar.getProperties().toString());
-//        List<CalendarComponent> events = calendar.getComponents(Component.VEVENT);
-//        log.info("COUNT {}", events.size());
-//        for (CalendarComponent event : events) {
-//            log.info(event.toString());
-//        }
-//    }
-
-    // Todo - Airbnb 에 자동 수신
 
 }
