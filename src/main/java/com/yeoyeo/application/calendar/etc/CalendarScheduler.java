@@ -11,9 +11,9 @@ import org.springframework.stereotype.Component;
 @Component
 public class CalendarScheduler {
 
-    CalendarService calendarService;
+    private final CalendarService calendarService;
 
-        @Scheduled(cron = "33 33 0/3 * * *") // 3시간마다 도는 스케줄러
+    @Scheduled(cron = "33 33 0/3 * * *") // 3시간마다 도는 스케줄러
     public void regularSync_Airbnb() {
         calendarService.syncInICSFile_Airbnb_A();
         calendarService.syncInICSFile_Airbnb_B();
