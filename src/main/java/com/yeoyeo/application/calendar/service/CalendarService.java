@@ -163,9 +163,11 @@ public class CalendarService {
     }
 
     private void cancelReservationStateSync() {
+        log.info("동기화 되지 않은 예약 취소작업");
         List<Reservation> reservationList = reservationRepository.findAllByReservationState(5);
         for (Reservation reservation : reservationList) {
             try {
+                log.info("취소 예약 : {} / {} / {} / {} ~ {}", reservation.getId(), reservation.getRoom().getName(), reservation.getGuest().getName(), reservation.getFirstDate(), reservation.getLastDateRoom().getDate());
                 reservationService.cancel(reservation);
             } catch (ReservationException e) {
                 log.error("동기화 되지 않은 예약 취소 중 에러 발생 {}", reservation.getId(),e);
@@ -279,8 +281,9 @@ public class CalendarService {
 
     private boolean checkExceedingAvailableDate(String end) {
         LocalDate lastDate = getLocalDateFromString(end);
-        LocalDate aYearAfter = LocalDate.now().plusMonths(6);
-        return !lastDate.isBefore(aYearAfter);
+        LocalDate today = LocalDate.now();
+        LocalDate aYearAfter = today.plusMonths(6);
+        return lastDate.isBefore(today) || !lastDate.isBefore(aYearAfter);
     }
 
     private List<DateRoom> getDateRoomList(String start, String end, long roomId) {
