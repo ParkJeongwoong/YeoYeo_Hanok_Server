@@ -32,7 +32,7 @@ public class DateRoomService extends Thread {
     String holidayKey;
 
     public List<DateRoomInfoByDateDto> showAllDateRooms() {
-        List<DateRoom> dateRoomList =  dateRoomRepository.findAllByOrderByDate();
+        List<DateRoom> dateRoomList =  dateRoomRepository.findAllByOrderByDateAscRoom_Id();
         return getDateRoomInfoList(dateRoomList);
     }
 
@@ -46,7 +46,7 @@ public class DateRoomService extends Thread {
 
     private List<DateRoom> getMonthDateRooms(LocalDate firstMonthDate) {
         LocalDate lastMonthDate = firstMonthDate.plusMonths(1).minusDays(1);
-        return dateRoomRepository.findAllByDateBetweenOrderByDate(firstMonthDate, lastMonthDate);
+        return dateRoomRepository.findAllByDateBetweenOrderByDateAscRoom_Id(firstMonthDate, lastMonthDate);
     }
 
     @Transactional

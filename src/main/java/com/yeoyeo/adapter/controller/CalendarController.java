@@ -46,13 +46,21 @@ public class CalendarController {
 
     @ApiOperation(value = "Read", notes = "수신된 에어비앤비 A호실 ICS 파일 읽기")
     @PostMapping("/manual/airbnb/a")
-    public void test() {
+    public void readAirbnbA() {
         calendarService.readICSFile_Airbnb_A();
     }
+    @ApiOperation(value = "Read", notes = "수신된 에어비앤비 A호실 ICS 파일 읽기")
+    @PostMapping("/manual/airbnb/b")
+    public void readAirbnbB() { calendarService.readICSFile_Airbnb_B(); }
     @ApiOperation(value = "Receive", notes = "에어비앤비 A호실 예약정보 수신")
     @GetMapping("/manual/airbnb/a")
-    public void test2() {
+    public void receiveAirbnbA() {
         calendarService.getICSFile_Airbnb_A();
+    }
+    @ApiOperation(value = "Receive", notes = "에어비앤비 A호실 예약정보 수신")
+    @GetMapping("/manual/airbnb/b")
+    public void receiveAirbnbB() {
+        calendarService.getICSFile_Airbnb_B();
     }
 
     @ApiOperation(value = "Write", notes = "ICS 파일 쓰기")
