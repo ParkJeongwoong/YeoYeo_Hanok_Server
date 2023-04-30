@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 @NoArgsConstructor
 @Getter
 @Entity
+@Cacheable // 2차 캐시 활성화
 public class Reservation extends BaseTimeEntity {
 
     @Id

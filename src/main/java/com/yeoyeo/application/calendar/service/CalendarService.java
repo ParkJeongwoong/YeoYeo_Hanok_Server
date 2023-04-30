@@ -26,6 +26,7 @@ import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 
@@ -67,9 +68,15 @@ public class CalendarService {
     private final ReservationRepository reservationRepository;
 
     public void readICSFile_Airbnb_A() { syncIcalendarFile(AIRBNB_FILE_PATH_A, getGuestAirbnb(), getPaymentAirbnb(), 1);}
-    public void readICSFile_Airbnb_B() { syncIcalendarFile(AIRBNB_FILE_PATH_A, getGuestAirbnb(), getPaymentAirbnb(), 2);}
+    public void readICSFile_Airbnb_B() { syncIcalendarFile(AIRBNB_FILE_PATH_B, getGuestAirbnb(), getPaymentAirbnb(), 2);}
     public void getICSFile_Airbnb_A() { getIcsFileFromPlatform(AIRBNB_FILE_URL_A, AIRBNB_FILE_PATH_A); }
     public void getICSFile_Airbnb_B() { getIcsFileFromPlatform(AIRBNB_FILE_URL_B, AIRBNB_FILE_PATH_B); }
+
+    public void syncInICSFile(long roomId) {
+        if (roomId == 1) syncInICSFile_Airbnb_A();
+        else if (roomId == 2) syncInICSFile_Airbnb_B();
+        else log.error("Reservation Room ID is WRONG");
+    }
     public void syncInICSFile_Airbnb_A() {
         getIcsFileFromPlatform(AIRBNB_FILE_URL_A, AIRBNB_FILE_PATH_A);
         syncIcalendarFile(AIRBNB_FILE_PATH_A, getGuestAirbnb(), getPaymentAirbnb(), 1);
@@ -99,6 +106,7 @@ public class CalendarService {
         }
     }
 
+    @Transactional
     private void syncIcalendarFile(String path, Guest guest, Payment payment, long roomId) {
         Calendar calendar = readIcalendarFile(path);
         List<VEvent> events = calendar.getComponents(Component.VEVENT);
@@ -130,6 +138,7 @@ public class CalendarService {
         return null;
     }
 
+    @Transactional
     private void writeIcalendarFile(long roomId) {
         try {
             List<Reservation> reservationList = reservationRepository.findAllByReservationState(1);
@@ -151,6 +160,7 @@ public class CalendarService {
         }
     }
 
+    @Transactional
     private void setReservationStateSync(String guestClassName, long roomId) {
         List<Reservation> reservationList = reservationRepository.findAllByReservationState(1);
         for (Reservation reservation : reservationList) {
@@ -164,8 +174,10 @@ public class CalendarService {
         }
     }
 
+    @Transactional
     private void cancelReservationStateSync() {
         log.info("동기화 되지 않은 예약 취소작업");
+        reservationRepository.flush();
         List<Reservation> reservationList = reservationRepository.findAllByReservationState(5);
         for (Reservation reservation : reservationList) {
             try {
@@ -178,17 +190,19 @@ public class CalendarService {
     }
 
     private Reservation findExistingReservation(String uid, long roomId, String guestClassName) {
-        List<Reservation> reservationList = reservationRepository.findAllByUniqueId(uid); // uid가 겹치는 경우가 발생 (uid는 한 calendar 내에서만 유일성 보장)
+        List<Reservation> reservationList = reservationRepository.findAllByUniqueId(uid);
         log.info("찾은 reservation 개수 : {}", reservationList.size());
         log.info("{} {} {}", uid, roomId, guestClassName);
         for (Reservation reservation : reservationList) {
             if (reservation.getReservationState() == 5 && reservation.getRoom().getId() == roomId && reservation.getGuest().getName().equals(guestClassName)) return reservation;
-            log.info("{} {} {}", reservation.getReservationState(), reservation.getRoom().getId(), reservation.getGuest().getName());
+            log.info("{} {} {} {} {}", reservation.getReservationState(), reservation.getRoom().getId(), reservation.getGuest().getName(), reservation.getId(), uid);
+            log.info("{} {} {} {}", reservation.getReservationState() == 5, reservation.getRoom().getId() == roomId, reservation.getGuest().getName().equals(guestClassName));
         }
         log.info("일치하는 reservation 없음");
         return null;
     }
 
+    @Transactional
     private void registerReservation(VEvent event, Guest guest, Payment payment, long roomId) {
         log.info("Reservation Sync - Register : {} / {} / {}", guest.getName(), roomId, event.getUid().getValue());
         for (int i=0;i<3;i++) {
@@ -213,24 +227,28 @@ public class CalendarService {
         }
     }
 
+    @Transactional
     private void updateReservation(VEvent event, Reservation reservation) {
         log.info("Reservation Sync - Update : {} / {}~{} / {}", reservation.getRoom().getName(),reservation.getFirstDate(), reservation.getLastDateRoom().getDate(), reservation.getUniqueId());
+        log.info("{} {} {} {} {}", reservation.getReservationState(), reservation.getRoom().getId(), reservation.getGuest().getName(), reservation.getId(), reservation.getUniqueId());
         String eventStart = event.getStartDate().getValue();
         String eventEnd = event.getEndDate().getValue();
         try {
             if (!getLocalDateFromString(eventStart).isEqual(reservation.getFirstDate())
             || !getLocalDateFromString(eventEnd).isEqual(reservation.getLastDateRoom().getDate().plusDays(1))) {
-                log.info("Update 중 날짜 변동사항 발견 - 예약취소 후 재등록");
+                log.info("Update 중 날짜 변동사항 발견 - 예약취소 후 재등록 : {} ~ {} -> {} ~ {}", reservation.getFirstDate(), reservation.getLastDateRoom().getDate(), eventStart, eventEnd);
                 reservationService.cancel(reservation);
                 registerReservation(event, reservation.getGuest(), reservation.getPayment(), reservation.getRoom().getId());
             }
             reservation.setStateSyncEnd(); // 동기화 완료
+            log.info("TEST... END : {}", reservation.getReservationState());
         } catch (ReservationException e) {
             messageService.sendAdminMsg("동기화 오류 알림 - 수정된 예약정보 반영을 위해 기존 예약 변경 중 오류 발생");
             log.error("달력 동기화 - 수정된 정보 반영 중 에러", e);
         }
     }
 
+    @Transactional
     private boolean collidedReservationCancel(List<DateRoom> dateRoomList) {
         for (DateRoom dateRoom : dateRoomList) {
             List<Reservation> reservationList = dateRoom.getMapDateRoomReservations().stream().map(MapDateRoomReservation::getReservation).collect(Collectors.toList());

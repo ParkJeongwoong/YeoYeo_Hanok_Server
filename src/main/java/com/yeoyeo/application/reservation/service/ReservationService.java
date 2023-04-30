@@ -1,5 +1,6 @@
 package com.yeoyeo.application.reservation.service;
 
+import com.yeoyeo.application.calendar.service.CalendarService;
 import com.yeoyeo.application.common.dto.GeneralResponseDto;
 import com.yeoyeo.application.dateroom.etc.exception.RoomReservationException;
 import com.yeoyeo.application.dateroom.repository.DateRoomRepository;
@@ -34,6 +35,7 @@ public class ReservationService {
     private final DateRoomRepository dateRoomRepository;
     private final ReservationRepository reservationRepository;
     private final MessageService messageService;
+    private final CalendarService calendarService;
 
     public List<ReservationInfoDto> showReservations(int type) {
         // 현재 가상계좌 결제를 사용하지 않아 미결제 상태 0이 없음
@@ -63,6 +65,7 @@ public class ReservationService {
                 .build();
         reservationRepository.save(reservation);
         log.info("{} 고객님의 예약 정보가 생성되었습니다.", reservationDto.getGuest().getName());
+        calendarService.syncInICSFile(reservationDto.getDateRoomList().get(0).getRoom().getId());
         return reservation;
     }
 
