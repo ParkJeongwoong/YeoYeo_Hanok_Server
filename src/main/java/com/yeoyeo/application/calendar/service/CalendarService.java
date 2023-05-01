@@ -234,8 +234,7 @@ public class CalendarService {
                 log.info("Update 중 날짜 변동사항 발견 - 예약취소 후 재등록 : {} ~ {} -> {} ~ {}", reservation.getFirstDate(), reservation.getLastDateRoom().getDate(), eventStart, eventEnd);
                 reservationService.cancel(reservation);
                 registerReservation(event, reservation.getGuest(), reservation.getPayment(), reservation.getRoom().getId());
-            }
-            reservation.setStateSyncEnd(); // 동기화 완료
+            } else reservation.setStateSyncEnd(); // 동기화 완료
         } catch (ReservationException e) {
             messageService.sendAdminMsg("동기화 오류 알림 - 수정된 예약정보 반영을 위해 기존 예약 변경 중 오류 발생");
             log.error("달력 동기화 - 수정된 정보 반영 중 에러", e);
