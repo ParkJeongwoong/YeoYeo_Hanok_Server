@@ -205,7 +205,7 @@ public class CalendarService {
             String startDate = event.getStartDate().getValue();
             String endDate = event.getEndDate().getValue();
             log.info("Reservation between : {} ~ {}", startDate, endDate);
-            if (checkExceedingAvailableDate(endDate)) return;
+            if (checkExceedingAvailableDate(startDate, endDate)) continue;
             List<DateRoom> dateRoomList = getDateRoomList(startDate, endDate, roomId);
             if (dateRoomList != null) {
                 try {
@@ -292,11 +292,12 @@ public class CalendarService {
         calendarOutputter.output(calendar, fileOutputStream);
     }
 
-    private boolean checkExceedingAvailableDate(String end) {
+    private boolean checkExceedingAvailableDate(String start, String end) {
+        LocalDate startDate = getLocalDateFromString(start);
         LocalDate lastDate = getLocalDateFromString(end);
         LocalDate today = LocalDate.now();
         LocalDate aYearAfter = today.plusMonths(6);
-        return lastDate.isBefore(today) || !lastDate.isBefore(aYearAfter);
+        return !startDate.isAfter(today) || !lastDate.isBefore(aYearAfter);
     }
 
     private List<DateRoom> getDateRoomList(String start, String end, long roomId) {
