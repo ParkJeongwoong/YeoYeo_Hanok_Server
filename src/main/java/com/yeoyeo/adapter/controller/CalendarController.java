@@ -1,5 +1,6 @@
 package com.yeoyeo.adapter.controller;
 
+import com.yeoyeo.application.calendar.etc.CalendarScheduler;
 import com.yeoyeo.application.calendar.service.CalendarService;
 import com.yeoyeo.application.common.service.CommonMethods;
 import io.swagger.annotations.Api;
@@ -68,6 +69,12 @@ public class CalendarController {
     public void manualWrite() {
         calendarService.writeICSFile(1);
         calendarService.writeICSFile(2);
+    }
+
+    private final CalendarScheduler calendarScheduler;
+    @GetMapping("/test")
+    public void test() {
+        calendarScheduler.regularSync_Airbnb();
     }
 
 }

@@ -73,6 +73,7 @@ public class CalendarService {
     public void getICSFile_Airbnb_A() { getIcsFileFromPlatform(AIRBNB_FILE_URL_A, AIRBNB_FILE_PATH_A); }
     public void getICSFile_Airbnb_B() { getIcsFileFromPlatform(AIRBNB_FILE_URL_B, AIRBNB_FILE_PATH_B); }
 
+    @Transactional
     @Async
     public void syncInICSFile_Reservation(long roomId) {
         if (roomId == 1) syncInICSFile_Airbnb_A();
