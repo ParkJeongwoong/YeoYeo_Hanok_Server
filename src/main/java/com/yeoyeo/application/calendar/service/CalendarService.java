@@ -78,7 +78,7 @@ public class CalendarService {
     public void syncInICSFile_Reservation(long roomId) {
         if (roomId == 1) syncInICSFile_Airbnb_A();
         else if (roomId == 2) syncInICSFile_Airbnb_B();
-        else log.error("Reservation Room ID is WRONG");
+        else log.error("syncInICSFile_Reservation - Reservation Room ID is WRONG : given {}", roomId);
     }
     public void syncInICSFile_Airbnb_A() {
         getIcsFileFromPlatform(AIRBNB_FILE_URL_A, AIRBNB_FILE_PATH_A);
@@ -95,7 +95,7 @@ public class CalendarService {
             if (roomId==1) filePath = YEOYEO_FILE_PATH_A;
             else if (roomId==2) filePath = YEOYEO_FILE_PATH_B;
             else {
-                log.error("Reservation Room ID is WRONG");
+                log.error("sendICalendarData - Reservation Room ID is WRONG : given {}", roomId);
                 return;
             }
             Calendar calendar = readIcalendarFile(filePath); // 외부 다운로드는 원본인 파일만 가능
@@ -151,7 +151,7 @@ public class CalendarService {
                 VEvent event = createVEvent(reservation, uidGenerator);
                 if (reservation.getRoom().getId()==roomId) calendar.withComponent(event);
                 else {
-                    log.error("Reservation Room ID is WRONG");
+                    log.error("writeIcalendarFile - Reservation Room ID is WRONG : given {}", roomId);
                     break;
                 }
             }
@@ -287,7 +287,7 @@ public class CalendarService {
         if (roomId==1) filePath = YEOYEO_FILE_PATH_A;
         else if (roomId==2) filePath = YEOYEO_FILE_PATH_B;
         else {
-            log.error("Reservation Room ID is WRONG");
+            log.error("createIcsFile - Reservation Room ID is WRONG : given {}", roomId);
             return;
         }
         FileOutputStream fileOutputStream = new FileOutputStream(filePath);
