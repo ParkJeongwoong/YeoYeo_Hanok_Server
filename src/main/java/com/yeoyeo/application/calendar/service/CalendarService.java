@@ -150,10 +150,6 @@ public class CalendarService {
             for (Reservation reservation : reservationList) {
                 VEvent event = createVEvent(reservation, uidGenerator);
                 if (reservation.getRoom().getId()==roomId) calendar.withComponent(event);
-                else {
-                    log.error("writeIcalendarFile - Reservation Room ID is WRONG : given {}", roomId);
-                    break;
-                }
             }
             createIcsFile(calendar, roomId);
         } catch (SocketException e) {
@@ -182,8 +178,10 @@ public class CalendarService {
         log.info("동기화 되지 않은 예약 취소작업");
         reservationRepository.flush();
         List<Reservation> reservationList = reservationRepository.findAllByReservationState(5);
+        log.info("취소 개수 : {}", reservationList.size());
         for (Reservation reservation : reservationList) {
             try {
+                log.info("취소 예약 : {} / {} ~ {}", reservation.getId(), reservation.getFirstDate(), reservation.getLastDateRoom().getDate());
                 reservationService.cancel(reservation);
             } catch (ReservationException e) {
                 log.error("동기화 되지 않은 예약 취소 중 에러 발생 {}", reservation.getId(),e);
