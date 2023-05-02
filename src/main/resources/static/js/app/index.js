@@ -42,11 +42,11 @@ function requestPay() {
         IMP.request_pay({ // param
             confirm_url : "https://api.yeoyeo.co.kr/payment/confirm", // 리얼에서만 사용
     //        pg: "kcp",
-    //        pg: "kakaopay",
-            pg: "nice",
+            pg: "tosspayments",
+//            pg: "nice",
             pay_method: "card",
             merchant_uid: merchant_uid, // 예약번호
-            name: "여여 결제 테스트",
+            name: "한옥스테이 여여",
             amount: amount, // 결제금액
             buyer_email: "toto9091@naver.com",
             buyer_name: "박정웅",
