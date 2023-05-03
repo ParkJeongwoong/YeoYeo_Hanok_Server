@@ -75,7 +75,17 @@ public class MessageService {
                 "입실은 15시부터 이며 퇴실은 11시입니다.\n\n" +
                 "한옥스테이 여여에서 여유롭고 행복한 시간 보내시길 바라겠습니다.\n" +
                 "감사합니다.:)";
-        return sendMessage("LMS", subject, content, to);
+        SendMessageResponseDto response = sendMessage("LMS", subject, content, to);
+
+        String subject4Admin = "[한옥스테이 여여] 예약 확정 알림";
+        String content4Admin = "[한옥스테이 여여 - 예약 확정 알림]\n\n" +
+                "새로운 예약이 \"확정\" 되었습니다.\n" +
+                "예약번호 : " + reservation.getId() + "\n" +
+                "예약 날짜 : " + startDate_string+" ~ "+endDate_string+room + "\n" +
+                "고객명 : " + reservation.getGuest().getName() + "\n" +
+                "연락처 : " + reservation.getGuest().getPhoneNumber() + "\n\n";
+        sendMultipleMessage("LMS", subject4Admin, content4Admin, ADMIN_LIST);
+        return response;
     }
 
     // LMS
@@ -93,7 +103,16 @@ public class MessageService {
                 "(예약번호 :"+reservation.getId()+")\n" +
                 "결제하신 내역은 환불 규정에 따라 진행될 예정입니다.\n\n" +
                 "감사합니다.";
-        return sendMessage("LMS", subject, content, to);
+        SendMessageResponseDto response = sendMessage("LMS", subject, content, to);
+
+        String subject4Admin = "[한옥스테이 여여] 예약 취소 알림";
+        String content4Admin = "[한옥스테이 여여 - 예약 취소 알림]\n\n" +
+                "홈페이지 예약이 \"취소\" 되었습니다.\n" +
+                "예약번호 : " + reservation.getId() + "\n" +
+                "예약 날짜 : " + startDate_string+" ~ "+endDate_string+room + "\n" +
+                "고객명 : " + reservation.getGuest().getName() + "\n";
+        sendMultipleMessage("LMS", subject4Admin, content4Admin, ADMIN_LIST);
+        return response;
     }
 
     // LMS
