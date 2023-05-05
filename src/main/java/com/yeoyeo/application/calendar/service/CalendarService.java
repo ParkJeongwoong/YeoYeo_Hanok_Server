@@ -191,7 +191,9 @@ public class CalendarService {
 
     private Reservation findExistingReservation(String uid, long roomId, String guestClassName) {
         List<Reservation> reservationList = reservationRepository.findAllByUniqueId(uid);
+        log.info("TESTING - COUNT : {}", reservationList.size());
         for (Reservation reservation : reservationList) {
+            log.info("TESTING - INFO : {} {} {}", reservation.getReservationState(), reservation.getRoom().getId(), reservation.getGuest().getName());
             if (reservation.getReservationState() == 5 && reservation.getRoom().getId() == roomId && reservation.getGuest().getName().equals(guestClassName)) return reservation;
         }
         log.info("일치하는 reservation 없음");

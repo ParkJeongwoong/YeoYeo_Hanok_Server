@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.Mac;
@@ -152,6 +153,7 @@ public class MessageService {
         sendMultipleMessage("LMS", subject4Admin, content4Admin, ADMIN_LIST);
     }
 
+    @Async
     private SendMessageResponseDto sendMessage(String type, String subject, String content, String to) {
         String uri = "/sms/v2/services/"+smsKey+"/messages";
         String url = NCLOUD_SMS_URL+uri;
@@ -161,13 +163,15 @@ public class MessageService {
         return webClientService.sendMessage(type, url, subject, content, getNumberOnly(to), timestamp, accessKey, signature);
     }
 
+    @Async
     private SendMessageResponseDto sendMultipleMessage(String type, String subject, String content, List<String> phoneNumberList) {
         String uri = "/sms/v2/services/"+smsKey+"/messages";
         String url = NCLOUD_SMS_URL+uri;
         String timestamp = getTimestamp();
         String signature = getSignature("POST", uri, timestamp);
 
-        return webClientService.sendMultipleMessage(type, url, subject, content, phoneNumberList.stream().map(this::getNumberOnly).collect(Collectors.toList()), timestamp, accessKey, signature);
+//        return webClientService.sendMultipleMessage(type, url, subject, content, phoneNumberList.stream().map(this::getNumberOnly).collect(Collectors.toList()), timestamp, accessKey, signature);
+        return null;
     }
 
     private String getSignature(String method, String uri, String timestamp) {
