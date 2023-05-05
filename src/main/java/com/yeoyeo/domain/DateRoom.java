@@ -142,12 +142,12 @@ public class DateRoom {
             response = (JSONObject) parser.parse(response.toString().replaceAll("\"","\\\""));
             JSONObject res = (JSONObject) response.get("response");
             JSONObject body = (JSONObject) res.get("body");
-            String totalCount = (String) body.get("totalCount");
+            String totalCount = String.valueOf(body.get("totalCount"));
             if (totalCount.equals("0")) return false;
             JSONObject items = (JSONObject) body.get("items");
             if (totalCount.equals("1")) { // 1개면 그냥 객체로 응답됨
                 JSONObject holiday = (JSONObject) items.get("item");
-                String date = (String) holiday.get("locdate");
+                String date = String.valueOf(holiday.get("locdate"));
                 return (date.equals(year + month + day));
             } else {
                 JSONArray holidays = (JSONArray) items.get("item");
