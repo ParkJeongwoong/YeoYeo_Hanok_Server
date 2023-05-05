@@ -106,9 +106,9 @@ public class DateRoom {
                 this.priceType = 1;
                 break;
         }
-        if (checkHoliday(webClientService, key)) {
-            this.priceType = 1;
-        }
+//        if (checkHoliday(webClientService, key)) {
+//            this.priceType = 1;
+//        }
     }
 
     private void setPrice() {
@@ -142,17 +142,17 @@ public class DateRoom {
             response = (JSONObject) parser.parse(response.toString().replaceAll("\"","\\\""));
             JSONObject res = (JSONObject) response.get("response");
             JSONObject body = (JSONObject) res.get("body");
-            String totalCount = body.get("totalCount").toString();
+            String totalCount = (String) body.get("totalCount");
             if (totalCount.equals("0")) return false;
             JSONObject items = (JSONObject) body.get("items");
             if (totalCount.equals("1")) { // 1개면 그냥 객체로 응답됨
                 JSONObject holiday = (JSONObject) items.get("item");
-                String date = holiday.get("locdate").toString();
+                String date = (String) holiday.get("locdate");
                 return (date.equals(year + month + day));
             } else {
                 JSONArray holidays = (JSONArray) items.get("item");
                 for (Object holiday : holidays) { // 2개 이상이면 배열로 응답됨
-                    String date = ((JSONObject) holiday).get("locdate").toString();
+                    String date = (String) ((JSONObject) holiday).get("locdate");
                     if ((date.equals(year + month + day))) return true;
                 }
             }
