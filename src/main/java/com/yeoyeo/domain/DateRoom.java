@@ -152,7 +152,7 @@ public class DateRoom {
             } else {
                 JSONArray holidays = (JSONArray) items.get("item");
                 for (Object holiday : holidays) { // 2개 이상이면 배열로 응답됨
-                    String date = (String) ((JSONObject) holiday).get("locdate");
+                    String date = String.valueOf(((JSONObject) holiday).get("locdate"));
                     if ((date.equals(year + month + day))) return true;
                 }
             }
