@@ -76,7 +76,6 @@ public class MessageService {
                 "입실은 15시부터 이며 퇴실은 11시입니다.\n\n" +
                 "한옥스테이 여여에서 여유롭고 행복한 시간 보내시길 바라겠습니다.\n" +
                 "감사합니다.:)";
-        SendMessageResponseDto response = sendMessage("LMS", subject, content, to);
 
         String subject4Admin = "[한옥스테이 여여] 예약 확정 알림";
         String content4Admin = "[한옥스테이 여여 - 예약 확정 알림]\n\n" +
@@ -85,8 +84,9 @@ public class MessageService {
                 "예약 날짜 : " + startDate_string+" ~ "+endDate_string+room + "\n" +
                 "고객명 : " + reservation.getGuest().getName() + "\n" +
                 "연락처 : " + reservation.getGuest().getPhoneNumber() + "\n\n";
+
         sendMultipleMessage("LMS", subject4Admin, content4Admin, ADMIN_LIST);
-        return response;
+        return sendMessage("LMS", subject, content, to);
     }
 
     // LMS
@@ -104,7 +104,6 @@ public class MessageService {
                 "(예약번호 :"+reservation.getId()+")\n" +
                 "결제하신 내역은 환불 규정에 따라 진행될 예정입니다.\n\n" +
                 "감사합니다.";
-        SendMessageResponseDto response = sendMessage("LMS", subject, content, to);
 
         String subject4Admin = "[한옥스테이 여여] 예약 취소 알림";
         String content4Admin = "[한옥스테이 여여 - 예약 취소 알림]\n\n" +
@@ -112,8 +111,9 @@ public class MessageService {
                 "예약번호 : " + reservation.getId() + "\n" +
                 "예약 날짜 : " + startDate_string+" ~ "+endDate_string+room + "\n" +
                 "고객명 : " + reservation.getGuest().getName() + "\n";
+
         sendMultipleMessage("LMS", subject4Admin, content4Admin, ADMIN_LIST);
-        return response;
+        return sendMessage("LMS", subject, content, to);
     }
 
     // LMS
@@ -143,13 +143,14 @@ public class MessageService {
                 "기대하셨을 여행에 실망을 안겨드려 다시 한 번 죄송합니다." +
                 "결제하신 내역은 즉시 전액 환불될 예정이며 예약 취소에 대한 보상 역시 최대한 빠르게 전달해드리겠습니다.\n\n" +
                 "감사합니다.";
-        sendMessage("LMS", subject, content, to);
 
         String subject4Admin = "[한옥스테이 여여] 플랫폼 간 예약 중복으로 인한 예약 취소 발생";
         String content4Admin = "[한옥스테이 여여 관리자 알림 문자]\n\n" +
                 "예약 정보 동기화 중 플랫폼 간 예약 중복이 발견되어 예약 취소가 발생되었습니다.\n\n" +
                 "취소된 예약 번호는 "+reservation.getId()+" 이며 "+reservation.getGuest().getName()+" 고객의 연락처는 "+reservation.getGuest().getPhoneNumber()+" 입니다.\n\n" +
                 "빠른 보상 전달 부탁드립니다.";
+
+        sendMessage("LMS", subject, content, to);
         sendMultipleMessage("LMS", subject4Admin, content4Admin, ADMIN_LIST);
     }
 
@@ -170,8 +171,8 @@ public class MessageService {
         String timestamp = getTimestamp();
         String signature = getSignature("POST", uri, timestamp);
 
-//        return webClientService.sendMultipleMessage(type, url, subject, content, phoneNumberList.stream().map(this::getNumberOnly).collect(Collectors.toList()), timestamp, accessKey, signature);
-        return null;
+        return webClientService.sendMultipleMessage(type, url, subject, content, phoneNumberList.stream().map(this::getNumberOnly).collect(Collectors.toList()), timestamp, accessKey, signature);
+//        return null;
     }
 
     private String getSignature(String method, String uri, String timestamp) {
