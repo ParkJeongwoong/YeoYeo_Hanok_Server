@@ -66,7 +66,7 @@ public class MessageService {
         LocalDate endDate = reservation.getLastDateRoom().getDate().plusDays(1);
         String startDate_string = startDate.getYear()+"년 "+startDate.getMonthValue()+"월"+startDate.getDayOfMonth()+"일";
         String endDate_string = endDate.getYear()+"년 "+endDate.getMonthValue()+"월"+endDate.getDayOfMonth()+"일 ";
-        String room = reservation.getRoom().getName();
+        String room = "["+reservation.getRoom().getName()+"]";
         String to = reservation.getGuest().getNumberOnlyPhoneNumber();
         String subject = "[한옥스테이 여여] 예약 확정 안내 문자입니다.";
         String content = "[한옥스테이 여여 예약 확정 안내]\n\n" +
@@ -95,7 +95,7 @@ public class MessageService {
         LocalDate endDate = reservation.getLastDateRoom().getDate().plusDays(1);
         String startDate_string = startDate.getYear()+"년 "+startDate.getMonthValue()+"월"+startDate.getDayOfMonth()+"일";
         String endDate_string = endDate.getYear()+"년 "+endDate.getMonthValue()+"월"+endDate.getDayOfMonth()+"일 ";
-        String room = reservation.getRoom().getName();
+        String room = "["+reservation.getRoom().getName()+"]";
         String to = reservation.getGuest().getNumberOnlyPhoneNumber();
         String subject = "[한옥스테이 여여] 예약 취소 문자입니다.";
         String content = "[한옥스테이 여여 예약 취소 안내]\n\n" +
@@ -131,7 +131,7 @@ public class MessageService {
         LocalDate endDate = reservation.getLastDateRoom().getDate().plusDays(1);
         String startDate_string = startDate.getYear()+"년 "+startDate.getMonthValue()+"월"+startDate.getDayOfMonth()+"일";
         String endDate_string = endDate.getYear()+"년 "+endDate.getMonthValue()+"월"+endDate.getDayOfMonth()+"일 ";
-        String room = reservation.getRoom().getName();
+        String room = "["+reservation.getRoom().getName()+"]";
         String to = reservation.getGuest().getNumberOnlyPhoneNumber();
         String subject = "[한옥스테이 여여] 죄송합니다.";
         String content = "[한옥스테이 여여 예약 취소 안내]\n\n" +
@@ -147,7 +147,7 @@ public class MessageService {
         String subject4Admin = "[한옥스테이 여여] 플랫폼 간 예약 중복으로 인한 예약 취소 발생";
         String content4Admin = "[한옥스테이 여여 관리자 알림 문자]\n\n" +
                 "예약 정보 동기화 중 플랫폼 간 예약 중복이 발견되어 예약 취소가 발생되었습니다.\n\n" +
-                "취소된 예약 번호는 "+reservation.getId()+" 이며 "+reservation.getGuest().getName()+" 고객의 연락처는 "+reservation.getGuest().getPhoneNumber()+" 입니다.\n\n" +
+                "취소된 예약은 "+startDate_string+" ~ "+endDate_string+room+"예약(예약번호 :"+reservation.getId()+")이며 "+reservation.getGuest().getName()+" 고객의 연락처는 "+reservation.getGuest().getPhoneNumber()+" 입니다.\n\n" +
                 "빠른 보상 전달 부탁드립니다.";
 
         sendMessage("LMS", subject, content, to);

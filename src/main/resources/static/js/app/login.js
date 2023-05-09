@@ -15,7 +15,7 @@ function login() {
             userPassword
         })
     }).done(function (data) {
-//        window.location.replace(SERVER_URL+"/index.html")
+        window.location.replace(SERVER_URL+"/swagger-ui/index.html#")
     }).fail(function(error) {
         console.log("실패")
         console.log(error)

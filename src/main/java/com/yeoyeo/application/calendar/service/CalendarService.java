@@ -248,10 +248,22 @@ public class CalendarService {
         for (DateRoom dateRoom : dateRoomList) {
             List<Reservation> reservationList = dateRoom.getMapDateRoomReservations().stream().map(MapDateRoomReservation::getReservation).collect(Collectors.toList());
             for (Reservation collidedReservation : reservationList) {
-                if (collidedReservation.getReservationState() == 1) {
-                    log.info("{} 날짜의 {} 방 예약 취소 - 예약번호 : {}", dateRoom.getDate(), dateRoom.getRoom().getName(), collidedReservation.getId());
-                    GeneralResponseDto response = paymentService.refundBySystem(collidedReservation);
-                    if (!response.getSuccess()) return false;
+                if (collidedReservation.getReservationState() == 1 || collidedReservation.getReservationState() == 5) {
+                    String uid = collidedReservation.getUniqueId();
+                    log.info("{} 날짜의 {} 방 예약 취소 - 예약번호 : {} / {}", dateRoom.getDate(), dateRoom.getRoom().getName(), collidedReservation.getId(), uid);
+                    if (uid == null || getPlatformName(uid).equals("yeoyeo")) {
+                        log.info("홈페이지 예약 취소");
+                        GeneralResponseDto response = paymentService.refundBySystem(collidedReservation);
+                        if (!response.getSuccess()) return false;
+                    } else {
+                        log.info("플랫폼 예약 취소");
+                        try {
+                            reservationService.cancel(collidedReservation);
+                        } catch (ReservationException e) {
+                            log.error("플랫폼 예약 취소 작업 중 실패", e);
+                            messageService.sendAdminMsg("동기화 오류 알림 - UID가 다른 플랫폼 예약 취소 작업 중 오류 발생");
+                        }
+                    }
                 }
             }
         }
