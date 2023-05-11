@@ -67,6 +67,14 @@ public class WebClientService {
                 .block();
     }
 
+    public JSONObject get(String contentType, String url, MediaType acceptType) {
+        return WebClient(contentType, url).get()
+                .accept(acceptType)
+                .retrieve()
+                .bodyToMono(JSONObject.class)
+                .block();
+    }
+
     public SendMessageResponseDto sendMessage(String type, String url, String subject, String content, String to, String timestamp, String accessKey, String signature) {
         SendMessageRequestDto requestDto = new SendMessageRequestDto(type, subject, content, to);
         ObjectMapper mapper = new ObjectMapper();

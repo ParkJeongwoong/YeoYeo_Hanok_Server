@@ -11,6 +11,7 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import org.springframework.http.MediaType;
 
 import javax.persistence.*;
 import java.time.DayOfWeek;
@@ -143,7 +144,7 @@ public class DateRoom {
         String url = "http://apis.data.go.kr/B090041/openapi/service/SpcdeInfoService/getRestDeInfo?solYear="+year+"&solMonth="+month+"&_type=json&ServiceKey="+key;
         JSONParser parser = new JSONParser();
 
-        JSONObject response = webClientService.get("application/json;charset=UTF-8", url);
+        JSONObject response = webClientService.get("application/json;charset=UTF-8", url, MediaType.TEXT_XML);
         if (response == null) { throw new RuntimeException("Return 데이터 문제"); }
         try {
             response = (JSONObject) parser.parse(response.toString().replaceAll("\"","\\\""));
