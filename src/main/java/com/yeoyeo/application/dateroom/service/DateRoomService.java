@@ -54,13 +54,23 @@ public class DateRoomService extends Thread {
         LocalDate date = LocalDate.now();
         log.info("TODAY : {}", date);
         for (int i=0;i<180;i++) {
-            if (!dateRoomRepository.findById(date.toString().replaceAll("[^0-9]", "") + "1").isPresent()) {
+            String preDateRoomId = date.toString().replaceAll("[^0-9]", "");
+            DateRoom dateRoom1 = dateRoomRepository.findById(preDateRoomId+"1").orElse(null);
+            if (dateRoom1 == null) {
                 try {
                     makeDateRoom(2, date);
                     makeDateRoom(1, date);
                     log.info("발 생성 날짜 완료 날짜 : {}", date);
                 } catch (Exception e) {
-                    log.error("초기 6개월치 방 날짜 생성 중 에러 발생", e);
+                    log.error("초기 6개월치 방 날짜 생성 중 에러 발생 - {}", preDateRoomId, e);
+                }
+            } else {
+                DateRoom dateRoom2 = dateRoomRepository.findById(preDateRoomId+"2").orElse(null);
+                if (dateRoom2 != null) {
+                    dateRoom1.resetDefaultPriceType(webClientService,holidayKey);
+                    dateRoom2.resetDefaultPriceType(webClientService,holidayKey);
+                } else {
+                    log.error("초기 6개월치 방 날짜 생성 중 에러 발생 - {}", preDateRoomId);
                 }
             }
             date = date.plusDays(1);
@@ -127,6 +137,14 @@ public class DateRoomService extends Thread {
     public void setDateRoomUnReservableByDay(LocalDate date) {
         List<DateRoom> dateRoomList = dateRoomRepository.findAllByDate(date);
         dateRoomList.forEach(DateRoom::setUnReservable);
+        dateRoomRepository.saveAll(dateRoomList);
+    }
+
+    @Transactional
+    public void resetDateRoomPriceType_month(LocalDate startDate) {
+        LocalDate endDate = startDate.plusMonths(1);
+        List<DateRoom> dateRoomList = dateRoomRepository.findAllByDateBetween(startDate, endDate);
+        dateRoomList.forEach(dateRoom->dateRoom.resetDefaultPriceType(webClientService, holidayKey));
         dateRoomRepository.saveAll(dateRoomList);
     }
 

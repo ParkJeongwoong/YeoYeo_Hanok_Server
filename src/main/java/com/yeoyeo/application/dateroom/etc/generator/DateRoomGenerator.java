@@ -25,9 +25,9 @@ public class DateRoomGenerator {
         dailyRoomUnReservableJob();
     }
 
-    @Scheduled(cron = "10 0 0 * * *")
+    @Scheduled(cron = "10 0 0 * * *") // 매일 0시 0분 10초 동작
     private void dailyRoomCreation() {
-        log.info("Daily Room Creation");
+        log.info("[SCHEDULE - Daily Room Creation]");
         LocalDate date = LocalDate.now().plusDays(90);
         try {
             dateRoomService.makeDateRoom(2, date);
@@ -38,10 +38,16 @@ public class DateRoomGenerator {
         log.info("방 날짜 생성 : {}", date);
     }
 
-    @Scheduled(cron = "1 0 0 * * *")
+    @Scheduled(cron = "1 0 0 * * *") // 매일 0시 0분 1초 동작
     private void dailyRoomUnReservableJob() {
-        log.info("Daily Room UnReservable Job");
+        log.info("[SCHEDULE - Daily Room UnReservable Job]");
         dateRoomService.setDateRoomUnReservableByDay(LocalDate.now());
+    }
+
+    @Scheduled(cron = "0 0 3 * * 1")
+    private void weeklyDefaultPriceTypeReset() { // 매주 월요일 새벽 3시에 동작
+        log.info("[SCHEDULE - Weekly Default Price-type Reset Job]");
+        dateRoomService.resetDateRoomPriceType_month(LocalDate.now());
     }
 
 }

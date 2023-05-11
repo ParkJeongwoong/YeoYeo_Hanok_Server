@@ -15,5 +15,6 @@ public interface DateRoomRepository extends JpaRepository<DateRoom, String> {
     List<DateRoom> findAllByOrderByDateAscRoom_Id();
     List<DateRoom> findAllByDateBetweenOrderByDateAscRoom_Id(LocalDate startDate, LocalDate endDate);
     List<DateRoom> findAllByDateBetweenAndRoom_Id(LocalDate startDate, LocalDate endDate, long roomId);
+    List<DateRoom> findAllByDateBetween(LocalDate startDate, LocalDate endDate);
     List<DateRoom> findAllByDate(LocalDate date);
 }

@@ -95,6 +95,13 @@ public class DateRoom {
         this.priceType = 0;
     }
 
+    public void resetDefaultPriceType(WebClientService webClientService, String key) {
+        if (this.priceType != 0) {
+            setDefaultPriceType(webClientService, key);
+            setPrice();
+        }
+    }
+
     private void setDefaultPriceType(WebClientService webClientService, String key) {
         DayOfWeek dayOfWeek = this.date.getDayOfWeek();
         switch (dayOfWeek) {
@@ -107,7 +114,7 @@ public class DateRoom {
                 break;
         }
         if (checkHoliday(webClientService, key)) {
-            this.priceType = 1;
+            this.priceType = 2;
         }
     }
 

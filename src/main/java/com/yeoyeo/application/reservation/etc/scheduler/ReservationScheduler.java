@@ -31,6 +31,7 @@ public class ReservationScheduler {
     @Transactional
     @Scheduled(cron = "0 1 0 * * *")
     protected void dailyReservationCompletion() {
+        log.info("[SCHEDULE - Daily Past Reservation Completion]");
         LocalDate today = LocalDate.now();
         log.info("{} 예약 완료 처리 시작", today);
         List<Reservation> reservationList = reservationRepository.findAllByReservationState(1).stream().sorted(Comparator.comparing(Reservation::getFirstDate)).collect(Collectors.toList());
@@ -50,6 +51,7 @@ public class ReservationScheduler {
     @Transactional
     @Scheduled(cron = "0 1 3 * * *")
     public void dailyReservationClearing() {
+        log.info("[SCHEDULE - Daily Unpaid Reservation Clearing]");
         LocalDateTime before24hour = LocalDateTime.now().minusDays(1);
         log.info("{} 시점 기준 미결제 예약 삭제 처리 시작(24시간 전)", before24hour);
         List<Reservation> reservationList = reservationRepository.findAllByReservationState(0).stream().sorted(Comparator.comparing(Reservation::getFirstDate)).collect(Collectors.toList());

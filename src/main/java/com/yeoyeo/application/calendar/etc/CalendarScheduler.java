@@ -17,6 +17,7 @@ public class CalendarScheduler {
     @Transactional
     @Scheduled(cron = "33 33 0/3 * * *") // 3시간마다 도는 스케줄러
     public void regularSync_Airbnb() {
+        log.info("[SCHEDULE - Regular Calendar Synchronization : Airbnb ]");
         calendarService.syncInICSFile_Airbnb_A();
         calendarService.syncInICSFile_Airbnb_B();
     }
