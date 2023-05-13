@@ -164,6 +164,7 @@ public class DateRoomService extends Thread {
     @Transactional
     public GeneralResponseDto changeDateRoomListPrice(ChangeDateRoomListPriceRequestDto requestDto) {
         List<String> dateRoomIdList = requestDto.getDateRoomIdList();
+        log.info("CHANGING DATEROOM {}", dateRoomIdList.toString());
         int price = requestDto.getPrice();
         int priceType = requestDto.getPriceType();
         List<DateRoom> dateRoomList = dateRoomRepository.findAllById(dateRoomIdList);

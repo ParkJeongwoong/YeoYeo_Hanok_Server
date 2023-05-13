@@ -56,7 +56,7 @@ public class AdminController {
     // DATEROOM 관련
     @ApiOperation(value = "Change (Multiple) Date Rooms Price", notes = "배열 형태의 dateRoomId를 모아 dateroom 가격 일괄 변경 (priceType - 0 : 직접 설정, 1 : 주중, 2 : 주말, 3 : 성수기 주중, 4 : 성수기 주말)")
     @PutMapping("/dateroom/list/price")
-    public ResponseEntity<GeneralResponseDto> changeDateRoomListPrice(@PathVariable long roomId, @RequestBody ChangeDateRoomListPriceRequestDto requestDto) {
+    public ResponseEntity<GeneralResponseDto> changeDateRoomListPrice(@RequestBody ChangeDateRoomListPriceRequestDto requestDto) {
         GeneralResponseDto responseDto = dateRoomService.changeDateRoomListPrice(requestDto);
         if (!responseDto.getSuccess()) return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseDto);
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
@@ -64,7 +64,7 @@ public class AdminController {
 
     @ApiOperation(value = "Change (Multiple) Date Rooms Status", notes = "배열 형태의 dateRoomId를 모아 dateroom 예약 상태 일괄 변경 (0 : 예약 가능, 1 : 예약 완료) *예약되지 않은 방만 변경 가능")
     @PutMapping("/dateroom/list/status")
-    public ResponseEntity<GeneralResponseDto> changeDateRoomListStatus(@PathVariable long roomId, @RequestBody ChangeDateRoomListStatusRequestDto requestDto) {
+    public ResponseEntity<GeneralResponseDto> changeDateRoomListStatus(@RequestBody ChangeDateRoomListStatusRequestDto requestDto) {
         GeneralResponseDto responseDto = dateRoomService.changeDateRoomListStatus(requestDto);
         if (!responseDto.getSuccess()) return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseDto);
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
