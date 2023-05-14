@@ -3,6 +3,8 @@ package com.yeoyeo.domain;
 import com.yeoyeo.application.reservation.dto.MakeReservationDto;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import net.fortuna.ical4j.model.property.Description;
+import net.fortuna.ical4j.model.property.Summary;
 
 import javax.persistence.*;
 import java.util.List;
@@ -49,7 +51,7 @@ public class Guest {
         return new MakeReservationDto(dateRoomList, this, 1);
     }
 
-    public MakeReservationDto createMakeReservationDto(List<DateRoom> dateRoomList, String description, String summary) {
+    public MakeReservationDto createMakeReservationDto(List<DateRoom> dateRoomList, Description description, Summary summary) {
         return new MakeReservationDto(dateRoomList, this, 1);
     }
 }
