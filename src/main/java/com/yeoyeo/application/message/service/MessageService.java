@@ -50,7 +50,7 @@ public class MessageService {
         String authKey = getAuthKey();
         String subject = "[한옥스테이 여여] 휴대폰 인증 문자입니다.";
         String content = "[한옥스테이 여여 문자 인증]\n\n" +
-                "인증번호 : "+authKey+"\n" +
+                String.format("인증번호 : %s\n", authKey) +
                 "인증번호를 입력해 주세요.";
         registerAuthKey(to, authKey);
         return sendMessage("SMS", subject, content, to);
@@ -64,9 +64,9 @@ public class MessageService {
     public SendMessageResponseDto sendReservationMsg(Reservation reservation) {
         LocalDate startDate = reservation.getFirstDateRoom().getDate();
         LocalDate endDate = reservation.getLastDateRoom().getDate().plusDays(1);
-        String startDate_string = startDate.getYear()+"년 "+startDate.getMonthValue()+"월"+startDate.getDayOfMonth()+"일";
-        String endDate_string = endDate.getYear()+"년 "+endDate.getMonthValue()+"월"+endDate.getDayOfMonth()+"일 ";
-        String room = "["+reservation.getRoom().getName()+"]";
+        String startDate_string = String.format("%d년 %d월 %d일", startDate.getYear(), startDate.getMonthValue(), startDate.getDayOfMonth());
+        String endDate_string = String.format("%d년 %d월 %d일", endDate.getYear(), endDate.getMonthValue(), endDate.getDayOfMonth());
+        String room = String.format("[%s]", reservation.getRoom().getName());
         String to = reservation.getGuest().getNumberOnlyPhoneNumber();
         String subject = "[한옥스테이 여여] 예약 확정 안내 문자입니다.";
         String content = "[한옥스테이 여여 예약 확정 안내]\n\n" +
@@ -152,6 +152,46 @@ public class MessageService {
 
         sendMessage("LMS", subject, content, to);
         sendMultipleMessage("LMS", subject4Admin, content4Admin, ADMIN_LIST);
+    }
+
+    // LMS
+//    public SendMessageResponseDto sendCheckInMsg(Reservation reservation) {
+    public SendMessageResponseDto sendCheckInMsg(String reservation) {
+        String subject = "[한옥스테이 여여] 체크인 안내문자";
+        String content = "안녕하세요 :)\n" +
+                "한옥스테이 여여 입니다.\n" +
+                "여여를 방문하시기 전 보내드리는 안내 메시지입니다\uD83D\uDE42\n" +
+                "\n" +
+                "\n" +
+                "\uD83C\uDFE0\uD83C\uDFE0\uD83C\uDFE0\n" +
+                "입퇴실은 셀프 체크인/아웃이며\n" +
+                "입실은 오후 3시,\n" +
+                "퇴실은 오전 11시 입니다.\n" +
+                "(청소를 위해 체크아웃 시 메시지 한 통 부탁드립니다!)\n" +
+                "\n" +
+                "\n" +
+                "\uD83D\uDD11\uD83D\uDD11\uD83D\uDD11\n" +
+                "현관문 비밀번호는 [ 전화번호 뒤 4자리 + * ] 입니다.\n" +
+                "\n" +
+                "\n" +
+                "\uD83D\uDE97\uD83D\uDE97\uD83D\uDE97\n" +
+                "한옥스테이 여여는 [경주시 갯마을길 53]에 위치하고 있으며 주차장이 있으니 차량을 이용하여 방문하시는 것을 추천 드립니다.\n" +
+                "\n" +
+                "\n" +
+                "\uD83C\uDF88\uD83C\uDF88\uD83C\uDF88\n" +
+                "물 2병, 소금빵, 캡슐커피, 와인잔, 와인오프너, 어메니티 (칫솔, 치약, 비누), 샴푸, 컨디셔너, 바디워시, 샤워타월, 수건, 드라이기, 충전기 및 여여에서 생활하는 동안 입으실 수 있는 생활 한복\n" +
+                "이 준비되어 있으니 여행 준비에 참고하시길 바랍니다.\n" +
+                "\n" +
+                "\n" +
+                "또 머무르는 동안 사용하실 수 있는 [빔프로젝터, 발뮤다 토스터, 네스프레소 커피머신, 전자레인지, 냉장고, 커피포트]가 준비되어 있습니다.\n" +
+                "\n" +
+                "\n" +
+                "문의시간은 오전 7시~오후11시 사이이며 추가적으로 궁금하거나 필요한 점이 있으시면 연락주시길 바랍니다.\n" +
+                "감사합니다.";
+//        String to = reservation.getGuest().getNumberOnlyPhoneNumber();
+        String to = reservation;
+
+        return sendMessage("LMS", subject, content, to);
     }
 
     @Async

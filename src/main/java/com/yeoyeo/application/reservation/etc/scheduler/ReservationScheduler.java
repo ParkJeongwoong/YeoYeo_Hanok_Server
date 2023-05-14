@@ -1,5 +1,6 @@
 package com.yeoyeo.application.reservation.etc.scheduler;
 
+import com.yeoyeo.application.message.service.MessageService;
 import com.yeoyeo.application.reservation.etc.exception.ReservationException;
 import com.yeoyeo.application.reservation.repository.ReservationRepository;
 import com.yeoyeo.domain.Reservation;
@@ -21,6 +22,7 @@ import java.util.stream.Collectors;
 @Component
 public class ReservationScheduler {
 
+    private final MessageService messageService;
     private final ReservationRepository reservationRepository;
 
     @PostConstruct
@@ -29,7 +31,7 @@ public class ReservationScheduler {
     }
 
     @Transactional
-    @Scheduled(cron = "0 1 0 * * *")
+    @Scheduled(cron = "0 1 0 * * *") // 매일 0시 1분 0초 동작
     protected void dailyReservationCompletion() {
         log.info("[SCHEDULE - Daily Past Reservation Completion]");
         LocalDate today = LocalDate.now();
@@ -49,7 +51,7 @@ public class ReservationScheduler {
     }
 
     @Transactional
-    @Scheduled(cron = "0 1 3 * * *")
+    @Scheduled(cron = "0 1 3 * * *") // 매일 3시 1분 0초 동작
     public void dailyReservationClearing() {
         log.info("[SCHEDULE - Daily Unpaid Reservation Clearing]");
         LocalDateTime before24hour = LocalDateTime.now().minusDays(1);
@@ -66,5 +68,21 @@ public class ReservationScheduler {
         log.info("미결제 예약 삭제 건수 : {}건", deletedCnt);
         log.info("미결제 예약 삭제 처리 정상 종료");
     }
+
+//    @Scheduled(cron = "0 0 8 * * *") // 매일 8시 0분 0초 동작
+//    public void noticeMessage_BeforeCheckIn() {
+//        log.info("[SCHEDULE - Daily Unpaid Reservation Clearing]");
+//        LocalDate today = LocalDate.now();
+//        log.info("{} 금일 체크인 고객 메일 발송", today);
+//        List<Reservation> reservationList = reservationRepository.findAllByReservationState(0).stream().sorted(Comparator.comparing(Reservation::getFirstDate)).collect(Collectors.toList());
+//        int cnt = 0;
+//        for (Reservation reservation : reservationList) {
+//            if (reservation.getFirstDate().isEqual(today)) messageService.SendCheckInMsg(reservation);
+//            else break;
+//            cnt += 1;
+//        }
+//        log.info("금일 체크인 고객 수 : {}건", cnt);
+//        log.info("금일 체크인 고객 문자 전송 정상 종료");
+//    }
 
 }

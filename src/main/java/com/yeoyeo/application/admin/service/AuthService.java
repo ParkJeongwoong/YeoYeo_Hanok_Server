@@ -12,10 +12,6 @@ public class AuthService {
 
     private final AdministratorRepository adminRepository;
 
-    public String login() {
-        return "1";
-    }
-
     public String signup(SignupDto signupDto) {
         Administrator admin = Administrator.builder().id(signupDto.getUserId()).password(signupDto.getUserPassword())
                 .name(signupDto.getUserName()).contact(signupDto.getUserContact()).build();
