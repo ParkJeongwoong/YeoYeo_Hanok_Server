@@ -241,6 +241,9 @@ public class CalendarService {
             messageService.sendAdminMsg("동기화 오류 알림 - 수정된 예약정보 반영을 위해 기존 예약 변경 중 오류 발생");
             log.error("달력 동기화 - 수정된 정보 반영 중 에러", e);
         }
+
+        // 임시
+        if (event.getDescription() == null) reservation.setManagementLevel(1);
     }
 
     @Transactional
