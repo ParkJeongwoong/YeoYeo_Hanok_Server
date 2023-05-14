@@ -133,7 +133,7 @@ public class ReservationServiceTest {
         GuestAirbnb guest2 = GuestAirbnb.builder().build();
 
         MakeReservationHomeDto requestDto1 = new MakeReservationHomeDto(dateRoomList1, guest1);
-        MakeReservationAirbnbDto requestDto2 = new MakeReservationAirbnbDto(dateRoomList2, guest2);
+        MakeReservationAirbnbDto requestDto2 = new MakeReservationAirbnbDto(dateRoomList2, guest2, 0);
 
         // When
         log.info("createReservation 테스트 진행");

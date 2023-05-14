@@ -60,6 +60,7 @@ public class ReservationService {
         Reservation reservation = Reservation.builder()
                 .dateRoomList(dateRoomList)
                 .guest(guest)
+                .managementLevel(reservationDto.getManagement_level())
                 .build();
         reservationRepository.save(reservation);
         log.info("{} 고객님의 예약 정보가 생성되었습니다.", reservationDto.getGuest().getName());

@@ -37,17 +37,21 @@ public class Reservation extends BaseTimeEntity {
     @Column
     private String uniqueId;
 
+    @Column
+    private int managementLevel;
+
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "payment_id")
     private Payment payment;
 
     @Builder
-    public Reservation(List<DateRoom> dateRoomList, Guest guest) {
+    public Reservation(List<DateRoom> dateRoomList, Guest guest, int managementLevel) {
         this.id = System.currentTimeMillis();
         this.mapDateRoomReservations.addAll(dateRoomList.stream().map(dateRoom -> new MapDateRoomReservation(dateRoom, this)).collect(Collectors.toList()));
         this.guest = guest;
         this.reservedFrom = guest.getClass().getSimpleName();
         this.reservationState = 0;
+        this.managementLevel = managementLevel;
     }
 
     public void setUniqueId(String iCalendarUID) {
@@ -114,6 +118,10 @@ public class Reservation extends BaseTimeEntity {
         } else {
             throw new ReservationException("동기화 종료 중 에러 발생");
         }
+    }
+
+    public void setManagementLevel(int managementLevel) {
+        this.managementLevel = managementLevel;
     }
 
     public DateRoom getFirstDateRoom() {

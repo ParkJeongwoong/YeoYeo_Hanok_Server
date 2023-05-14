@@ -1,9 +1,11 @@
 package com.yeoyeo.domain;
 
+import com.yeoyeo.application.reservation.dto.MakeReservationDto;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+import java.util.List;
 
 //@SuperBuilder
 @Getter
@@ -41,5 +43,13 @@ public class Guest {
 
     public String getNumberOnlyPhoneNumber() {
         return this.phoneNumber.replaceAll("[^0-9]","");
+    }
+
+    public MakeReservationDto createMakeReservationDto(List<DateRoom> dateRoomList) {
+        return new MakeReservationDto(dateRoomList, this, 1);
+    }
+
+    public MakeReservationDto createMakeReservationDto(List<DateRoom> dateRoomList, String description, String summary) {
+        return new MakeReservationDto(dateRoomList, this, 1);
     }
 }

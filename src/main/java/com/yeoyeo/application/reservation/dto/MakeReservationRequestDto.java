@@ -33,7 +33,7 @@ public class MakeReservationRequestDto {
         if (this.dateRoomIdList.size()==0) throw new ReservationException("예약한 날짜 존재하지 않습니다.");
         List<DateRoom> dateRoomList = dateRoomRepository.findAllById(this.dateRoomIdList);
         Guest guest = new Guest(this.name, this.phoneNumber, this.email, this.guestCount, this.request);
-        return new MakeReservationDto(dateRoomList, guest);
+        return new MakeReservationDto(dateRoomList, guest, 1);
     }
 
 }

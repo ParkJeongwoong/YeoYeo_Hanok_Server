@@ -211,7 +211,7 @@ public class CalendarService {
             List<DateRoom> dateRoomList = getDateRoomList(startDate, endDate, roomId);
             if (dateRoomList != null) {
                 try {
-                    MakeReservationDto makeReservationDto = new MakeReservationDto(dateRoomList, guest);
+                    MakeReservationDto makeReservationDto = guest.createMakeReservationDto(dateRoomList, event.getDescription().getValue(), event.getSummary().getValue());
                     Reservation reservation = reservationService.createReservation(makeReservationDto);
                     reservation.setUniqueId(event.getUid().getValue());
                     reservationService.setReservationPaid(reservation, payment);

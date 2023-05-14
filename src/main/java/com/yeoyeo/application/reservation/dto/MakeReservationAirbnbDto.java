@@ -11,8 +11,8 @@ import java.util.List;
 @NoArgsConstructor
 public class MakeReservationAirbnbDto extends MakeReservationDto {
 
-    public MakeReservationAirbnbDto(List<DateRoom> dateRoomList, GuestAirbnb guest) {
-        super(dateRoomList, guest);
+    public MakeReservationAirbnbDto(List<DateRoom> dateRoomList, GuestAirbnb guest, int management_level) {
+        super(dateRoomList, guest, management_level);
     }
 
 }

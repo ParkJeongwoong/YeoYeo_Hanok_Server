@@ -13,9 +13,11 @@ import java.util.List;
 public class MakeReservationDto {
     private List<DateRoom> dateRoomList;
     protected Guest guest;
+    private int management_level;
 
-    public MakeReservationDto(List<DateRoom> dateRoomList, Guest guest) {
+    public MakeReservationDto(List<DateRoom> dateRoomList, Guest guest, int management_level) {
         this.dateRoomList = dateRoomList;
         this.guest = guest;
+        this.management_level = management_level;
     }
 }

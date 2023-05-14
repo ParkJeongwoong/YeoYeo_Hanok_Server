@@ -13,7 +13,7 @@ import java.util.List;
 public class MakeReservationHomeDto extends MakeReservationDto {
 
     public MakeReservationHomeDto(List<DateRoom> dateRoomList, GuestHome guest) {
-        super(dateRoomList, guest);
+        super(dateRoomList, guest, 1);
     }
 
 }

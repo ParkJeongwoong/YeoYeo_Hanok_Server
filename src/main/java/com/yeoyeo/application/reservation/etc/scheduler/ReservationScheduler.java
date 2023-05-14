@@ -77,12 +77,19 @@ public class ReservationScheduler {
         List<Reservation> reservationList = reservationRepository.findAllByReservationState(0).stream().sorted(Comparator.comparing(Reservation::getFirstDate)).collect(Collectors.toList());
         int cnt = 0;
         for (Reservation reservation : reservationList) {
-            if (reservation.getFirstDate().isEqual(today)) messageService.sendCheckInMsg(reservation);
+            if (reservation.getFirstDate().isEqual(today)) {
+                if (validateManagingCondition(reservation)) messageService.sendCheckInMsg(reservation);
+            }
             else break;
             cnt += 1;
         }
         log.info("금일 체크인 고객 수 : {}건", cnt);
         log.info("금일 체크인 고객 문자 전송 정상 종료");
+    }
+
+    private boolean validateManagingCondition(Reservation reservation) {
+        if (reservation.getManagementLevel() > 0) return true;
+        return !reservation.getGuest().getName().equals("AirBnbGuest");
     }
 
 }
