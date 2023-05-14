@@ -5,8 +5,6 @@ import com.yeoyeo.application.common.dto.GeneralResponseDto;
 import com.yeoyeo.application.dateroom.dto.ChangeDateRoomListPriceRequestDto;
 import com.yeoyeo.application.dateroom.dto.ChangeDateRoomListStatusRequestDto;
 import com.yeoyeo.application.dateroom.service.DateRoomService;
-import com.yeoyeo.application.message.dto.SendMessageResponseDto;
-import com.yeoyeo.application.message.service.MessageService;
 import com.yeoyeo.application.payment.service.PaymentService;
 import com.yeoyeo.application.reservation.dto.MakeReservationAdminRequestDto;
 import com.yeoyeo.application.reservation.dto.ReservationInfoDto;
@@ -36,13 +34,6 @@ public class AdminController {
     private final DateRoomService dateRoomService;
     private final ReservationService reservationService;
     private final PaymentService paymentService;
-
-    // TEST 용도
-    private final MessageService messageService;
-    @PostMapping("/test")
-    public SendMessageResponseDto test2() {
-        return messageService.sendCheckInMsg("01020339091");
-    }
 
     // ROOM 관련
     @ApiOperation(value = "Change Default Price", notes = "방의 기본가(평일가격, 주말가격, 성수기 평일가격, 성수기 주말가격) 설정")

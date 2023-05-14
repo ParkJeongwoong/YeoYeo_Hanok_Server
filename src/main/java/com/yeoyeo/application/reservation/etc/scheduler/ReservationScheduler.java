@@ -69,20 +69,20 @@ public class ReservationScheduler {
         log.info("미결제 예약 삭제 처리 정상 종료");
     }
 
-//    @Scheduled(cron = "0 0 8 * * *") // 매일 8시 0분 0초 동작
-//    public void noticeMessage_BeforeCheckIn() {
-//        log.info("[SCHEDULE - Daily Unpaid Reservation Clearing]");
-//        LocalDate today = LocalDate.now();
-//        log.info("{} 금일 체크인 고객 메일 발송", today);
-//        List<Reservation> reservationList = reservationRepository.findAllByReservationState(0).stream().sorted(Comparator.comparing(Reservation::getFirstDate)).collect(Collectors.toList());
-//        int cnt = 0;
-//        for (Reservation reservation : reservationList) {
-//            if (reservation.getFirstDate().isEqual(today)) messageService.SendCheckInMsg(reservation);
-//            else break;
-//            cnt += 1;
-//        }
-//        log.info("금일 체크인 고객 수 : {}건", cnt);
-//        log.info("금일 체크인 고객 문자 전송 정상 종료");
-//    }
+    @Scheduled(cron = "0 0 8 * * *") // 매일 8시 0분 0초 동작
+    public void noticeMessage_BeforeCheckIn() {
+        log.info("[SCHEDULE - Daily Unpaid Reservation Clearing]");
+        LocalDate today = LocalDate.now();
+        log.info("{} 금일 체크인 고객 메일 발송", today);
+        List<Reservation> reservationList = reservationRepository.findAllByReservationState(0).stream().sorted(Comparator.comparing(Reservation::getFirstDate)).collect(Collectors.toList());
+        int cnt = 0;
+        for (Reservation reservation : reservationList) {
+            if (reservation.getFirstDate().isEqual(today)) messageService.sendCheckInMsg(reservation);
+            else break;
+            cnt += 1;
+        }
+        log.info("금일 체크인 고객 수 : {}건", cnt);
+        log.info("금일 체크인 고객 문자 전송 정상 종료");
+    }
 
 }
