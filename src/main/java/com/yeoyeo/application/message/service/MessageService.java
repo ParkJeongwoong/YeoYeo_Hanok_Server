@@ -162,12 +162,19 @@ public class MessageService {
     @Transactional
     @Async
     public void sendNoticeMsgToConfirmedReservations(long roomId) {
+        log.info("[동기화 후 확정 예약 건에 대한 안내 문자 전송]");
         List<Reservation> reservations = reservationRepository.findAllByReservationState(1)
-                .stream().filter(reservation -> reservation.getManagementLevel() == 1 && reservation.getRoom().getId() == roomId).collect(Collectors.toList());
+                .stream().filter(reservation -> {
+                    log.info("{} {} {}", reservation.getId(), reservation.getManagementLevel(), reservation.getRoom().getId());
+                    if (reservation.getManagementLevel() == 1 && reservation.getRoom().getId() == roomId && reservation.getGuest().getPhoneNumber() != null) return true;
+                    return false;
+                }).collect(Collectors.toList());
         reservations.forEach(reservation -> {
+            log.info("{}", reservation.getId());
             sendNoticeMsg(reservation);
             reservation.setManagementLevel(2);
         });
+        reservationRepository.saveAll(reservations);
     }
 
     // LMS
