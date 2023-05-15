@@ -38,7 +38,7 @@ public class Reservation extends BaseTimeEntity {
     private String uniqueId;
 
     @Column
-    private int managementLevel;
+    private int managementLevel; // 0 : 외부 플랫폼 관리, 1 : 홈페이지 관리 예약 (외부 동기화 미완료), 2: 홈페이지 관리 예약 (외부 동기화 완료)
 
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "payment_id")

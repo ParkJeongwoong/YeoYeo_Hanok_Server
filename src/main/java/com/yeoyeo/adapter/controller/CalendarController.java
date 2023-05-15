@@ -3,6 +3,7 @@ package com.yeoyeo.adapter.controller;
 import com.yeoyeo.application.calendar.etc.CalendarScheduler;
 import com.yeoyeo.application.calendar.service.CalendarService;
 import com.yeoyeo.application.common.service.CommonMethods;
+import com.yeoyeo.application.message.service.MessageService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
@@ -18,21 +19,20 @@ public class CalendarController {
 
     private final CommonMethods commonMethods;
     private final CalendarService calendarService;
+    private final MessageService messageService;
 
     @ApiOperation(value = "Send to Platform from YeoYeo-A", notes = "(예약정보 동기화) [여유] 데이터 내보내기")
     @GetMapping("/sync/yeoyeo-Ab83sf0AD5$27Pk3-3!J4pjw")
     public void sendIcalendarData_A(HttpServletResponse response) {
         commonMethods.printIp("sendIcalendarData_A");
-        calendarService.writeICSFile(1);
-        calendarService.sendICalendarData(response,1);
+        sendIcalendarData(response, 1);
     }
 
     @ApiOperation(value = "Send to Platform from YeoYeo-B", notes = "(예약정보 동기화) [여행] 데이터 내보내기")
     @GetMapping("/sync/yeoyeo-Bk87wf0$D63q1P!3-2$H0pjw")
     public void sendIcalendarData_B(HttpServletResponse response) {
         commonMethods.printIp("sendIcalendarData_B  ");
-        calendarService.writeICSFile(2);
-        calendarService.sendICalendarData(response,2);
+        sendIcalendarData(response, 2);
     }
 
     @ApiOperation(value = "Sync-Airbnb-A", notes = "에어비앤비 A호실 예약정보 동기화")
@@ -71,10 +71,10 @@ public class CalendarController {
         calendarService.writeICSFile(2);
     }
 
-    private final CalendarScheduler calendarScheduler;
-    @GetMapping("/test")
-    public void test() {
-        calendarScheduler.regularSync_Airbnb();
+    private void sendIcalendarData(HttpServletResponse response, long roomId) {
+        calendarService.writeICSFile(roomId);
+        calendarService.sendICalendarData(response, roomId);
+        messageService.sendNoticeMsgToConfirmedReservations(roomId);
     }
 
 }

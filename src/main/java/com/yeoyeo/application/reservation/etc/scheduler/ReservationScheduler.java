@@ -88,6 +88,7 @@ public class ReservationScheduler {
     }
 
     private boolean validateManagingCondition(Reservation reservation) {
+        if (reservation.getGuest().getPhoneNumber() == null) return false;
         if (reservation.getManagementLevel() > 0) return true;
         return !reservation.getGuest().getName().equals("AirBnbGuest");
     }
