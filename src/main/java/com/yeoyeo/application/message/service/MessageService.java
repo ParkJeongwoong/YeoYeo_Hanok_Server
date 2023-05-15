@@ -159,7 +159,6 @@ public class MessageService {
     }
 
     // LMS
-    @Transactional
     @Async
     public void sendNoticeMsgToConfirmedReservations(long roomId) {
         log.info("[동기화 후 확정 예약 건에 대한 안내 문자 전송]");
@@ -170,11 +169,10 @@ public class MessageService {
                     return false;
                 }).collect(Collectors.toList());
         reservations.forEach(reservation -> {
-            log.info("{}", reservation.getId());
+            log.info("SEND TO {} - {}", reservation.getId(), reservation.getGuest().getPhoneNumber());
             sendNoticeMsg(reservation);
             reservation.setManagementLevel(2);
         });
-        reservationRepository.saveAll(reservations);
     }
 
     // LMS
