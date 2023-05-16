@@ -9,6 +9,7 @@ import com.yeoyeo.application.payment.service.PaymentService;
 import com.yeoyeo.application.reservation.dto.MakeReservationAdminRequestDto;
 import com.yeoyeo.application.reservation.dto.ReservationInfoDto;
 import com.yeoyeo.application.reservation.etc.exception.ReservationException;
+import com.yeoyeo.application.reservation.etc.scheduler.ReservationScheduler;
 import com.yeoyeo.application.reservation.service.ReservationService;
 import com.yeoyeo.application.room.service.RoomService;
 import com.yeoyeo.domain.Reservation;
@@ -34,6 +35,12 @@ public class AdminController {
     private final DateRoomService dateRoomService;
     private final ReservationService reservationService;
     private final PaymentService paymentService;
+
+    private final ReservationScheduler reservationScheduler;
+    @GetMapping("/test")
+    public void test() {
+        reservationScheduler.test();
+    }
 
     // ROOM 관련
     @ApiOperation(value = "Change Default Price", notes = "방의 기본가(평일가격, 주말가격, 성수기 평일가격, 성수기 주말가격) 설정")
