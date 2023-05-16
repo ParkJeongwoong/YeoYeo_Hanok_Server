@@ -1,6 +1,7 @@
-package com.yeoyeo.domain;
+package com.yeoyeo.domain.Guest;
 
-import com.yeoyeo.application.reservation.dto.MakeReservationDto;
+import com.yeoyeo.application.reservation.dto.MakeReservationDto.MakeReservationDto;
+import com.yeoyeo.domain.DateRoom;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import net.fortuna.ical4j.model.property.Description;

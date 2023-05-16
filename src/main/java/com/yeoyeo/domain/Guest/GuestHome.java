@@ -1,4 +1,4 @@
-package com.yeoyeo.domain;
+package com.yeoyeo.domain.Guest;
 
 import lombok.Builder;
 import lombok.Getter;

@@ -1,14 +1,15 @@
 package com.yeoyeo.application.reservation;
 
-import com.yeoyeo.application.dateroom.etc.exception.RoomReservationException;
 import com.yeoyeo.application.dateroom.repository.DateRoomRepository;
 import com.yeoyeo.application.payment.repository.PaymentRepository;
-import com.yeoyeo.application.reservation.dto.MakeReservationAirbnbDto;
-import com.yeoyeo.application.reservation.dto.MakeReservationHomeDto;
+import com.yeoyeo.application.reservation.dto.MakeReservationDto.MakeReservationAirbnbDto;
+import com.yeoyeo.application.reservation.dto.MakeReservationDto.MakeReservationHomeDto;
 import com.yeoyeo.application.reservation.etc.exception.ReservationException;
 import com.yeoyeo.application.reservation.repository.ReservationRepository;
 import com.yeoyeo.application.reservation.service.ReservationService;
 import com.yeoyeo.domain.*;
+import com.yeoyeo.domain.Guest.GuestAirbnb;
+import com.yeoyeo.domain.Guest.GuestHome;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -130,7 +131,7 @@ public class ReservationServiceTest {
                 .guestCount(1)
                 .request("없습니다.")
                 .build();
-        GuestAirbnb guest2 = GuestAirbnb.builder().build();
+        GuestAirbnb guest2 = new GuestAirbnb();
 
         MakeReservationHomeDto requestDto1 = new MakeReservationHomeDto(dateRoomList1, guest1);
         MakeReservationAirbnbDto requestDto2 = new MakeReservationAirbnbDto(dateRoomList2, guest2, 0);

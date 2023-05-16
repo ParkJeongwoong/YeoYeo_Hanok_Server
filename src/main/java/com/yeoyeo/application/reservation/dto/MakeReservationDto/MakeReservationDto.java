@@ -1,8 +1,7 @@
-package com.yeoyeo.application.reservation.dto;
+package com.yeoyeo.application.reservation.dto.MakeReservationDto;
 
 import com.yeoyeo.domain.DateRoom;
-import com.yeoyeo.domain.Guest;
-import com.yeoyeo.domain.Payment;
+import com.yeoyeo.domain.Guest.Guest;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 

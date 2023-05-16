@@ -1,9 +1,10 @@
-package com.yeoyeo.application.reservation.dto;
+package com.yeoyeo.application.reservation.dto.MakeReservationRequestDto;
 
 import com.yeoyeo.application.dateroom.repository.DateRoomRepository;
+import com.yeoyeo.application.reservation.dto.MakeReservationDto.MakeReservationDto;
 import com.yeoyeo.application.reservation.etc.exception.ReservationException;
 import com.yeoyeo.domain.DateRoom;
-import com.yeoyeo.domain.Guest;
+import com.yeoyeo.domain.Guest.Guest;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 

@@ -1,8 +1,8 @@
-package com.yeoyeo.domain;
+package com.yeoyeo.domain.Guest;
 
-import com.yeoyeo.application.reservation.dto.MakeReservationAirbnbDto;
-import com.yeoyeo.application.reservation.dto.MakeReservationDto;
-import lombok.Builder;
+import com.yeoyeo.application.reservation.dto.MakeReservationDto.MakeReservationAirbnbDto;
+import com.yeoyeo.application.reservation.dto.MakeReservationDto.MakeReservationDto;
+import com.yeoyeo.domain.DateRoom;
 import lombok.Getter;
 import net.fortuna.ical4j.model.property.Description;
 import net.fortuna.ical4j.model.property.Summary;
@@ -15,9 +15,13 @@ import java.util.List;
 @Entity
 public class GuestAirbnb extends Guest {
 
-    @Builder
     public GuestAirbnb() {
         super.name = "AirBnbGuest";
+    }
+
+    public GuestAirbnb(Description description, Summary summary) {
+        if (description == null || summary == null || !summary.getValue().equals("Reserved")) super.name = "AirBnbGuest_External";
+        else super.name = "AirBnbGuest";
     }
 
     @Override

@@ -4,11 +4,15 @@ import com.yeoyeo.application.common.dto.GeneralResponseDto;
 import com.yeoyeo.application.dateroom.repository.DateRoomRepository;
 import com.yeoyeo.application.message.service.MessageService;
 import com.yeoyeo.application.payment.service.PaymentService;
-import com.yeoyeo.application.reservation.dto.MakeReservationDto;
+import com.yeoyeo.application.reservation.dto.MakeReservationDto.MakeReservationDto;
 import com.yeoyeo.application.reservation.etc.exception.ReservationException;
 import com.yeoyeo.application.reservation.repository.ReservationRepository;
 import com.yeoyeo.application.reservation.service.ReservationService;
 import com.yeoyeo.domain.*;
+import com.yeoyeo.domain.Guest.Factory.GuestAirbnbFactory;
+import com.yeoyeo.domain.Guest.Factory.GuestFactory;
+import com.yeoyeo.domain.Guest.Guest;
+import com.yeoyeo.domain.Guest.GuestAirbnb;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.fortuna.ical4j.data.CalendarBuilder;
@@ -40,6 +44,7 @@ import java.nio.file.StandardOpenOption;
 import java.text.ParseException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -68,8 +73,8 @@ public class CalendarService {
     private final DateRoomRepository dateRoomRepository;
     private final ReservationRepository reservationRepository;
 
-    public void readICSFile_Airbnb_A() { syncIcalendarFile(AIRBNB_FILE_PATH_A, getGuestAirbnb(), getPaymentAirbnb(), 1);}
-    public void readICSFile_Airbnb_B() { syncIcalendarFile(AIRBNB_FILE_PATH_B, getGuestAirbnb(), getPaymentAirbnb(), 2);}
+    public void readICSFile_Airbnb_A() { syncIcalendarFile(AIRBNB_FILE_PATH_A, getGuestAirbnbFactory(), getPaymentAirbnb(), 1);}
+    public void readICSFile_Airbnb_B() { syncIcalendarFile(AIRBNB_FILE_PATH_B, getGuestAirbnbFactory(), getPaymentAirbnb(), 2);}
     public void getICSFile_Airbnb_A() { getIcsFileFromPlatform(AIRBNB_FILE_URL_A, AIRBNB_FILE_PATH_A); }
     public void getICSFile_Airbnb_B() { getIcsFileFromPlatform(AIRBNB_FILE_URL_B, AIRBNB_FILE_PATH_B); }
 
@@ -82,11 +87,11 @@ public class CalendarService {
     }
     public void syncInICSFile_Airbnb_A() {
         getIcsFileFromPlatform(AIRBNB_FILE_URL_A, AIRBNB_FILE_PATH_A);
-        syncIcalendarFile(AIRBNB_FILE_PATH_A, getGuestAirbnb(), getPaymentAirbnb(), 1);
+        syncIcalendarFile(AIRBNB_FILE_PATH_A, getGuestAirbnbFactory(), getPaymentAirbnb(), 1);
     }
     public void syncInICSFile_Airbnb_B() {
         getIcsFileFromPlatform(AIRBNB_FILE_URL_B, AIRBNB_FILE_PATH_B);
-        syncIcalendarFile(AIRBNB_FILE_PATH_B, getGuestAirbnb(), getPaymentAirbnb(), 2);
+        syncIcalendarFile(AIRBNB_FILE_PATH_B, getGuestAirbnbFactory(), getPaymentAirbnb(), 2);
     }
     public void writeICSFile(long roomId) { writeIcalendarFile(roomId); }
     public void sendICalendarData(HttpServletResponse response, long roomId) {
@@ -110,18 +115,18 @@ public class CalendarService {
     }
 
     @Transactional
-    private void syncIcalendarFile(String path, Guest guest, Payment payment, long roomId) {
+    private void syncIcalendarFile(String path, GuestFactory guestFactory, Payment payment, long roomId) {
         Calendar calendar = readIcalendarFile(path);
         List<VEvent> events = calendar.getComponents(Component.VEVENT);
         log.info("EVENT COUNT : {}", events.size());
-        setReservationStateSync(guest.getName(), roomId); // 동기화 대상 예약 상태 변경
+        setReservationStateSync(guestFactory.getGuestClassName(), roomId); // 동기화 대상 예약 상태 변경
         for (VEvent event : events) {
             String uid = event.getUid().getValue();
             log.info("CALENDAR EVENT UID : {}", uid);
             String platform = getPlatformName(uid);
             if (!platform.equals("yeoyeo")) {
-                Reservation reservation = findExistingReservation(uid, roomId, guest.getName());
-                if (reservation == null) registerReservation(event, guest, payment, roomId);
+                Reservation reservation = findExistingReservation(uid, roomId, guestFactory.getGuestClassName());
+                if (reservation == null) registerReservation(event, guestFactory.createGuest(event.getDescription(), event.getSummary()), payment, roomId);
                 else updateReservation(event, reservation);
             }
         }
@@ -164,7 +169,7 @@ public class CalendarService {
         List<Reservation> reservationList = reservationRepository.findAllByReservationState(1);
         for (Reservation reservation : reservationList) {
             try {
-                if (reservation.getRoom().getId()==roomId && reservation.getGuest().getName().equals(guestClassName)) {
+                if (reservation.getRoom().getId()==roomId && reservation.getReservedFrom().equals(guestClassName)) {
                     reservation.setStateSyncStart();
                 }
             } catch (ReservationException e) {
@@ -181,7 +186,7 @@ public class CalendarService {
         log.info("취소 개수 : {}", reservationList.size());
         for (Reservation reservation : reservationList) {
             try {
-                log.info("취소 예약 : {} / {} ~ {}", reservation.getId(), reservation.getFirstDate(), reservation.getLastDateRoom().getDate());
+                log.info("취소 예약 : {} / {} / {} ~ {}", reservation.getId(), reservation.getRoom().getName(), reservation.getFirstDate(), reservation.getLastDateRoom().getDate());
                 reservationService.cancel(reservation);
             } catch (ReservationException e) {
                 log.error("동기화 되지 않은 예약 취소 중 에러 발생 {}", reservation.getId(),e);
@@ -194,7 +199,7 @@ public class CalendarService {
         log.info("TESTING - COUNT : {}", reservationList.size());
         for (Reservation reservation : reservationList) {
             log.info("TESTING - INFO : {} {} {}", reservation.getReservationState(), reservation.getRoom().getId(), reservation.getGuest().getName());
-            if (reservation.getReservationState() == 5 && reservation.getRoom().getId() == roomId && reservation.getGuest().getName().equals(guestClassName)) return reservation;
+            if (reservation.getReservationState() == 5 && reservation.getRoom().getId() == roomId && reservation.getReservedFrom().equals(guestClassName)) return reservation;
         }
         log.info("일치하는 reservation 없음");
         return null;
@@ -218,6 +223,9 @@ public class CalendarService {
                     break;
                 } catch (ReservationException reservationException) {
                     log.info("[예약 충돌 발생] - 동기화 과정 중 중복된 예약 발생. 홈페이지 예약 취소 처리 시작");
+                    Guest collidedGuest = checkUidChangeIssue(dateRoomList, guest.getName()); // UID 가 바뀌어서 기존 Guest 정보가 삭제되는 경우를 방지
+                    log.info("UID 변경 검증 결과 : {}", collidedGuest != null);
+                    if (collidedGuest != null) guest = collidedGuest; // UID가 바뀌었어도 예약 출처와 정보가 일치한다면 동일한 게스트로 간주
                     collidedReservationCancel(dateRoomList);
                 }
             } else break;
@@ -241,6 +249,23 @@ public class CalendarService {
             messageService.sendAdminMsg("동기화 오류 알림 - 수정된 예약정보 반영을 위해 기존 예약 변경 중 오류 발생");
             log.error("달력 동기화 - 수정된 정보 반영 중 에러", e);
         }
+    }
+
+    private Guest checkUidChangeIssue(List<DateRoom> dateRoomList, String guestName) {
+        log.info("UID 변경 검증");
+        dateRoomList.sort(Comparator.comparing(DateRoom::getDate));
+        Reservation collidedReservation = dateRoomList.get(0)
+                .getMapDateRoomReservations().stream().map(MapDateRoomReservation::getReservation)
+                .filter(reservation -> reservation.getReservationState() == 1 || reservation.getReservationState() == 5)
+                .findFirst().orElse(null);
+        if (collidedReservation != null
+                && collidedReservation.getManagementLevel() > 0
+                && collidedReservation.getGuest().getName().equals(guestName)
+                && collidedReservation.getFirstDate().isEqual(dateRoomList.get(0).getDate())
+                && collidedReservation.getLastDateRoom().getDate().isEqual(dateRoomList.get(dateRoomList.size()-1).getDate())) {
+            return collidedReservation.getGuest();
+        }
+        return null;
     }
 
     @Transactional
@@ -322,8 +347,8 @@ public class CalendarService {
         return dateRoomRepository.findAllByDateBetweenAndRoom_Id(startDate, endDate, roomId);
     }
 
-    private GuestAirbnb getGuestAirbnb() {
-        return GuestAirbnb.builder().build();
+    private GuestAirbnbFactory getGuestAirbnbFactory() {
+        return new GuestAirbnbFactory();
     }
 
     private Payment getPaymentAirbnb() {

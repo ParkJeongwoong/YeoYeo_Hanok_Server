@@ -1,6 +1,7 @@
 package com.yeoyeo.domain;
 
 import com.yeoyeo.application.reservation.etc.exception.ReservationException;
+import com.yeoyeo.domain.Guest.Guest;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
