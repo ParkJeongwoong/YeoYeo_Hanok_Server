@@ -93,22 +93,4 @@ public class ReservationScheduler {
         return !reservation.getGuest().getName().equals("AirBnbGuest");
     }
 
-    public void test() {
-        log.info("[SCHEDULE - Daily Unpaid Reservation Clearing]");
-        LocalDate today = LocalDate.now();
-        log.info("{} 체크인 고객 메일 발송", today);
-        List<Reservation> reservationList = reservationRepository.findAllByReservationState(1).stream().sorted(Comparator.comparing(Reservation::getFirstDate)).collect(Collectors.toList());
-        int cnt = 0;
-        for (Reservation reservation : reservationList) {
-            log.info("{} {} {} {} {}", reservation.getId(), reservation.getFirstDate(), reservation.getGuest().getPhoneNumber(), reservation.getManagementLevel(), reservation.getGuest().getName());
-            if (reservation.getFirstDate().isEqual(today)) {
-                if (validateManagingCondition(reservation)) log.info("RESERVATION : {}", reservation.getId());
-                cnt += 1;
-            }
-            else break;
-        }
-        log.info("금일 체크인 고객 수 : {}건", cnt);
-        log.info("금일 체크인 고객 문자 전송 정상 종료");
-    }
-
 }
