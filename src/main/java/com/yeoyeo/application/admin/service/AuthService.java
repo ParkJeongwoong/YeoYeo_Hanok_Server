@@ -2,7 +2,7 @@ package com.yeoyeo.application.admin.service;
 
 import com.yeoyeo.application.admin.dto.SignupDto;
 import com.yeoyeo.application.admin.repository.AdministratorRepository;
-import com.yeoyeo.domain.Administrator;
+import com.yeoyeo.domain.Admin.Administrator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

@@ -28,7 +28,8 @@ public class DateRoomGenerator {
     @Scheduled(cron = "10 0 0 * * *") // 매일 0시 0분 10초 동작
     private void dailyRoomCreation() {
         log.info("[SCHEDULE - Daily Room Creation]");
-        LocalDate date = LocalDate.now().plusDays(90);
+        LocalDate date = LocalDate.now().plusDays(180);
+        log.info("180일 후 날짜 : {}", date);
         try {
             dateRoomService.makeDateRoom(2, date);
             dateRoomService.makeDateRoom(1, date);
@@ -42,6 +43,14 @@ public class DateRoomGenerator {
     private void dailyRoomUnReservableJob() {
         log.info("[SCHEDULE - Daily Room UnReservable Job]");
         dateRoomService.setDateRoomUnReservableByDay(LocalDate.now());
+    }
+
+    @Scheduled(cron = "3 0 0 * * *") // 매일 0시 0분 3초 동작
+    private void dailyRoomReservableJob() {
+        log.info("[SCHEDULE - Daily Room Reservable Job]");
+        LocalDate date = LocalDate.now().plusDays(90);
+        log.info("90일 후 날짜 : {}", date);
+        dateRoomService.setDateRoomReservableByDay(date);
     }
 
     @Scheduled(cron = "0 0 3 * * 1")

@@ -90,6 +90,7 @@ public class DateRoomService extends Thread {
                     .webClientService(webClientService)
                     .key(holidayKey)
                     .build();
+            dateRoom.setUnReservable();
             dateRoomRepository.save(dateRoom);
         } else {
             log.info("이미 존재하는 방입니다. {}", dateRoomId);
@@ -137,6 +138,13 @@ public class DateRoomService extends Thread {
     public void setDateRoomUnReservableByDay(LocalDate date) {
         List<DateRoom> dateRoomList = dateRoomRepository.findAllByDate(date);
         dateRoomList.forEach(DateRoom::setUnReservable);
+        dateRoomRepository.saveAll(dateRoomList);
+    }
+
+    @Transactional
+    public void setDateRoomReservableByDay(LocalDate date) {
+        List<DateRoom> dateRoomList = dateRoomRepository.findAllByDate(date);
+        dateRoomList.forEach(DateRoom::setReservable);
         dateRoomRepository.saveAll(dateRoomList);
     }
 

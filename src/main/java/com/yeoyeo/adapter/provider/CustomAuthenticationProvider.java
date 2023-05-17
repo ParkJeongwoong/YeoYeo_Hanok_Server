@@ -1,7 +1,7 @@
 package com.yeoyeo.adapter.provider;
 
 import com.yeoyeo.application.admin.repository.AdministratorRepository;
-import com.yeoyeo.domain.Administrator;
+import com.yeoyeo.domain.Admin.Administrator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationProvider;
