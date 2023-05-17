@@ -22,33 +22,37 @@ public class AdminManageInfo {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     long id;
 
-    @Enumerated(EnumType.STRING)
-    @Column
-    private GuestType guestType;
+//    @Enumerated(EnumType.STRING) // Enum은 DB와 연결했을 때 단점이 생기기 때문에 사용 X
+    @Column(nullable = false)
+//    private GuestType guestType;
+    private int guestType; // 0: 홈페이지 예약 손님 , 1: 에어비앤비 예약 손님, 2: 문의 예약 손님
 
-    @Column
+    @Column(nullable = false)
     private LocalDate checkIn;
 
-    @Column
+    @Column(nullable = false)
     private LocalDate checkOut;
 
-    @Column
+    @Column(nullable = false)
     private Room room;
 
-    @Column
+    @Column(length = 30)
     private String name;
 
-    @Column
+    @Column(length = 20)
     private String phoneNumber;
 
     @Column
     private int guestCount;
 
+    @Column(length = 255)
+    private String request;
+
     @Column
     private Reservation reservation;
 
     @Builder
-    public AdminManageInfo(GuestType guestType, LocalDate checkIn, LocalDate checkOut, Room room, String name, String phoneNumber, int guestCount, Reservation reservation) {
+    public AdminManageInfo(int guestType, LocalDate checkIn, LocalDate checkOut, Room room, String name, String phoneNumber, int guestCount, Reservation reservation) {
         this.guestType = guestType;
         this.checkIn = checkIn;
         this.checkOut = checkOut;
@@ -62,14 +66,14 @@ public class AdminManageInfo {
     public AdminManageInfo(Reservation reservation) {
         switch (reservation.getReservedFrom()) {
             case "GuestHome":
-                this.guestType = GuestType.HOME;
+                this.guestType = 0;
                 break;
             case "GuestAirbnb":
-                if (reservation.getManagementLevel()>0) this.guestType =GuestType.DIRECT;
-                else this.guestType = GuestType.AIRBNB;
+                if (reservation.getManagementLevel()>0) this.guestType =2;
+                else this.guestType = 1;
                 break;
             default:
-                this.guestType = GuestType.OTHER;
+                this.guestType = -1;
         }
         this.checkIn = reservation.getFirstDate();
         this.checkOut = reservation.getLastDateRoom().getDate();
