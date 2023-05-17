@@ -33,7 +33,8 @@ public class AdminManageInfo {
     @Column(nullable = false)
     private LocalDate checkOut;
 
-    @Column(nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "room_id", nullable = false)
     private Room room;
 
     @Column(length = 30)
@@ -48,7 +49,8 @@ public class AdminManageInfo {
     @Column(length = 255)
     private String request;
 
-    @Column
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "reservation_id")
     private Reservation reservation;
 
     @Builder
