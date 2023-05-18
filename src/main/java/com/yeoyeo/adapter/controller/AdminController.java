@@ -1,6 +1,9 @@
 package com.yeoyeo.adapter.controller;
 
+import com.yeoyeo.application.admin.dto.AdminManageInfoRequestDto;
+import com.yeoyeo.application.admin.dto.AdminManageInfoResponseDto;
 import com.yeoyeo.application.admin.dto.ChangeRoomDefaultPriceRequestDto;
+import com.yeoyeo.application.admin.service.AdminManageService;
 import com.yeoyeo.application.common.dto.GeneralResponseDto;
 import com.yeoyeo.application.dateroom.dto.ChangeDateRoomListPriceRequestDto;
 import com.yeoyeo.application.dateroom.dto.ChangeDateRoomListStatusRequestDto;
@@ -21,6 +24,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Api(tags = {"관리자 API"})
@@ -34,6 +38,7 @@ public class AdminController {
     private final DateRoomService dateRoomService;
     private final ReservationService reservationService;
     private final PaymentService paymentService;
+    private final AdminManageService adminManageService;
 
     // ROOM 관련
     @ApiOperation(value = "Change Default Price", notes = "방의 기본가(평일가격, 주말가격, 성수기 평일가격, 성수기 주말가격) 설정")
@@ -101,6 +106,23 @@ public class AdminController {
         GeneralResponseDto responseDto = paymentService.refundByAdmin(reservationId);
         if (!responseDto.getSuccess()) return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseDto);
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
+    // ADMIN MANAGE INFO 관련
+    @GetMapping("/manage/info")
+    public ResponseEntity<List<AdminManageInfoResponseDto>> getAdminManageInfoList() {
+        List<AdminManageInfoResponseDto> getAdminMangeInfoList = adminManageService.getAdminManageInfoList(LocalDate.now());
+        return ResponseEntity.status(HttpStatus.OK).body(getAdminMangeInfoList);
+    }
+
+    @PostMapping("/manage/info")
+    public void createAdminManageInfoList() {
+        adminManageService.createAdminManageInfoList();
+    }
+
+    @PutMapping("/manage/info")
+    public void setAdminManageInfo(@RequestBody AdminManageInfoRequestDto requestDto) {
+        adminManageService.setAdminManageInfo(requestDto);
     }
 
 }

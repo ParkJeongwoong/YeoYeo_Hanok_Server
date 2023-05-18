@@ -20,7 +20,7 @@ public class GuestController {
 
     private final GuestService guestService;
 
-    @ApiOperation(value = "Phone Certification", notes = "(미사용) 휴대폰 본인인증")
+    @ApiOperation(value = "Phone Certification", notes = "휴대폰 본인인증")
     @PostMapping("/certificate")
     public ResponseEntity<GeneralResponseDto> checkCertification(ImpCertRequestDto requestDto) {
         GeneralResponseDto responseDto = guestService.checkCertification(requestDto);

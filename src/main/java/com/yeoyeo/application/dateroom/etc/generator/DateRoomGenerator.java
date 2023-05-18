@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
 import java.time.LocalDate;
@@ -18,6 +19,7 @@ public class DateRoomGenerator {
     private final RoomService roomService;
     private final DateRoomService dateRoomService;
 
+    @Transactional
     @PostConstruct
     private void init() {
         roomService.makeRoom(); // 초기 방 생성 완료
@@ -25,6 +27,7 @@ public class DateRoomGenerator {
         dailyRoomUnReservableJob();
     }
 
+    @Transactional
     @Scheduled(cron = "10 0 0 * * *") // 매일 0시 0분 10초 동작
     private void dailyRoomCreation() {
         log.info("[SCHEDULE - Daily Room Creation]");
@@ -39,12 +42,14 @@ public class DateRoomGenerator {
         log.info("방 날짜 생성 : {}", date);
     }
 
+    @Transactional
     @Scheduled(cron = "1 0 0 * * *") // 매일 0시 0분 1초 동작
     private void dailyRoomUnReservableJob() {
         log.info("[SCHEDULE - Daily Room UnReservable Job]");
         dateRoomService.setDateRoomUnReservableByDay(LocalDate.now());
     }
 
+    @Transactional
     @Scheduled(cron = "3 0 0 * * *") // 매일 0시 0분 3초 동작
     private void dailyRoomReservableJob() {
         log.info("[SCHEDULE - Daily Room Reservable Job]");
@@ -53,6 +58,7 @@ public class DateRoomGenerator {
         dateRoomService.setDateRoomReservableByDay(date);
     }
 
+    @Transactional
     @Scheduled(cron = "0 0 3 * * 1")
     private void weeklyDefaultPriceTypeReset() { // 매주 월요일 새벽 3시에 동작
         log.info("[SCHEDULE - Weekly Default Price-type Reset Job]");

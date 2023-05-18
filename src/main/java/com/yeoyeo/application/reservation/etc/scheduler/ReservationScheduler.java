@@ -1,8 +1,10 @@
 package com.yeoyeo.application.reservation.etc.scheduler;
 
+import com.yeoyeo.application.admin.repository.AdminManageInfoRepository;
 import com.yeoyeo.application.message.service.MessageService;
 import com.yeoyeo.application.reservation.etc.exception.ReservationException;
 import com.yeoyeo.application.reservation.repository.ReservationRepository;
+import com.yeoyeo.domain.Admin.AdminManageInfo;
 import com.yeoyeo.domain.Reservation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,7 +26,9 @@ public class ReservationScheduler {
 
     private final MessageService messageService;
     private final ReservationRepository reservationRepository;
+    private final AdminManageInfoRepository adminManageInfoRepository;
 
+    @Transactional
     @PostConstruct
     private void init() {
         dailyReservationCompletion();
@@ -67,6 +71,19 @@ public class ReservationScheduler {
         }
         log.info("미결제 예약 삭제 건수 : {}건", deletedCnt);
         log.info("미결제 예약 삭제 처리 정상 종료");
+    }
+
+    @Transactional
+    @Scheduled(cron = "0 30 11 * * *") // 매일 11시 30분 0초 동작
+    public void dailyAdminMangeInfoDeactivate() {
+        log.info("[SCHEDULE - Daily AdminManageInfo Deactivate]");
+        LocalDate today = LocalDate.now();
+        log.info("대상 날짜 : {}", today);
+        List<AdminManageInfo> adminManageInfos = adminManageInfoRepository.findAllByCheckinAndActivated(today, true);
+        log.info("체크인 건수 : {}건", adminManageInfos.size());
+        for (AdminManageInfo adminManageInfo : adminManageInfos) adminManageInfo.setActivated(false);
+        adminManageInfoRepository.saveAll(adminManageInfos);
+        log.info("체크인 된 호스트 관리 예약 비활성화 처리 정상 종료");
     }
 
     @Scheduled(cron = "0 0 8 * * *") // 매일 8시 0분 0초 동작

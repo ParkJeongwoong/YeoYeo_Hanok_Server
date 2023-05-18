@@ -52,23 +52,28 @@ public class DateRoomService extends Thread {
     @Transactional
     public void make6MonthsDateRoom() {
         LocalDate date = LocalDate.now();
+        LocalDate reservableDate = LocalDate.now().plusDays(90);
         log.info("TODAY : {}", date);
         for (int i=0;i<180;i++) {
             String preDateRoomId = date.toString().replaceAll("[^0-9]", "");
-            DateRoom dateRoom1 = dateRoomRepository.findById(preDateRoomId+"1").orElse(null);
-            if (dateRoom1 == null) {
+            DateRoom dateRoom1_found = dateRoomRepository.findById(preDateRoomId+"1").orElse(null);
+            if (dateRoom1_found == null) {
                 try {
-                    makeDateRoom(2, date);
-                    makeDateRoom(1, date);
+                    DateRoom dateRoom1 = makeDateRoom(1, date);
+                    DateRoom dateRoom2 = makeDateRoom(2, date);
                     log.info("발 생성 날짜 완료 날짜 : {}", date);
+                    if (date.isAfter(reservableDate)) {
+                        dateRoom1.setUnReservable();
+                        dateRoom2.setUnReservable();
+                    }
                 } catch (Exception e) {
                     log.error("초기 6개월치 방 날짜 생성 중 에러 발생 - {}", preDateRoomId, e);
                 }
             } else {
-                DateRoom dateRoom2 = dateRoomRepository.findById(preDateRoomId+"2").orElse(null);
-                if (dateRoom2 != null) {
-                    dateRoom1.resetDefaultPriceType(webClientService,holidayKey);
-                    dateRoom2.resetDefaultPriceType(webClientService,holidayKey);
+                DateRoom dateRoom2_found = dateRoomRepository.findById(preDateRoomId+"2").orElse(null);
+                if (dateRoom2_found != null) {
+                    dateRoom1_found.resetDefaultPriceType(webClientService,holidayKey);
+                    dateRoom2_found.resetDefaultPriceType(webClientService,holidayKey);
                 } else {
                     log.error("초기 6개월치 방 날짜 생성 중 에러 발생 - {}", preDateRoomId);
                 }
@@ -80,20 +85,21 @@ public class DateRoomService extends Thread {
     }
 
     @Transactional
-    public void makeDateRoom(long roomId, LocalDate date) throws Exception {
+    public DateRoom makeDateRoom(long roomId, LocalDate date) throws Exception {
         Room room = roomRepository.findById(roomId).orElseThrow(()->new Exception("존재하지 않는 방입니다."));
         String dateRoomId = date.toString().replaceAll("[^0-9]","")+roomId;
-        if (!dateRoomRepository.findById(dateRoomId).isPresent()) {
+        DateRoom foundDateRoom = dateRoomRepository.findById(dateRoomId).orElse(null);
+        if (foundDateRoom == null) {
             DateRoom dateRoom = DateRoom.builder()
                     .date(date)
                     .room(room)
                     .webClientService(webClientService)
                     .key(holidayKey)
                     .build();
-            dateRoom.setUnReservable();
-            dateRoomRepository.save(dateRoom);
+            return dateRoomRepository.save(dateRoom);
         } else {
             log.info("이미 존재하는 방입니다. {}", dateRoomId);
+            return foundDateRoom;
         }
     }
 
