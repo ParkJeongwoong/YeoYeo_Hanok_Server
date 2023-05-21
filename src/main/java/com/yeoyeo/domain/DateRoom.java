@@ -105,17 +105,20 @@ public class DateRoom {
 
     private void setDefaultPriceType(WebClientService webClientService, String key) {
         DayOfWeek dayOfWeek = this.date.getDayOfWeek();
+        int offset = 0;
+        if (this.priceType > 2) offset = 2;
+
         switch (dayOfWeek) {
             case FRIDAY:
             case SATURDAY:
-                this.priceType = 2;
+                this.priceType = 2+offset;
                 break;
             default:
-                this.priceType = 1;
+                this.priceType = 1+offset;
                 break;
         }
         if (checkHoliday(webClientService, key)) {
-            this.priceType = 2;
+            this.priceType = 2+offset;
         }
     }
 

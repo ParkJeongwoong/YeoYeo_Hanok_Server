@@ -10,9 +10,9 @@ import java.time.LocalDate;
 @Getter
 public class AdminManageInfoResponseDto {
 
-    private final String roomName;
     private final LocalDate checkIn;
     private final LocalDate checkOut;
+    private final String roomName;
     private final GuestType guestType;
     private final String guestName;
     private final String guestPhoneNumber;
@@ -21,9 +21,9 @@ public class AdminManageInfoResponseDto {
 
     @Builder
     public AdminManageInfoResponseDto(Room room, LocalDate checkIn, LocalDate checkOut, int guestType, String guestName, String guestPhoneNumber, int guestCount, String request) {
-        this.roomName = room.getName();
         this.checkIn = checkIn;
         this.checkOut = checkOut;
+        this.roomName = room.getName();
         switch (guestType) {
             case 0:
                 this.guestType = GuestType.HOME;

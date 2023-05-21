@@ -1,6 +1,7 @@
 package com.yeoyeo.application.reservation.etc.scheduler;
 
 import com.yeoyeo.application.admin.repository.AdminManageInfoRepository;
+import com.yeoyeo.application.admin.service.AdminManageService;
 import com.yeoyeo.application.message.service.MessageService;
 import com.yeoyeo.application.reservation.etc.exception.ReservationException;
 import com.yeoyeo.application.reservation.repository.ReservationRepository;
@@ -25,6 +26,7 @@ import java.util.stream.Collectors;
 public class ReservationScheduler {
 
     private final MessageService messageService;
+    private final AdminManageService adminManageService;
     private final ReservationRepository reservationRepository;
     private final AdminManageInfoRepository adminManageInfoRepository;
 
@@ -84,6 +86,13 @@ public class ReservationScheduler {
         for (AdminManageInfo adminManageInfo : adminManageInfos) adminManageInfo.setActivated(false);
         adminManageInfoRepository.saveAll(adminManageInfos);
         log.info("체크인 된 호스트 관리 예약 비활성화 처리 정상 종료");
+    }
+
+    @Transactional
+    @Scheduled(cron = "0 0 5 * * *") // 매일 5시 0분 0초 동작
+    public void dailyAdminManageInfoCreate() {
+        log.info("[SCHEDULE = Daily AdminManageInfo Creation]");
+        adminManageService.createAdminManageInfoList();
     }
 
     @Scheduled(cron = "0 0 8 * * *") // 매일 8시 0분 0초 동작

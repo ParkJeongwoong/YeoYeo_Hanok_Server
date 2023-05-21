@@ -5,9 +5,11 @@ import com.yeoyeo.application.admin.dto.AdminManageInfoResponseDto;
 import com.yeoyeo.application.admin.repository.AdminManageInfoRepository;
 import com.yeoyeo.application.dateroom.repository.DateRoomRepository;
 import com.yeoyeo.application.reservation.repository.ReservationRepository;
+import com.yeoyeo.application.room.repository.RoomRepository;
 import com.yeoyeo.domain.Admin.AdminManageInfo;
 import com.yeoyeo.domain.DateRoom;
 import com.yeoyeo.domain.Reservation;
+import com.yeoyeo.domain.Room;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.fortuna.ical4j.model.Date;
@@ -29,6 +31,7 @@ public class AdminManageService {
     private final AdminManageInfoRepository adminManageInfoRepository;
     private final ReservationRepository reservationRepository;
     private final DateRoomRepository dateRoomRepository;
+    private final RoomRepository roomRepository;
 
     public List<AdminManageInfoResponseDto> getAdminManageInfoList() {
         return adminManageInfoRepository.findAllByOrderByCheckinAscRoom_Id()
@@ -50,6 +53,9 @@ public class AdminManageService {
             AdminManageInfo adminManageInfo = adminManageInfoRepository.findByCheckinAndRoom_IdAndActivated(reservation.getFirstDate(), reservation.getRoom().getId(), true);
             log.info("ADMIN MANGE INFO : {}", adminManageInfo);
             if (adminManageInfo == null) adminManageInfoList.add(new AdminManageInfo(reservation));
+            else if (reservation.getGuest().getName().equals("AirBnbGuest_External")) {
+                continue;
+            }
             else if (adminManageInfo.getReservation().getId() != reservation.getId()) {
                 adminManageInfo.setActivated(false);
                 adminManageInfoList.add(new AdminManageInfo(reservation));
@@ -65,6 +71,24 @@ public class AdminManageService {
 
         adminManageInfoRepository.saveAll(adminManageInfoList);
         adminManageInfoRepository.saveAll(notReservedList);
+    }
+
+    @Transactional
+    public void addAdminManageInfo(AdminManageInfoRequestDto requestDto) {
+        List<DateRoom> dateRoomList = dateRoomRepository.findAllByDateBetweenAndRoom_Id(requestDto.getCheckIn(), requestDto.getCheckOut(), requestDto.getRoomId());
+        for (DateRoom dateRoom : dateRoomList) {
+            if (dateRoom.getRoomReservationState() != 1) {
+                log.info("예약되지 않은 날짜입니다.");
+                return;
+            }
+        }
+        Room room = roomRepository.findById(requestDto.getRoomId()).orElseThrow(()->new NoSuchElementException("Room ID 가 잘못되었습니다."));
+        AdminManageInfo adminManageInfo = AdminManageInfo.builder()
+                .guestType(2).checkin(requestDto.getCheckIn()).checkout(requestDto.getCheckOut()).room(room)
+                .name(requestDto.getGuestName()).phoneNumber(requestDto.getGuestPhoneNumber()).guestCount(requestDto.getGuestCount())
+                .request(requestDto.getRequest())
+                .build();
+        adminManageInfoRepository.save(adminManageInfo);
     }
 
     @Transactional

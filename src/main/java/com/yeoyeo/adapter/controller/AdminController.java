@@ -116,13 +116,18 @@ public class AdminController {
     }
 
     @PostMapping("/manage/info")
-    public void createAdminManageInfoList() {
-        adminManageService.createAdminManageInfoList();
+    public void addAdminManageInfo(@RequestBody AdminManageInfoRequestDto requestDto) {
+        adminManageService.addAdminManageInfo(requestDto);
     }
 
     @PutMapping("/manage/info")
     public void setAdminManageInfo(@RequestBody AdminManageInfoRequestDto requestDto) {
         adminManageService.setAdminManageInfo(requestDto);
+    }
+
+    @PostMapping("/manage/info/list")
+    public void createAdminManageInfoList() {
+        adminManageService.createAdminManageInfoList();
     }
 
 }

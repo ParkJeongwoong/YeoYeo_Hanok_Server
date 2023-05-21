@@ -55,6 +55,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 //                .antMatchers("/index.html").authenticated()
 //                .antMatchers("/").authenticated()
                 .antMatchers("/admin/signup").authenticated() // 임시
+                .antMatchers("/adminManage.html").authenticated()
+                .antMatchers("/admin/manage/*").authenticated()
                 .antMatchers("/swagger-ui/*").authenticated()
                 .anyRequest().permitAll()
                 .and()
