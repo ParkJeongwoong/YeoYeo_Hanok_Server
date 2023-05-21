@@ -97,28 +97,23 @@ public class DateRoom {
     }
 
     public void resetDefaultPriceType(WebClientService webClientService, String key) {
-        if (this.priceType != 0) {
-            setDefaultPriceType(webClientService, key);
-            setPrice();
-        }
+        if (this.priceType == 1 || this.priceType == 2) setDefaultPriceType(webClientService, key);
+        if (this.priceType != 0) setPrice();
     }
 
     private void setDefaultPriceType(WebClientService webClientService, String key) {
         DayOfWeek dayOfWeek = this.date.getDayOfWeek();
-        int offset = 0;
-        if (this.priceType > 2) offset = 2;
-
         switch (dayOfWeek) {
             case FRIDAY:
             case SATURDAY:
-                this.priceType = 2+offset;
+                this.priceType = 2;
                 break;
             default:
-                this.priceType = 1+offset;
+                this.priceType = 1;
                 break;
         }
         if (checkHoliday(webClientService, key)) {
-            this.priceType = 2+offset;
+            this.priceType = 2;
         }
     }
 

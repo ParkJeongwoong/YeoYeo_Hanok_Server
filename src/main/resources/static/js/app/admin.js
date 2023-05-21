@@ -1,3 +1,6 @@
+//const SERVER_URL = "http://localhost:8080"
+const SERVER_URL = "https://api.yeoyeo.co.kr"
+
 const today = new Date().toLocaleDateString();
 //document.write("<h1>오늘 날짜 : "+today+"</h1>")
 todayDiv = document.getElementById("today");
@@ -22,7 +25,7 @@ window.onload = function() {
         }
     };
     /* Get 방식으로 name 파라미터와 함께 요청 */
-    httpRequest.open('GET', 'http://localhost:8080/admin/manage/info');
+    httpRequest.open('GET', SERVER_URL+'/admin/manage/info');
     /* Response Type을 Json으로 사전 정의 */
     httpRequest.responseType = "json";
     /* 정의된 서버에 요청을 전송 */
@@ -63,7 +66,7 @@ const modify = (e) => {
         }
     };
     /* Get 방식으로 name 파라미터와 함께 요청 */
-    httpRequest.open('PUT', 'http://localhost:8080/admin/manage/info',true);
+    httpRequest.open('PUT', SERVER_URL+'/admin/manage/info', true);
     /* Response Type을 Json으로 사전 정의 */
     httpRequest.responseType = "json";
     /* 요청 Header에 컨텐츠 타입은 Json으로 사전 정의 */

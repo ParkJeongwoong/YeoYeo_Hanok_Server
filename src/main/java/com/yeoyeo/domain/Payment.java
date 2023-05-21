@@ -1,7 +1,6 @@
 package com.yeoyeo.domain;
 
 import com.yeoyeo.application.payment.etc.exception.PaymentException;
-import com.yeoyeo.application.reservation.etc.exception.ReservationException;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
