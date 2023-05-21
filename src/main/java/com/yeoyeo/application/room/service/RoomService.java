@@ -2,9 +2,11 @@ package com.yeoyeo.application.room.service;
 
 import com.yeoyeo.application.admin.dto.ChangeRoomDefaultPriceRequestDto;
 import com.yeoyeo.application.common.dto.GeneralResponseDto;
+import com.yeoyeo.application.dateroom.repository.DateRoomRepository;
 import com.yeoyeo.application.room.dto.RoomInfoDto;
 import com.yeoyeo.application.room.dto.MakeRoomDto;
 import com.yeoyeo.application.room.repository.RoomRepository;
+import com.yeoyeo.domain.DateRoom;
 import com.yeoyeo.domain.Room;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -19,6 +21,7 @@ import java.util.stream.Collectors;
 public class RoomService {
 
     private final RoomRepository roomRepository;
+    private final DateRoomRepository dateRoomRepository;
 
     public List<RoomInfoDto> showAllRooms() {
         return roomRepository.findAll().stream().map(RoomInfoDto::new).collect(Collectors.toList());
@@ -48,6 +51,8 @@ public class RoomService {
         try {
             Room room = roomRepository.findById(roomId).orElseThrow(NoSuchElementException::new);
             room.changeDefaultPrice(requestDto);
+            List<DateRoom> dateRooms = dateRoomRepository.findAll();
+            dateRooms.forEach(DateRoom::setPrice);
             return GeneralResponseDto.builder().success(true).build();
         } catch (NoSuchElementException noSuchElementException) {
             return GeneralResponseDto.builder().success(false).message("존재하지 않는 방입니다.").build();

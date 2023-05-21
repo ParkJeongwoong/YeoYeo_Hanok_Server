@@ -3,7 +3,9 @@ package com.yeoyeo.adapter.controller;
 import com.yeoyeo.application.admin.dto.AdminManageInfoRequestDto;
 import com.yeoyeo.application.admin.dto.AdminManageInfoResponseDto;
 import com.yeoyeo.application.admin.dto.ChangeRoomDefaultPriceRequestDto;
+import com.yeoyeo.application.admin.dto.SignupDto;
 import com.yeoyeo.application.admin.service.AdminManageService;
+import com.yeoyeo.application.admin.service.AuthService;
 import com.yeoyeo.application.common.dto.GeneralResponseDto;
 import com.yeoyeo.application.dateroom.dto.ChangeDateRoomListPriceRequestDto;
 import com.yeoyeo.application.dateroom.dto.ChangeDateRoomListStatusRequestDto;
@@ -39,6 +41,13 @@ public class AdminController {
     private final ReservationService reservationService;
     private final PaymentService paymentService;
     private final AdminManageService adminManageService;
+    private final AuthService authService;
+
+    // Auth
+    @PostMapping("/signup")
+    public String signup(SignupDto dto) {
+        return authService.signup(dto);
+    }
 
     // ROOM 관련
     @ApiOperation(value = "Change Default Price", notes = "방의 기본가(평일가격, 주말가격, 성수기 평일가격, 성수기 주말가격) 설정")

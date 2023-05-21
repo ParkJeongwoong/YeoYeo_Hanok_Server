@@ -101,23 +101,7 @@ public class DateRoom {
         if (this.priceType != 0) setPrice();
     }
 
-    private void setDefaultPriceType(WebClientService webClientService, String key) {
-        DayOfWeek dayOfWeek = this.date.getDayOfWeek();
-        switch (dayOfWeek) {
-            case FRIDAY:
-            case SATURDAY:
-                this.priceType = 2;
-                break;
-            default:
-                this.priceType = 1;
-                break;
-        }
-        if (checkHoliday(webClientService, key)) {
-            this.priceType = 2;
-        }
-    }
-
-    private void setPrice() {
+    public void setPrice() {
         switch (this.priceType) {
             case 1:
                 this.price = this.room.getPrice();
@@ -131,6 +115,22 @@ public class DateRoom {
             case 4:
                 this.price = this.room.getPriceWeekendSpecial();
                 break;
+        }
+    }
+
+    private void setDefaultPriceType(WebClientService webClientService, String key) {
+        DayOfWeek dayOfWeek = this.date.getDayOfWeek();
+        switch (dayOfWeek) {
+            case FRIDAY:
+            case SATURDAY:
+                this.priceType = 2;
+                break;
+            default:
+                this.priceType = 1;
+                break;
+        }
+        if (checkHoliday(webClientService, key)) {
+            this.priceType = 2;
         }
     }
 
