@@ -1,5 +1,5 @@
-const SERVER_URL = "http://localhost:8080"
-//const SERVER_URL = "https://api.yeoyeo.co.kr"
+//const SERVER_URL = "http://localhost:8080"
+const SERVER_URL = "https://api.yeoyeo.co.kr"
 
 const today = new Date().toLocaleDateString();
 //document.write("<h1>오늘 날짜 : "+today+"</h1>")
