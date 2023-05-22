@@ -270,8 +270,8 @@ public class MessageService {
         String timestamp = getTimestamp();
         String signature = getSignature("POST", uri, timestamp);
 
-//        return webClientService.sendMessage(type, url, subject, content, getNumberOnly(to), timestamp, accessKey, signature);
-        return null;
+        return webClientService.sendMessage(type, url, subject, content, getNumberOnly(to), timestamp, accessKey, signature);
+//        return null;
     }
 
     @Async
@@ -281,8 +281,8 @@ public class MessageService {
         String timestamp = getTimestamp();
         String signature = getSignature("POST", uri, timestamp);
 
-//        return webClientService.sendMultipleMessage(type, url, subject, content, phoneNumberList.stream().map(this::getNumberOnly).collect(Collectors.toList()), timestamp, accessKey, signature);
-        return null;
+        return webClientService.sendMultipleMessage(type, url, subject, content, phoneNumberList.stream().map(this::getNumberOnly).collect(Collectors.toList()), timestamp, accessKey, signature);
+//        return null;
     }
 
     private String getSignature(String method, String uri, String timestamp) {
