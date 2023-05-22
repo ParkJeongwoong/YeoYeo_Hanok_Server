@@ -182,7 +182,7 @@ const makeTable = (result) => {
 
             if (checkOut < reservationCheckOut) {
                 let isAddButton = true;
-                for ( let j=i+1; j<result.length ; i++) {
+                for ( let j=i+1; j<result.length ; j++) {
                     if (new Date(result[j].checkIn) >= reservationCheckOut) {
                         break;
                     } else if (result[j].reservationId == result[i].reservationId) {
@@ -214,11 +214,10 @@ const makeTable = (result) => {
                     checkOut.setDate(checkOut.getDate() + 1);
                     input1Add.value = dateFormat(checkOut);
                     input2Add.id = "guestNameAdd"+i;
-                    input2Add.value = result[i].guestName;
                     input3Add.id = "guestPhoneNumberAdd"+i;
-                    input3Add.value = result[i].guestPhoneNumber;
+                    input3Add.value = "010-0000-0000";
                     input4Add.id = "guestCountAdd"+i;
-                    input4Add.value = result[i].guestCount;
+                    input4Add.value = "0";
                     buttonAdd.className = "btn btn-outline-warning";
                     buttonAdd.id = result[i].reservationId;
                     buttonAdd.value = i;
