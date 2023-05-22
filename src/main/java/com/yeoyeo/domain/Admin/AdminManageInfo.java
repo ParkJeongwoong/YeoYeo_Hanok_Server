@@ -114,6 +114,7 @@ public class AdminManageInfo {
                 .guestPhoneNumber(this.phoneNumber)
                 .guestCount(this.guestCount)
                 .request(this.request)
+                .reservation(this.reservation)
                 .build();
     }
 

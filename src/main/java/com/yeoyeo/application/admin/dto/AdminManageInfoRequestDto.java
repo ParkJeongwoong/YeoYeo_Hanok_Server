@@ -19,8 +19,10 @@ public class AdminManageInfoRequestDto {
     private int guestCount;
     private String request;
 
+    private long reservationId;
+
     @Builder
-    public AdminManageInfoRequestDto(LocalDate checkIn, long roomId, LocalDate checkOut, String guestName, String guestPhoneNumber, int guestCount, String request) {
+    public AdminManageInfoRequestDto(LocalDate checkIn, long roomId, LocalDate checkOut, String guestName, String guestPhoneNumber, int guestCount, String request, long reservationId) {
         this.checkIn = checkIn;
         this.roomId = roomId;
         this.checkOut = checkOut;
@@ -28,6 +30,7 @@ public class AdminManageInfoRequestDto {
         this.guestPhoneNumber = guestPhoneNumber;
         this.guestCount = guestCount;
         this.request = request;
+        this.reservationId = reservationId;
     }
 
 }

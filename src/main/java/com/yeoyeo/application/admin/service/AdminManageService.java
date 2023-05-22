@@ -8,6 +8,7 @@ import com.yeoyeo.application.reservation.repository.ReservationRepository;
 import com.yeoyeo.application.room.repository.RoomRepository;
 import com.yeoyeo.domain.Admin.AdminManageInfo;
 import com.yeoyeo.domain.DateRoom;
+import com.yeoyeo.domain.MapDateRoomReservation;
 import com.yeoyeo.domain.Reservation;
 import com.yeoyeo.domain.Room;
 import lombok.RequiredArgsConstructor;
@@ -75,7 +76,7 @@ public class AdminManageService {
 
     @Transactional
     public void addAdminManageInfo(AdminManageInfoRequestDto requestDto) {
-        List<DateRoom> dateRoomList = dateRoomRepository.findAllByDateBetweenAndRoom_Id(requestDto.getCheckIn(), requestDto.getCheckOut(), requestDto.getRoomId());
+        List<DateRoom> dateRoomList = dateRoomRepository.findAllByDateBetweenAndRoom_Id(requestDto.getCheckIn(), requestDto.getCheckOut().minusDays(1), requestDto.getRoomId());
         for (DateRoom dateRoom : dateRoomList) {
             if (dateRoom.getRoomReservationState() != 1) {
                 log.info("예약되지 않은 날짜입니다.");
@@ -83,10 +84,12 @@ public class AdminManageService {
             }
         }
         Room room = roomRepository.findById(requestDto.getRoomId()).orElseThrow(()->new NoSuchElementException("Room ID 가 잘못되었습니다."));
+        Reservation reservation = reservationRepository.findById(requestDto.getReservationId()).orElseThrow(()->new NoSuchElementException("Reservation ID 가 잘못되었습니다."));
         AdminManageInfo adminManageInfo = AdminManageInfo.builder()
                 .guestType(2).checkin(requestDto.getCheckIn()).checkout(requestDto.getCheckOut()).room(room)
                 .name(requestDto.getGuestName()).phoneNumber(requestDto.getGuestPhoneNumber()).guestCount(requestDto.getGuestCount())
                 .request(requestDto.getRequest())
+                .reservation(reservation)
                 .build();
         adminManageInfoRepository.save(adminManageInfo);
     }
