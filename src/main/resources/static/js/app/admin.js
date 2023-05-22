@@ -128,7 +128,7 @@ const makeTable = (result) => {
     //테이블 생성 태그를 연다.
 
     // for문 시작
-    for ( var i=0; i<result.length ; i++) {
+    for ( let i=0; i<result.length ; i++) {
         const tr = document.createElement('tr');
         const td1 = document.createElement('td');
         td1.className = "fw-bold";
@@ -180,54 +180,65 @@ const makeTable = (result) => {
             const checkOut = new Date(result[i].checkOut);
             const reservationCheckOut = new Date(result[i].reservationCheckOut);
 
-            if (checkOut < reservationCheckOut && i+1 < result.length && result[i].reservationId != result[i+1].reservationId) {
-                const trAdd = document.createElement('tr');
-                trAdd.className = "table-warning";
-                const td1Add = document.createElement('td');
-                const td2Add = document.createElement('td');
-                const td3Add = document.createElement('td');
-                const td4Add = document.createElement('td');
-                const td5Add = document.createElement('td');
-                const td6Add = document.createElement('td');
-                const td7Add = document.createElement('td');
-                const td8Add = document.createElement('td');
-                const td9Add = document.createElement('td');
+            if (checkOut < reservationCheckOut) {
+                let isAddButton = true;
+                for ( let j=i+1; j<result.length ; i++) {
+                    if (new Date(result[j].checkIn) >= reservationCheckOut) {
+                        break;
+                    } else if (result[j].reservationId == result[i].reservationId) {
+                        isAddButton = false;
+                        break;
+                    }
+                }
+                if (isAddButton) {
+                    const trAdd = document.createElement('tr');
+                    trAdd.className = "table-warning";
+                    const td1Add = document.createElement('td');
+                    const td2Add = document.createElement('td');
+                    const td3Add = document.createElement('td');
+                    const td4Add = document.createElement('td');
+                    const td5Add = document.createElement('td');
+                    const td6Add = document.createElement('td');
+                    const td7Add = document.createElement('td');
+                    const td8Add = document.createElement('td');
+                    const td9Add = document.createElement('td');
 
-                tbody.appendChild(trAdd);
+                    tbody.appendChild(trAdd);
 
-                const input1Add = document.createElement('input');
-                const input2Add = document.createElement('input');
-                const input3Add = document.createElement('input');
-                const input4Add = document.createElement('input');
-                const buttonAdd = document.createElement('button');
-                input1Add.id = "checkOutAdd"+i;
-                checkOut.setDate(checkOut.getDate() + 1);
-                input1Add.value = dateFormat(checkOut);
-                input2Add.id = "guestNameAdd"+i;
-                input2Add.value = result[i].guestName;
-                input3Add.id = "guestPhoneNumberAdd"+i;
-                input3Add.value = result[i].guestPhoneNumber;
-                input4Add.id = "guestCountAdd"+i;
-                input4Add.value = result[i].guestCount;
-                buttonAdd.className = "btn btn-outline-warning";
-                buttonAdd.id = result[i].reservationId;
-                buttonAdd.value = i;
-                buttonAdd.innerText = "추가";
-                buttonAdd.onclick = function(event) { add(event) };
+                    const input1Add = document.createElement('input');
+                    const input2Add = document.createElement('input');
+                    const input3Add = document.createElement('input');
+                    const input4Add = document.createElement('input');
+                    const buttonAdd = document.createElement('button');
+                    input1Add.id = "checkOutAdd"+i;
+                    checkOut.setDate(checkOut.getDate() + 1);
+                    input1Add.value = dateFormat(checkOut);
+                    input2Add.id = "guestNameAdd"+i;
+                    input2Add.value = result[i].guestName;
+                    input3Add.id = "guestPhoneNumberAdd"+i;
+                    input3Add.value = result[i].guestPhoneNumber;
+                    input4Add.id = "guestCountAdd"+i;
+                    input4Add.value = result[i].guestCount;
+                    buttonAdd.className = "btn btn-outline-warning";
+                    buttonAdd.id = result[i].reservationId;
+                    buttonAdd.value = i;
+                    buttonAdd.innerText = "추가";
+                    buttonAdd.onclick = function(event) { add(event) };
 
-                trAdd.append(td1Add, td2Add, td3Add, td4Add, td5Add, td6Add, td7Add, td8Add, td9Add);
+                    trAdd.append(td1Add, td2Add, td3Add, td4Add, td5Add, td6Add, td7Add, td8Add, td9Add);
 
-                td1Add.innerText = result[i].checkOut;
-                td1Add.id = "checkInAdd"+i;
-                td2Add.appendChild(input1Add);
-                td3Add.innerText = result[i].roomName;
-                td3Add.id = "roomNameAdd"+i;
-                td4Add.innerText = result[i].guestType;
-                td5Add.appendChild(input2Add);
-                td6Add.appendChild(input3Add);
-                td7Add.appendChild(input4Add);
-                td8Add.innerText = result[i].request;
-                td9Add.appendChild(buttonAdd);
+                    td1Add.innerText = result[i].checkOut;
+                    td1Add.id = "checkInAdd"+i;
+                    td2Add.appendChild(input1Add);
+                    td3Add.innerText = result[i].roomName;
+                    td3Add.id = "roomNameAdd"+i;
+                    td4Add.innerText = result[i].guestType;
+                    td5Add.appendChild(input2Add);
+                    td6Add.appendChild(input3Add);
+                    td7Add.appendChild(input4Add);
+                    td8Add.innerText = result[i].request;
+                    td9Add.appendChild(buttonAdd);
+                }
             }
         }
         else {
