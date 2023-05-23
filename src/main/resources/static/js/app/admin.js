@@ -1,5 +1,5 @@
-//const SERVER_URL = "http://localhost:8080"
-const SERVER_URL = "https://api.yeoyeo.co.kr"
+const SERVER_URL = "http://localhost:8080"
+//const SERVER_URL = "https://api.yeoyeo.co.kr"
 
 const today = new Date().toLocaleDateString();
 //document.write("<h1>오늘 날짜 : "+today+"</h1>")
@@ -129,7 +129,8 @@ const makeTable = (result) => {
 
     // for문 시작
     for ( let i=0; i<result.length ; i++) {
-        const tr = document.createElement('tr');
+        const tr1 = document.createElement('tr');
+        const tr2 = document.createElement('tr');
         const td1 = document.createElement('td');
         td1.className = "fw-bold";
         const td2 = document.createElement('td');
@@ -139,11 +140,13 @@ const makeTable = (result) => {
         const td6 = document.createElement('td');
         const td7 = document.createElement('td');
         const td8 = document.createElement('td');
-        const td9 = document.createElement('td');
+        const tdButton = document.createElement('td');
+        tdButton.setAttribute("rowspan", 2);
 
-        tbody.appendChild(tr);
+        tbody.append(tr1,tr2);
         if (result[i].guestType === 'DIRECT') {
-            tr.className = "table-primary";
+            tr1.className = "table-primary";
+            tr2.className = "table-primary";
             const input1 = document.createElement('input');
             const input2 = document.createElement('input');
             const input3 = document.createElement('input');
@@ -163,7 +166,8 @@ const makeTable = (result) => {
             button.innerText = "수정";
             button.onclick = function(event) { modify(event) };
 
-            tr.append(td1, td2, td3, td4, td5, td6, td7, td8, td9);
+            tr1.append(td1, td2, td3, td4, tdButton);
+            tr2.append(td5, td6, td7, td8);
 
             td1.innerText = result[i].checkIn;
             td1.id = "checkIn"+i;
@@ -175,7 +179,7 @@ const makeTable = (result) => {
             td6.appendChild(input3);
             td7.appendChild(input4);
             td8.innerText = result[i].request;
-            td9.appendChild(button);
+            tdButton.appendChild(button);
 
             const checkOut = new Date(result[i].checkOut);
             const reservationCheckOut = new Date(result[i].reservationCheckOut);
@@ -191,8 +195,10 @@ const makeTable = (result) => {
                     }
                 }
                 if (isAddButton) {
-                    const trAdd = document.createElement('tr');
-                    trAdd.className = "table-warning";
+                    const tr1Add = document.createElement('tr');
+                    const tr2Add = document.createElement('tr');
+                    tr1Add.className = "table-warning";
+                    tr2Add.className = "table-warning";
                     const td1Add = document.createElement('td');
                     const td2Add = document.createElement('td');
                     const td3Add = document.createElement('td');
@@ -201,9 +207,10 @@ const makeTable = (result) => {
                     const td6Add = document.createElement('td');
                     const td7Add = document.createElement('td');
                     const td8Add = document.createElement('td');
-                    const td9Add = document.createElement('td');
+                    const tdButtonAdd = document.createElement('td');
+                    tdButtonAdd.setAttribute("rowspan", 2);
 
-                    tbody.appendChild(trAdd);
+                    tbody.append(tr1Add,tr2Add);
 
                     const input1Add = document.createElement('input');
                     const input2Add = document.createElement('input');
@@ -214,17 +221,19 @@ const makeTable = (result) => {
                     checkOut.setDate(checkOut.getDate() + 1);
                     input1Add.value = dateFormat(checkOut);
                     input2Add.id = "guestNameAdd"+i;
+                    input2Add.placeholder = "이름"
                     input3Add.id = "guestPhoneNumberAdd"+i;
-                    input3Add.value = "010-0000-0000";
+                    input3Add.placeholder = "전화번호"
                     input4Add.id = "guestCountAdd"+i;
-                    input4Add.value = "0";
+                    input4Add.placeholder = "인원"
                     buttonAdd.className = "btn btn-outline-warning";
                     buttonAdd.id = result[i].reservationId;
                     buttonAdd.value = i;
                     buttonAdd.innerText = "추가";
                     buttonAdd.onclick = function(event) { add(event) };
 
-                    trAdd.append(td1Add, td2Add, td3Add, td4Add, td5Add, td6Add, td7Add, td8Add, td9Add);
+                    tr1Add.append(td1Add, td2Add, td3Add, td4Add, tdButtonAdd);
+                    tr2Add.append(td5Add, td6Add, td7Add, td8Add);
 
                     td1Add.innerText = result[i].checkOut;
                     td1Add.id = "checkInAdd"+i;
@@ -236,12 +245,13 @@ const makeTable = (result) => {
                     td6Add.appendChild(input3Add);
                     td7Add.appendChild(input4Add);
                     td8Add.innerText = result[i].request;
-                    td9Add.appendChild(buttonAdd);
+                    tdButtonAdd.appendChild(buttonAdd);
                 }
             }
         }
         else {
-            tr.append(td1, td2, td3, td4, td5, td6, td7, td8, td9);
+            tr1.append(td1, td2, td3, td4, tdButton);
+            tr2.append(td5, td6, td7, td8);
 
             td1.innerText = result[i].checkIn;
             td2.innerText = result[i].checkOut;
