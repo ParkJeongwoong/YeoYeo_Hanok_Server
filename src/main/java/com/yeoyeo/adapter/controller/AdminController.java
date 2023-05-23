@@ -4,6 +4,7 @@ import com.yeoyeo.application.admin.dto.AdminManageInfoRequestDto;
 import com.yeoyeo.application.admin.dto.AdminManageInfoResponseDto;
 import com.yeoyeo.application.admin.dto.ChangeRoomDefaultPriceRequestDto;
 import com.yeoyeo.application.admin.dto.SignupDto;
+import com.yeoyeo.application.admin.etc.exception.AdminManageInfoException;
 import com.yeoyeo.application.admin.service.AdminManageService;
 import com.yeoyeo.application.admin.service.AuthService;
 import com.yeoyeo.application.common.dto.GeneralResponseDto;
@@ -126,7 +127,11 @@ public class AdminController {
 
     @PostMapping("/manage/info")
     public void addAdminManageInfo(@RequestBody AdminManageInfoRequestDto requestDto) {
-        adminManageService.addAdminManageInfo(requestDto);
+        try {
+            adminManageService.addAdminManageInfo(requestDto);
+        } catch (AdminManageInfoException e) {
+            log.error("AdminManageInfo 추가 실패", e);
+        }
     }
 
     @PutMapping("/manage/info")

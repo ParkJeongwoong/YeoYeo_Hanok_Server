@@ -26,7 +26,7 @@ public class AdminManageInfo {
 //    @Enumerated(EnumType.STRING) // Enum은 DB와 연결했을 때 단점이 생기기 때문에 사용 X
     @Column(nullable = false)
 //    private GuestType guestType;
-    private int guestType; // 0: 홈페이지 예약 손님 , 1: 에어비앤비 예약 손님, 2: 문의 예약 손님
+    private int guestType; // 0: 홈페이지 예약 손님 , 1: 에어비앤비 예약 손님, 2: 전화 예약 손님
 
     @Column(nullable = false)
     private LocalDate checkin;
@@ -118,16 +118,8 @@ public class AdminManageInfo {
                 .build();
     }
 
-    public void sendConfirmMsg() {
-
-    }
-
-    public void sendCheckInMsg() {
-
-    }
-
-    public void noticeAdmin() {
-
+    public String getNumberOnlyPhoneNumber() {
+        return this.phoneNumber.replaceAll("[^0-9]","");
     }
 
 }

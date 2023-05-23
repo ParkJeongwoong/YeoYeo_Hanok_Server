@@ -168,14 +168,46 @@ public class MessageService {
                 .collect(Collectors.toList());
         reservations.forEach(reservation -> {
             log.info("SEND TO {} - {}", reservation.getId(), reservation.getGuest().getPhoneNumber());
-            sendNoticeMsg(reservation);
+            sendNoticeMsg(reservation.getGuest().getNumberOnlyPhoneNumber());
             reservation.setManagementLevel(2);
         });
         reservationRepository.saveAll(reservations);
     }
 
     // LMS
-    public SendMessageResponseDto sendCheckInMsg(Reservation reservation) {
+    public SendMessageResponseDto sendNoticeMsg(String numberOnlyPhoneNumber) {
+        String subject = "[한옥스테이 여여] 숙박 안내문자";
+        String content = "안녕하세요 :)\n" +
+                "한옥스테이 여여 입니다.\n" +
+                "여여를 방문하시기 전 보내드리는 안내 메시지입니다!\n" +
+                "\n" +
+                "1. 입퇴실 안내\n" +
+                "[입퇴실은 셀프 체크인, 체크아웃]으로 진행되며 [체크아웃 시 문자로 확인] 부탁드립니다 :)\n" +
+                "[입실은 오후 3시] 부터 가능하시고 현관문 비밀번호는 [예약한 전화번호 뒤 4자리 + *] 입니다.\n" +
+                "[퇴실 시간은 오전 11시]이오니 시간을 준수해 주시면 감사하겠습니다.\n" +
+                "\n" +
+                "2. 오시는 길\n" +
+                "한옥스테이 여여는 [경주시 갯마을길 53]에 위치하고 있으며 주차장이 있으니 차량을 이용하여 방문하시는 것을 추천 드립니다.\n" +
+                "\n" +
+                "3. 제공 서비스\n" +
+                "게스트를 위한 [물 2병, 소금빵, 캡슐커피, 와인잔, 와인오프너, 어메니티 (칫솔, 치약, 비누), 샴푸, 컨디셔너, 바디워시, 샤워타월, 수건, 드라이기, 충전기 및 여여에서 생활하는 동안 입으실 수 있는 생활 한복]이 준비되어 있습니다.\n" +
+                "또 머무르는 동안 사용하실 수 있는 [빔프로젝터, 발뮤다 토스터, 네스프레소 커피머신, 전자레인지, 냉장고, 커피포트]가 있으니 편히 이용하시길 바랍니다.\n" +
+                "\n" +
+                "4. 안내사항\n" +
+                "- [반려동물 입실은 불가]한 점 참고 바랍니다.\n" +
+                "- 주변에 산이 인접해 있기 때문에 마당과 실내 및 주변 공간은 모두 금연구역인 점 양해부탁드립니다.\n" +
+                "- 목조건물이기 때문에 [화기 사용이 불가능]하며 요리도 불가능한 점 양해 부탁드립니다.\n" +
+                "- 숙소 내 시설 및 침구류 등에 지울 수 없는 오염이 발생하는 경우 청소비 및 교체 비용이 발생할 수 있으니 배려 부탁드립니다.\n" +
+                "- 입욕제를 사용할 수 없는 점 양해 부탁드립니다. 착색/배수구 막힘 발생 시 예약을 받지 못하게 되므로 예약비와 수리비가 청구됩니다. (물에 녹는 입욕솔트는 사용 가능합니다)\n" +
+                "\n" +
+                "여여에서의 시간이 편안한 휴식이 되시길 바랍니다.\n" +
+                "감사합니다.";
+
+        return sendMessage("LMS", subject, content, numberOnlyPhoneNumber);
+    }
+
+    // LMS
+    public SendMessageResponseDto sendCheckInMsg(String numberOnlyPhoneNumber) {
         String subject = "[한옥스테이 여여] 체크인 안내문자";
         String content = "안녕하세요 :)\n" +
                 "한옥스테이 여여 입니다.\n" +
@@ -183,7 +215,7 @@ public class MessageService {
                 "\n" +
                 "<입퇴실 안내>\n" +
                 "[입퇴실은 셀프 체크인, 체크아웃]으로 진행되며 [체크아웃 시 문자로 확인] 부탁드립니다 :)\n" +
-                "[입실은 오후 3시] 부터 가능하시고 현관문 비밀번호는 [전화번호 뒤 4자리 + *] 입니다.\n" +
+                "[입실은 오후 3시] 부터 가능하시고 현관문 비밀번호는 [예약한 전화번호 뒤 4자리 + *] 입니다.\n" +
                 "[퇴실 시간은 오전 11시]이오니 시간을 준수해 주시면 감사하겠습니다.\n" +
                 "\n" +
                 "<오시는 길>\n" +
@@ -225,42 +257,20 @@ public class MessageService {
                 "\n" +
                 "편안하고 즐거운 시간 보내시길 바랍니다.\n" +
                 "감사합니다!";
-        String to = reservation.getGuest().getNumberOnlyPhoneNumber();
 
-        return sendMessage("LMS", subject, content, to);
+        return sendMessage("LMS", subject, content, numberOnlyPhoneNumber);
     }
 
     // LMS
-    private SendMessageResponseDto sendNoticeMsg(Reservation reservation) {
-        String subject = "[한옥스테이 여여] 체크인 안내문자";
+    public SendMessageResponseDto sendAfterCheckInMsg(String numberOnlyPhoneNumber) {
+        String subject = "[한옥스테이 여여] 안내문자";
         String content = "안녕하세요 :)\n" +
                 "한옥스테이 여여 입니다.\n" +
-                "여여를 방문하시기 전 보내드리는 안내 메시지입니다!\n" +
-                "\n" +
-                "1. 입퇴실 안내\n" +
-                "[입퇴실은 셀프 체크인, 체크아웃]으로 진행되며 [체크아웃 시 문자로 확인] 부탁드립니다 :)\n" +
-                "[입실은 오후 3시] 부터 가능하시고 현관문 비밀번호는 [전화번호 뒤 4자리 + *] 입니다.\n" +
-                "[퇴실 시간은 오전 11시]이오니 시간을 준수해 주시면 감사하겠습니다.\n" +
-                "\n" +
-                "2. 오시는 길\n" +
-                "한옥스테이 여여는 [경주시 갯마을길 53]에 위치하고 있으며 주차장이 있으니 차량을 이용하여 방문하시는 것을 추천 드립니다.\n" +
-                "\n" +
-                "3. 제공 서비스\n" +
-                "게스트를 위한 [물 2병, 소금빵, 캡슐커피, 와인잔, 와인오프너, 어메니티 (칫솔, 치약, 비누), 샴푸, 컨디셔너, 바디워시, 샤워타월, 수건, 드라이기, 충전기 및 여여에서 생활하는 동안 입으실 수 있는 생활 한복]이 준비되어 있습니다.\n" +
-                "또 머무르는 동안 사용하실 수 있는 [빔프로젝터, 발뮤다 토스터, 네스프레소 커피머신, 전자레인지, 냉장고, 커피포트]가 있으니 편히 이용하시길 바랍니다.\n" +
-                "\n" +
-                "4. 안내사항\n" +
-                "- [반려동물 입실은 불가]한 점 참고 바랍니다.\n" +
-                "- 주변에 산이 인접해 있기 때문에 마당과 실내 및 주변 공간은 모두 금연구역인 점 양해부탁드립니다.\n" +
-                "- 목조건물이기 때문에 [화기 사용이 불가능]하며 요리도 불가능한 점 양해 부탁드립니다.\n" +
-                "- 숙소 내 시설 및 침구류 등에 지울 수 없는 오염이 발생하는 경우 청소비 및 교체 비용이 발생할 수 있으니 배려 부탁드립니다.\n" +
-                "- 입욕제를 사용할 수 없는 점 양해 부탁드립니다. 착색/배수구 막힘 발생 시 예약을 받지 못하게 되므로 예약비와 수리비가 청구됩니다. (물에 녹는 입욕솔트는 사용 가능합니다)\n" +
-                "\n" +
-                "여여에서의 시간이 편안한 휴식이 되시길 바랍니다.\n" +
+                "3시에 숙소 상태 최고의 컨디션 확인하였으나 체크인 하실 때. 바닥이나 방석에 작은 나무나 흙알갱이들이 떨어져 있을 수 있어요. 전통방식의 한옥의 특징이니  양해 부탁 드립니다^^\n" +
+                "뒷뜰 바구니에 먼지털이와 물티슈를 넣어두었어요. 필요하실 때 사용하시길 바랍니다.^^\n" +
                 "감사합니다.";
-        String to = reservation.getGuest().getNumberOnlyPhoneNumber();
 
-        return sendMessage("LMS", subject, content, to);
+        return sendMessage("LMS", subject, content, numberOnlyPhoneNumber);
     }
 
     @Async

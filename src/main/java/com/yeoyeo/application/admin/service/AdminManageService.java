@@ -2,6 +2,7 @@ package com.yeoyeo.application.admin.service;
 
 import com.yeoyeo.application.admin.dto.AdminManageInfoRequestDto;
 import com.yeoyeo.application.admin.dto.AdminManageInfoResponseDto;
+import com.yeoyeo.application.admin.etc.exception.AdminManageInfoException;
 import com.yeoyeo.application.admin.repository.AdminManageInfoRepository;
 import com.yeoyeo.application.dateroom.repository.DateRoomRepository;
 import com.yeoyeo.application.reservation.repository.ReservationRepository;
@@ -75,7 +76,7 @@ public class AdminManageService {
     }
 
     @Transactional
-    public void addAdminManageInfo(AdminManageInfoRequestDto requestDto) {
+    public void addAdminManageInfo(AdminManageInfoRequestDto requestDto) throws AdminManageInfoException {
         List<DateRoom> dateRoomList = dateRoomRepository.findAllByDateBetweenAndRoom_Id(requestDto.getCheckIn(), requestDto.getCheckOut().minusDays(1), requestDto.getRoomId());
         for (DateRoom dateRoom : dateRoomList) {
             if (dateRoom.getRoomReservationState() != 1) {
@@ -83,6 +84,9 @@ public class AdminManageService {
                 return;
             }
         }
+        AdminManageInfo existingEntity = adminManageInfoRepository.findByCheckinAndRoom_IdAndActivated(requestDto.getCheckIn(), requestDto.getRoomId(), true);
+        if (existingEntity != null) throw new AdminManageInfoException("이미 해당 날짜에 AdminManageInfo 가 존재합니다.");
+
         Room room = roomRepository.findById(requestDto.getRoomId()).orElseThrow(()->new NoSuchElementException("Room ID 가 잘못되었습니다."));
         Reservation reservation = reservationRepository.findById(requestDto.getReservationId()).orElseThrow(()->new NoSuchElementException("Reservation ID 가 잘못되었습니다."));
         AdminManageInfo adminManageInfo = AdminManageInfo.builder()
@@ -104,6 +108,13 @@ public class AdminManageService {
         adminManageInfo.setGuestCount(requestDto.getGuestCount());
         adminManageInfo.setRequest(requestDto.getRequest());
         adminManageInfoRepository.save(adminManageInfo);
+    }
+
+    @Transactional
+    public void deactivateAdminManageInfo(AdminManageInfoRequestDto requestDto) throws NoSuchElementException {
+        AdminManageInfo adminManageInfo = adminManageInfoRepository.findByCheckinAndRoom_IdAndActivated(requestDto.getCheckIn(), requestDto.getRoomId(), true);
+        if (adminManageInfo == null) throw new NoSuchElementException("해당 AdminManageInfo는 존재하지 않습니다.");
+        adminManageInfo.setActivated(false);
     }
 
     private List<AdminManageInfo> getNotReservedInfo() {
