@@ -1,9 +1,6 @@
 package com.yeoyeo.adapter.controller;
 
-import com.yeoyeo.application.admin.dto.AdminManageInfoRequestDto;
-import com.yeoyeo.application.admin.dto.AdminManageInfoResponseDto;
-import com.yeoyeo.application.admin.dto.ChangeRoomDefaultPriceRequestDto;
-import com.yeoyeo.application.admin.dto.SignupDto;
+import com.yeoyeo.application.admin.dto.*;
 import com.yeoyeo.application.admin.etc.exception.AdminManageInfoException;
 import com.yeoyeo.application.admin.service.AdminManageService;
 import com.yeoyeo.application.admin.service.AuthService;
@@ -11,6 +8,7 @@ import com.yeoyeo.application.common.dto.GeneralResponseDto;
 import com.yeoyeo.application.dateroom.dto.ChangeDateRoomListPriceRequestDto;
 import com.yeoyeo.application.dateroom.dto.ChangeDateRoomListStatusRequestDto;
 import com.yeoyeo.application.dateroom.service.DateRoomService;
+import com.yeoyeo.application.message.service.MessageService;
 import com.yeoyeo.application.payment.service.PaymentService;
 import com.yeoyeo.application.reservation.dto.MakeReservationRequestDto.MakeReservationAdminRequestDto;
 import com.yeoyeo.application.reservation.dto.ReservationInfoDto;
@@ -43,6 +41,7 @@ public class AdminController {
     private final PaymentService paymentService;
     private final AdminManageService adminManageService;
     private final AuthService authService;
+    private final MessageService messageService;
 
     // Auth
     @PostMapping("/signup")
@@ -139,9 +138,19 @@ public class AdminController {
         adminManageService.setAdminManageInfo(requestDto);
     }
 
+    @DeleteMapping("/manage/info")
+    public void deactivateAdminManageInfo(@RequestBody AdminManageInfoRequestDto requestDto) {
+        adminManageService.deactivateAdminManageInfo(requestDto);
+    }
+
     @PostMapping("/manage/info/list")
     public void createAdminManageInfoList() {
         adminManageService.createAdminManageInfoList();
+    }
+
+    @PostMapping("/manage/message/notice")
+    public void sendAdminManageInfoNoticeMessage(@RequestBody AdminManageInfoRequestDto requestDto) {
+        messageService.sendNoticeMsg(requestDto.getNumberOnlyPhoneNumber());
     }
 
 }

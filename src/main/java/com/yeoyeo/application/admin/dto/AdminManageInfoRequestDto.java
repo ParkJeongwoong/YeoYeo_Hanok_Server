@@ -33,4 +33,8 @@ public class AdminManageInfoRequestDto {
         this.reservationId = reservationId;
     }
 
+    public String getNumberOnlyPhoneNumber() {
+        return this.guestPhoneNumber.replaceAll("[^0-9]","");
+    }
+
 }

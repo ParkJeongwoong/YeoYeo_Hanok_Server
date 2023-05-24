@@ -112,6 +112,7 @@ public class AdminManageService {
 
     @Transactional
     public void deactivateAdminManageInfo(AdminManageInfoRequestDto requestDto) throws NoSuchElementException {
+        log.info("{} {}", requestDto.getCheckIn(), requestDto.getRoomId());
         AdminManageInfo adminManageInfo = adminManageInfoRepository.findByCheckinAndRoom_IdAndActivated(requestDto.getCheckIn(), requestDto.getRoomId(), true);
         if (adminManageInfo == null) throw new NoSuchElementException("해당 AdminManageInfo는 존재하지 않습니다.");
         adminManageInfo.setActivated(false);
