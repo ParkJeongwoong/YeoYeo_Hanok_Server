@@ -2,9 +2,8 @@
 const SERVER_URL = "https://api.yeoyeo.co.kr"
 
 const today = new Date().toLocaleDateString();
-//document.write("<h1>오늘 날짜 : "+today+"</h1>")
 todayDiv = document.getElementById("today");
-todayDiv.innerHTML = "<h1>오늘 날짜 : "+today+"</h1>";
+todayDiv.innerHTML = "<h2>오늘 날짜 : "+today+"</h2>";
 
 
 // 요청 전송
@@ -43,6 +42,7 @@ const modify = (event) => {
     const guestName = document.querySelector("#guestName"+event.target.value);
     const guestPhoneNumber = document.querySelector("#guestPhoneNumber"+event.target.value);
     const guestCount = document.querySelector("#guestCount"+event.target.value);
+    const request = document.querySelector("#request"+event.target.value);
 
     const requestJson = new Object();
     requestJson.checkIn = checkIn;
@@ -51,6 +51,7 @@ const modify = (event) => {
     requestJson.guestName = guestName.value;
     requestJson.guestPhoneNumber = guestPhoneNumber.value;
     requestJson.guestCount = guestCount.value;
+    requestJson.request = request.value;
     requestJson.reservationId = event.target.id;
 
 	var httpRequest;
@@ -88,6 +89,7 @@ const add = (event) => {
     const guestName = document.querySelector("#guestNameAdd"+event.target.value);
     const guestPhoneNumber = document.querySelector("#guestPhoneNumberAdd"+event.target.value);
     const guestCount = document.querySelector("#guestCountAdd"+event.target.value);
+    const request = document.querySelector("#requestAdd"+event.target.value);
 
     const requestJson = new Object();
     requestJson.checkIn = checkIn;
@@ -96,6 +98,7 @@ const add = (event) => {
     requestJson.guestName = guestName.value;
     requestJson.guestPhoneNumber = guestPhoneNumber.value;
     requestJson.guestCount = guestCount.value;
+    requestJson.request = request.value;
     requestJson.reservationId = event.target.id;
 
 	var httpRequest;
@@ -132,39 +135,43 @@ const subtract = (event) => {
     const checkOut = document.querySelector("#checkOut"+event.target.value);
     const guestName = document.querySelector("#guestName"+event.target.value);
     const guestPhoneNumber = document.querySelector("#guestPhoneNumber"+event.target.value);
+    const request = document.querySelector("#request"+event.target.value);
     const guestCount = document.querySelector("#guestCount"+event.target.value);
 
-    const requestJson = new Object();
-    requestJson.checkIn = checkIn;
-    requestJson.roomId = roomId;
-    requestJson.checkOut = checkOut.value;
-    requestJson.guestName = guestName.value;
-    requestJson.guestPhoneNumber = guestPhoneNumber.value;
-    requestJson.guestCount = guestCount.value;
-    requestJson.reservationId = event.target.id;
+    if (window.confirm(checkIn+" "+roomName+" 예약을 삭제하시겠습니까?")) {
+        const requestJson = new Object();
+        requestJson.checkIn = checkIn;
+        requestJson.roomId = roomId;
+        requestJson.checkOut = checkOut.value;
+        requestJson.guestName = guestName.value;
+        requestJson.guestPhoneNumber = guestPhoneNumber.value;
+        requestJson.guestCount = guestCount.value;
+        requestJson.request = request.value;
+        requestJson.reservationId = event.target.id;
 
-	var httpRequest;
-    /* 통신에 사용 될 XMLHttpRequest 객체 정의 */
-    httpRequest = new XMLHttpRequest();
-    /* httpRequest의 readyState가 변화했을때 함수 실행 */
-    httpRequest.onreadystatechange = () => {
-        if (httpRequest.readyState === XMLHttpRequest.DONE) {
-              if (httpRequest.status === 200) {
-                var result = httpRequest.response;
-                location.reload();
-              } else {
-                alert('Request Error!');
-              }
-        }
-    };
-    /* Get 방식으로 name 파라미터와 함께 요청 */
-    httpRequest.open('DELETE', SERVER_URL+'/admin/manage/info', true);
-    /* Response Type을 Json으로 사전 정의 */
-    httpRequest.responseType = "json";
-    /* 요청 Header에 컨텐츠 타입은 Json으로 사전 정의 */
-    httpRequest.setRequestHeader('Content-Type', 'application/json');
-    /* 정의된 서버에 요청을 전송 */
-    httpRequest.send(JSON.stringify(requestJson));
+        var httpRequest;
+        /* 통신에 사용 될 XMLHttpRequest 객체 정의 */
+        httpRequest = new XMLHttpRequest();
+        /* httpRequest의 readyState가 변화했을때 함수 실행 */
+        httpRequest.onreadystatechange = () => {
+            if (httpRequest.readyState === XMLHttpRequest.DONE) {
+                  if (httpRequest.status === 200) {
+                    var result = httpRequest.response;
+                    location.reload();
+                  } else {
+                    alert('Request Error!');
+                  }
+            }
+        };
+        /* Get 방식으로 name 파라미터와 함께 요청 */
+        httpRequest.open('DELETE', SERVER_URL+'/admin/manage/info', true);
+        /* Response Type을 Json으로 사전 정의 */
+        httpRequest.responseType = "json";
+        /* 요청 Header에 컨텐츠 타입은 Json으로 사전 정의 */
+        httpRequest.setRequestHeader('Content-Type', 'application/json');
+        /* 정의된 서버에 요청을 전송 */
+        httpRequest.send(JSON.stringify(requestJson));
+    }
 }
 
 const notice = (event) => {
@@ -177,6 +184,7 @@ const notice = (event) => {
     const checkOut = document.querySelector("#checkOut"+event.target.value);
     const guestName = document.querySelector("#guestName"+event.target.value);
     const guestPhoneNumber = document.querySelector("#guestPhoneNumber"+event.target.value);
+    const request = document.querySelector("#request"+event.target.value);
     const guestCount = document.querySelector("#guestCount"+event.target.value);
 
     const requestJson = new Object();
@@ -186,6 +194,7 @@ const notice = (event) => {
     requestJson.guestName = guestName.value;
     requestJson.guestPhoneNumber = guestPhoneNumber.value;
     requestJson.guestCount = guestCount.value;
+    requestJson.request = request.value;
     requestJson.reservationId = event.target.id;
 
 	var httpRequest;
@@ -196,7 +205,7 @@ const notice = (event) => {
         if (httpRequest.readyState === XMLHttpRequest.DONE) {
               if (httpRequest.status === 200) {
                 var result = httpRequest.response;
-                location.reload();
+                window.alert(guestName.value+"님께 문자 전송을 완료했습니다.")
               } else {
                 alert('Request Error!');
               }
@@ -241,6 +250,7 @@ const makeTable = (result) => {
             const input2 = document.createElement('input');
             const input3 = document.createElement('input');
             const input4 = document.createElement('input');
+            const input5 = document.createElement('input');
             const buttonModify = document.createElement('button');
             const buttonDelete = document.createElement('button');
             const br = document.createElement('br');
@@ -253,6 +263,8 @@ const makeTable = (result) => {
             input3.value = result[i].guestPhoneNumber;
             input4.id = "guestCount"+i;
             input4.value = result[i].guestCount;
+            input5.id = "request"+i;
+            input5.value = result[i].request;
             buttonModify.className = "btn btn-outline-primary";
             buttonModify.id = result[i].reservationId;
             buttonModify.value = i;
@@ -281,7 +293,7 @@ const makeTable = (result) => {
             td5.appendChild(input2);
             td6.appendChild(input3);
             td7.appendChild(input4);
-            td8.innerText = result[i].request;
+            td8.appendChild(input5);
             tdButton.append(buttonModify, buttonDelete, br, buttonNotice);
 
             const checkOut = new Date(result[i].checkOut);
@@ -319,6 +331,7 @@ const makeTable = (result) => {
                     const input2Add = document.createElement('input');
                     const input3Add = document.createElement('input');
                     const input4Add = document.createElement('input');
+                    const input5Add = document.createElement('input');
                     const buttonAdd = document.createElement('button');
                     input1Add.id = "checkOutAdd"+i;
                     checkOut.setDate(checkOut.getDate() + 1);
@@ -329,6 +342,8 @@ const makeTable = (result) => {
                     input3Add.placeholder = "전화번호"
                     input4Add.id = "guestCountAdd"+i;
                     input4Add.placeholder = "인원"
+                    input5Add.id = "requestAdd"+i;
+                    input5Add.placeholder = "비고";
                     buttonAdd.className = "btn btn-outline-warning";
                     buttonAdd.id = result[i].reservationId;
                     buttonAdd.value = i;
@@ -347,7 +362,7 @@ const makeTable = (result) => {
                     td5Add.appendChild(input2Add);
                     td6Add.appendChild(input3Add);
                     td7Add.appendChild(input4Add);
-                    td8Add.innerText = result[i].request;
+                    td8Add.appendChild(input5Add);
                     tdButtonAdd.appendChild(buttonAdd);
                 }
             }
