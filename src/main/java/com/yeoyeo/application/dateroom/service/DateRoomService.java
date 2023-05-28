@@ -50,11 +50,13 @@ public class DateRoomService extends Thread {
     }
 
     @Transactional
-    public void make6MonthsDateRoom() {
+    public void make9MonthsDateRoom() {
+        long reservableDay = 180;
+        int creatingDay = 270;
         LocalDate date = LocalDate.now();
-        LocalDate reservableDate = LocalDate.now().plusDays(90);
+        LocalDate reservableDate = LocalDate.now().plusDays(reservableDay);
         log.info("TODAY : {}", date);
-        for (int i=0;i<180;i++) {
+        for (int i=0;i<creatingDay;i++) {
             String preDateRoomId = date.toString().replaceAll("[^0-9]", "");
             DateRoom dateRoom1_found = dateRoomRepository.findById(preDateRoomId+"1").orElse(null);
             if (dateRoom1_found == null) {
