@@ -1,7 +1,7 @@
 package com.yeoyeo.entity;
 
 import com.yeoyeo.application.dateroom.etc.exception.RoomReservationException;
-import com.yeoyeo.application.general.webclient.WebClientService;
+import com.yeoyeo.application.common.service.WebClientService;
 import com.yeoyeo.domain.*;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;

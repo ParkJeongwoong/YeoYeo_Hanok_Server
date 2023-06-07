@@ -3,7 +3,7 @@ package com.yeoyeo.application.payment.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yeoyeo.application.common.dto.GeneralResponseDto;
-import com.yeoyeo.application.general.webclient.WebClientService;
+import com.yeoyeo.application.common.service.WebClientService;
 import com.yeoyeo.application.payment.dto.*;
 import com.yeoyeo.application.payment.etc.exception.PaymentException;
 import com.yeoyeo.application.reservation.etc.exception.ReservationException;

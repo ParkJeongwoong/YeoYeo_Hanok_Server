@@ -17,7 +17,6 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.PostConstruct;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -86,7 +85,7 @@ public class ReservationScheduler {
 
     @Scheduled(cron = "0 0 8 * * *") // 매일 8시 0분 0초 동작
     public void noticeMessage_BeforeCheckIn() {
-        log.info("[SCHEDULE - Daily Unpaid Reservation Clearing]");
+        log.info("[SCHEDULE - Sending Notice Message - Before Check-in]");
         LocalDate today = LocalDate.now();
         log.info("{} 체크인 고객 문자 발송", today);
         // 홈페이지 예약 고객
@@ -112,7 +111,7 @@ public class ReservationScheduler {
 
     @Scheduled(cron = "0 20 15 * * *") // 매일 15시 20분 0초 동작
     public void noticeMessage_AfterCheckIn() {
-        log.info("[SCHEDULE - Daily Unpaid Reservation Clearing]");
+        log.info("[SCHEDULE - Sending Notice Message - After Check-in]");
         LocalDate today = LocalDate.now();
         log.info("{} 체크인 후 안내 문자 발송", today);
         // 홈페이지 예약 고객
@@ -134,13 +133,26 @@ public class ReservationScheduler {
     }
 
     @Transactional
+    @Scheduled(cron = "10 0 20 * * *") // 매일 20시 0분 10초 동작
+    public void dailyAdminCheckInNotice() {
+        log.info("[SCHEDULE - Daily Admin Check-in info Notice]");
+        LocalDate tomorrow = LocalDate.now().plusDays(1);
+        log.info("대상 날짜 : {}", tomorrow);
+        List<AdminManageInfo> adminManageInfos = adminManageInfoRepository.findAllByCheckinAndActivated(tomorrow, true)
+                .stream().filter(adminManageInfo -> adminManageInfo.getGuestType() != 1).collect(Collectors.toList());
+        log.info("익일 체크인 건수 : {}건", adminManageInfos.size());
+        messageService.sendAdminCheckInMsg(adminManageInfos);
+        log.info("익일 체크인 정보 문자 전송 정상 종료");
+    }
+
+    @Transactional
     @Scheduled(cron = "0 30 23 * * *") // 매일 23시 30분 0초 동작
     public void dailyAdminMangeInfoDeactivate() {
         log.info("[SCHEDULE - Daily AdminManageInfo Deactivate]");
         LocalDate today = LocalDate.now();
-        log.info("대상 날짜 : {}", today);
-        List<AdminManageInfo> adminManageInfos = adminManageInfoRepository.findAllByCheckinAndActivated(today, true);
-        log.info("체크인 건수 : {}건", adminManageInfos.size());
+        log.info("체크아웃 대상 날짜 : {}", today);
+        List<AdminManageInfo> adminManageInfos = adminManageInfoRepository.findAllByCheckoutAndActivated(today, true);
+        log.info("체크아웃 건수 : {}건", adminManageInfos.size());
         for (AdminManageInfo adminManageInfo : adminManageInfos) adminManageInfo.setActivated(false);
         adminManageInfoRepository.saveAll(adminManageInfos);
         log.info("체크인 된 호스트 관리 예약 비활성화 처리 정상 종료");

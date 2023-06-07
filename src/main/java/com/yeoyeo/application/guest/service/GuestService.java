@@ -1,7 +1,7 @@
 package com.yeoyeo.application.guest.service;
 
 import com.yeoyeo.application.common.dto.GeneralResponseDto;
-import com.yeoyeo.application.general.webclient.WebClientService;
+import com.yeoyeo.application.common.service.WebClientService;
 import com.yeoyeo.application.guest.dto.ImpCertRequestDto;
 import com.yeoyeo.application.guest.dto.ImpCertResponseDto;
 import com.yeoyeo.application.guest.etc.exception.GuestException;

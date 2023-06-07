@@ -4,7 +4,7 @@ import com.yeoyeo.application.common.dto.GeneralResponseDto;
 import com.yeoyeo.application.dateroom.dto.*;
 import com.yeoyeo.application.dateroom.etc.exception.RoomReservationException;
 import com.yeoyeo.application.dateroom.repository.DateRoomRepository;
-import com.yeoyeo.application.general.webclient.WebClientService;
+import com.yeoyeo.application.common.service.WebClientService;
 import com.yeoyeo.application.room.repository.RoomRepository;
 import com.yeoyeo.domain.*;
 import lombok.RequiredArgsConstructor;

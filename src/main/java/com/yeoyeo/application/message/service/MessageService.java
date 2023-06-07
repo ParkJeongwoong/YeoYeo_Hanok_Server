@@ -1,8 +1,9 @@
 package com.yeoyeo.application.message.service;
 
-import com.yeoyeo.application.general.webclient.WebClientService;
+import com.yeoyeo.application.common.service.WebClientService;
 import com.yeoyeo.application.message.dto.SendMessageResponseDto;
 import com.yeoyeo.application.reservation.repository.ReservationRepository;
+import com.yeoyeo.domain.Admin.AdminManageInfo;
 import com.yeoyeo.domain.Reservation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,6 +35,7 @@ public class MessageService {
 
     static final String NCLOUD_SMS_URL = "https://sens.apigw.ntruss.com";
     static final List<String> ADMIN_LIST = Arrays.asList("01020339091", "01089599091", "01026669091", "01020199091");
+    static final String HOST = "01089599091";
 
     @Value("${sms.ncloud.key}")
     String smsKey;
@@ -271,6 +273,41 @@ public class MessageService {
                 "감사합니다.";
 
         return sendMessage("LMS", subject, content, numberOnlyPhoneNumber);
+    }
+
+    // LMS
+    public SendMessageResponseDto sendAdminCheckInMsg(List<AdminManageInfo> guestInfos) {
+        String subject = "[한옥스테이 여여] 체크인 알림";
+        int checkInCount = guestInfos.size();
+        if (checkInCount == 0) return null;
+        LocalDate checkInDate = guestInfos.get(0).getCheckin();
+        String roomA_guestName; // 여유
+        String roomA_guestPhone;
+        int roomA_guestCount;
+        String roomA_string = null;
+        String roomB_guestName; // 여행
+        String roomB_guestPhone;
+        int roomB_guestCount;
+        String roomB_string = null;
+
+        for (AdminManageInfo guestInfo : guestInfos) {
+            if (guestInfo.getRoom().getId() == 1) {
+                roomA_guestName = guestInfo.getName();
+                roomA_guestPhone = guestInfo.getPhoneNumber();
+                roomA_guestCount = guestInfo.getGuestCount();
+                roomA_string = "\n여유 : " + roomA_guestName + " (" + roomA_guestPhone + ") " + roomA_guestCount + "명";
+            } else if (guestInfo.getRoom().getId() == 2) {
+                roomB_guestName = guestInfo.getName();
+                roomB_guestPhone = guestInfo.getPhoneNumber();
+                roomB_guestCount = guestInfo.getGuestCount();
+                roomA_string = "\n여행 : " + roomB_guestName + " (" + roomB_guestPhone + ") " + roomB_guestCount + "명";
+            }
+        }
+
+        String content = checkInDate + " 체크인 숫자 : " + checkInCount + "팀";
+        content = content.concat(roomA_string).concat(roomB_string);
+
+        return sendMessage("LMS", subject, content, getNumberOnly(HOST));
     }
 
     @Async

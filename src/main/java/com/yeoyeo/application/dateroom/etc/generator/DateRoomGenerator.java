@@ -28,6 +28,15 @@ public class DateRoomGenerator {
     }
 
     @Transactional
+    @Scheduled(cron = "3 0 0 * * *") // 매일 0시 0분 3초 동작
+    private void dailyRoomReservableJob() {
+        log.info("[SCHEDULE - Daily Room Reservable Job]");
+        LocalDate date = LocalDate.now().plusDays(180);
+        log.info("180일 후 날짜 : {}", date);
+        dateRoomService.setDateRoomReservableByDay(date);
+    }
+
+    @Transactional
     @Scheduled(cron = "10 0 0 * * *") // 매일 0시 0분 10초 동작
     private void dailyRoomCreation() {
         log.info("[SCHEDULE - Daily Room Creation]");
@@ -43,26 +52,17 @@ public class DateRoomGenerator {
     }
 
     @Transactional
-    @Scheduled(cron = "0 30 5 * * *") // 매일 5 30 0초 동작
-    private void dailyRoomUnReservableJob() {
-        log.info("[SCHEDULE - Daily Room UnReservable Job]");
-        dateRoomService.setDateRoomUnReservableByDay(LocalDate.now());
-    }
-
-    @Transactional
-    @Scheduled(cron = "3 0 0 * * *") // 매일 0시 0분 3초 동작
-    private void dailyRoomReservableJob() {
-        log.info("[SCHEDULE - Daily Room Reservable Job]");
-        LocalDate date = LocalDate.now().plusDays(180);
-        log.info("180일 후 날짜 : {}", date);
-        dateRoomService.setDateRoomReservableByDay(date);
-    }
-
-    @Transactional
     @Scheduled(cron = "0 0 3 * * 1")
     private void weeklyDefaultPriceTypeReset() { // 매주 월요일 새벽 3시에 동작
         log.info("[SCHEDULE - Weekly Default Price-type Reset Job]");
         dateRoomService.resetDateRoomPriceType_month(LocalDate.now());
+    }
+
+    @Transactional
+    @Scheduled(cron = "0 30 5 * * *") // 매일 5시 30븐 0초 동작
+    private void dailyRoomUnReservableJob() {
+        log.info("[SCHEDULE - Daily Room UnReservable Job]");
+        dateRoomService.setDateRoomUnReservableByDay(LocalDate.now());
     }
 
 }

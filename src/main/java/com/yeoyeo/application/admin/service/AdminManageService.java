@@ -9,12 +9,10 @@ import com.yeoyeo.application.reservation.repository.ReservationRepository;
 import com.yeoyeo.application.room.repository.RoomRepository;
 import com.yeoyeo.domain.Admin.AdminManageInfo;
 import com.yeoyeo.domain.DateRoom;
-import com.yeoyeo.domain.MapDateRoomReservation;
 import com.yeoyeo.domain.Reservation;
 import com.yeoyeo.domain.Room;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import net.fortuna.ical4j.model.Date;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

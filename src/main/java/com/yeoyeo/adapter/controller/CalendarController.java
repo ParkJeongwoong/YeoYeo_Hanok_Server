@@ -1,8 +1,7 @@
 package com.yeoyeo.adapter.controller;
 
-import com.yeoyeo.application.calendar.etc.CalendarScheduler;
 import com.yeoyeo.application.calendar.service.CalendarService;
-import com.yeoyeo.application.common.service.CommonMethods;
+import com.yeoyeo.application.common.method.CommonMethod;
 import com.yeoyeo.application.message.service.MessageService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -17,21 +16,21 @@ import javax.servlet.http.HttpServletResponse;
 @RequestMapping("calendar")
 public class CalendarController {
 
-    private final CommonMethods commonMethods;
+    private final CommonMethod commonMethod;
     private final CalendarService calendarService;
     private final MessageService messageService;
 
     @ApiOperation(value = "Send to Platform from YeoYeo-A", notes = "(예약정보 동기화) [여유] 데이터 내보내기")
     @GetMapping("/sync/yeoyeo-Ab83sf0AD5$27Pk3-3!J4pjw")
     public void sendIcalendarData_A(HttpServletResponse response) {
-        commonMethods.printIp("sendIcalendarData_A");
+        commonMethod.printIp("sendIcalendarData_A");
         sendIcalendarData(response, 1);
     }
 
     @ApiOperation(value = "Send to Platform from YeoYeo-B", notes = "(예약정보 동기화) [여행] 데이터 내보내기")
     @GetMapping("/sync/yeoyeo-Bk87wf0$D63q1P!3-2$H0pjw")
     public void sendIcalendarData_B(HttpServletResponse response) {
-        commonMethods.printIp("sendIcalendarData_B  ");
+        commonMethod.printIp("sendIcalendarData_B  ");
         sendIcalendarData(response, 2);
     }
 

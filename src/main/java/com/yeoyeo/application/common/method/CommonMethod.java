@@ -1,4 +1,4 @@
-package com.yeoyeo.application.common.service;
+package com.yeoyeo.application.common.method;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -9,7 +9,7 @@ import javax.servlet.http.HttpServletRequest;
 
 @Slf4j
 @Component
-public class CommonMethods {
+public class CommonMethod {
 
     public void printIp(String from) {
         HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getRequest();

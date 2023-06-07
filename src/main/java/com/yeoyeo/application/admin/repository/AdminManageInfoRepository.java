@@ -10,5 +10,6 @@ public interface AdminManageInfoRepository extends JpaRepository<AdminManageInfo
     List<AdminManageInfo> findAllByOrderByCheckinAscRoom_Id();
     List<AdminManageInfo> findAllByCheckoutGreaterThanOrderByCheckinAscRoom_Id(LocalDate checkout);
     List<AdminManageInfo> findAllByCheckinAndActivated(LocalDate checkin, boolean activated);
+    List<AdminManageInfo> findAllByCheckoutAndActivated(LocalDate checkout, boolean activated);
     AdminManageInfo findByCheckinAndRoom_IdAndActivated(LocalDate checkin, long roomId, boolean activated);
 }
