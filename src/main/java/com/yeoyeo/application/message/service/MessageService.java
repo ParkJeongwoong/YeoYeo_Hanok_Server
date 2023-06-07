@@ -304,8 +304,11 @@ public class MessageService {
             }
         }
 
-        String content = checkInDate + " 체크인 숫자 : " + checkInCount + "팀";
-        content = content.concat(roomA_string).concat(roomB_string);
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append(checkInDate + " 체크인 숫자 : " + checkInCount + "팀");
+        if (roomA_string != null) stringBuilder.append(roomA_string);
+        if (roomB_string != null) stringBuilder.append(roomB_string);
+        String content = stringBuilder.toString();
 
         return sendMessage("LMS", subject, content, getNumberOnly(HOST));
     }
