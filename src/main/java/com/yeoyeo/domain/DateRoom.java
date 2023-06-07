@@ -1,7 +1,7 @@
 package com.yeoyeo.domain;
 
 import com.yeoyeo.application.dateroom.etc.exception.RoomReservationException;
-import com.yeoyeo.application.general.webclient.WebClientService;
+import com.yeoyeo.application.common.service.WebClientService;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
