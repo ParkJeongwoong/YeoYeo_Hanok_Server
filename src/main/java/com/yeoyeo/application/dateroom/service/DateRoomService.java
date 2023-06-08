@@ -205,8 +205,10 @@ public class DateRoomService extends Thread {
                         List<Reservation> reservations = dateRoom.getMapDateRoomReservations().stream().map(MapDateRoomReservation::getReservation).collect(Collectors.toList());
                         for (Reservation reservation:reservations) if (reservation.getReservationState() == 1) throw new RoomReservationException("예약되어 있는 날짜입니다.");
                         dateRoom.resetState();
+                        break;
                     case 1:
                         dateRoom.setStateBooked();
+                        break;
                 }
             } catch (RoomReservationException roomReservationException) {
                 return GeneralResponseDto.builder().success(false).message("해당 날짜의 예약 상태를 변경할 수 없습니다.").build();
