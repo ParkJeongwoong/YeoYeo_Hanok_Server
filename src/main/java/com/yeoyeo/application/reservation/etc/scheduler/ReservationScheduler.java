@@ -3,6 +3,7 @@ package com.yeoyeo.application.reservation.etc.scheduler;
 import com.yeoyeo.application.admin.repository.AdminManageInfoRepository;
 import com.yeoyeo.application.admin.service.AdminManageService;
 import com.yeoyeo.application.message.service.MessageService;
+import com.yeoyeo.application.reservation.dto.SendAdminCheckInMsgDto;
 import com.yeoyeo.application.reservation.etc.exception.ReservationException;
 import com.yeoyeo.application.reservation.repository.ReservationRepository;
 import com.yeoyeo.domain.Admin.AdminManageInfo;
@@ -138,10 +139,9 @@ public class ReservationScheduler {
         log.info("[SCHEDULE - Daily Admin Check-in info Notice]");
         LocalDate tomorrow = LocalDate.now().plusDays(1);
         log.info("대상 날짜 : {}", tomorrow);
-        List<AdminManageInfo> adminManageInfos = adminManageInfoRepository.findAllByCheckinAndActivated(tomorrow, true)
-                .stream().filter(adminManageInfo -> adminManageInfo.getGuestType() != 1).collect(Collectors.toList());
+        List<AdminManageInfo> adminManageInfos = adminManageInfoRepository.findAllByCheckinAndActivated(tomorrow, true);
         log.info("익일 체크인 건수 : {}건", adminManageInfos.size());
-        messageService.sendAdminCheckInMsg(adminManageInfos);
+        messageService.sendAdminCheckInMsg(new SendAdminCheckInMsgDto(adminManageInfos));
         log.info("익일 체크인 정보 문자 전송 정상 종료");
     }
 

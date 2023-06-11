@@ -2,6 +2,7 @@ package com.yeoyeo.application.message.service;
 
 import com.yeoyeo.application.common.service.WebClientService;
 import com.yeoyeo.application.message.dto.SendMessageResponseDto;
+import com.yeoyeo.application.reservation.dto.SendAdminCheckInMsgDto;
 import com.yeoyeo.application.reservation.repository.ReservationRepository;
 import com.yeoyeo.domain.Admin.AdminManageInfo;
 import com.yeoyeo.domain.Reservation;
@@ -276,10 +277,10 @@ public class MessageService {
     }
 
     // LMS
-    public SendMessageResponseDto sendAdminCheckInMsg(List<AdminManageInfo> guestInfos) {
+    public SendMessageResponseDto sendAdminCheckInMsg(SendAdminCheckInMsgDto msgDto) {
         String subject = "[한옥스테이 여여] 체크인 알림";
-        int checkInCount = guestInfos.size();
-        if (checkInCount == 0) return null;
+        if (!msgDto.validationCheck()) return null;
+        List<AdminManageInfo> guestInfos = msgDto.getGuestInfos();
         LocalDate checkInDate = guestInfos.get(0).getCheckin();
         String roomA_guestName; // 여유
         String roomA_guestPhone;
@@ -305,7 +306,7 @@ public class MessageService {
         }
 
         StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append(checkInDate + " 체크인 숫자 : " + checkInCount + "팀");
+        stringBuilder.append(checkInDate + " 체크인 숫자 : " + msgDto.getSize() + "팀");
         if (roomA_string != null) stringBuilder.append(roomA_string);
         if (roomB_string != null) stringBuilder.append(roomB_string);
         String content = stringBuilder.toString();
