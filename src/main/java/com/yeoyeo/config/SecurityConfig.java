@@ -138,8 +138,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 //        serializer.setSameSite("none");
         serializer.setUseSecureCookie(true);
         serializer.setUseHttpOnlyCookie(true);
-        serializer.setDomainName("yeoyeo.kr");
-//        serializer.setCookiePath("/admin");
+        serializer.setDomainName("yeoyeo.co.kr");
+        serializer.setCookiePath("/admin");
         return serializer;
     }
 
