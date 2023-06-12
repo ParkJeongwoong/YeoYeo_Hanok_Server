@@ -51,12 +51,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .authorizeRequests() // 보호된 리소스 URI에 접근할 수 있는 권한 설정
 //                .antMatchers("/admin/login").permitAll()
 //                .antMatchers("/admin/logout").permitAll()
-//                .antMatchers("/admin/**").authenticated() // 인증된 사용자만 접근 허용
+                .antMatchers("/admin/**").authenticated() // 인증된 사용자만 접근 허용
 //                .antMatchers("/index.html").authenticated()
 //                .antMatchers("/").authenticated()
-                .antMatchers("/admin/signup").authenticated() // 임시
-                .antMatchers("/adminManage.html").authenticated()
-                .antMatchers("/admin/manage/*").authenticated()
+//                .antMatchers("/admin/signup").authenticated() // 임시
+//                .antMatchers("/adminManage.html").authenticated()
+//                .antMatchers("/admin/manage/*").authenticated()
                 .antMatchers("/swagger-ui/*").authenticated()
                 .anyRequest().permitAll()
                 .and()
@@ -138,7 +138,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 //        serializer.setSameSite("none");
         serializer.setUseSecureCookie(true);
         serializer.setUseHttpOnlyCookie(true);
-        serializer.setDomainName("yeoyeo.co.kr");
+        serializer.setDomainName("yeoyeo.kr");
+//        serializer.setCookiePath("/admin");
         return serializer;
     }
 
