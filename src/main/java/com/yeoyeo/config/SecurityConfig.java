@@ -49,7 +49,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .and()
 
                 .authorizeRequests() // 보호된 리소스 URI에 접근할 수 있는 권한 설정
-                    .antMatchers("/admin/login", "/admin/logout", "/dateroom/**", "/calendar/**", "/guest/**","/payment/**","/reservation/**").permitAll()
+                    .antMatchers("/admin/login", "/admin/logout", "/dateroom/**", "/calendar/**", "/guest/**","/payment/**","/reservation/**", "/login.html").permitAll()
 //                    .antMatchers("/admin/*", "/swagger-ui/*", "/adminManage.html", "/index.html", "/").authenticated() // 인증된 사용자만 접근 허용
 //                    .anyRequest().permitAll()
                     .anyRequest().authenticated()
