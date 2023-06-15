@@ -49,16 +49,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .and()
 
                 .authorizeRequests() // 보호된 리소스 URI에 접근할 수 있는 권한 설정
-//                .antMatchers("/admin/login").permitAll()
-//                .antMatchers("/admin/logout").permitAll()
-                .antMatchers("/admin/*").authenticated() // 인증된 사용자만 접근 허용
-//                .antMatchers("/index.html").authenticated()
-//                .antMatchers("/").authenticated()
-//                .antMatchers("/admin/signup").authenticated() // 임시
-//                .antMatchers("/adminManage.html").authenticated()
-//                .antMatchers("/admin/manage/*").authenticated()
-                .antMatchers("/swagger-ui/*").authenticated()
-                .anyRequest().permitAll()
+                    .antMatchers("/admin/login", "/admin/logout", "/dateroom/**", "/calendar/**", "/guest/**","/payment/**","/reservation/**").permitAll()
+//                    .antMatchers("/admin/*", "/swagger-ui/*", "/adminManage.html", "/index.html", "/").authenticated() // 인증된 사용자만 접근 허용
+//                    .anyRequest().permitAll()
+                    .anyRequest().authenticated()
                 .and()
 
 //                 exception 처리 (인증/인가 실패에 따른 리다이렉트)
