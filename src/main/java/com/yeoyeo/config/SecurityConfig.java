@@ -43,7 +43,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     // 스프링 시큐리티 규칙
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http.csrf().disable() // csrf 보안 설정 비활성화ㅇ
+        http.csrf().disable() // csrf 보안 설정 비활성화
                 .cors().configurationSource(corsConfigurationSource())
 //                .headers().frameOptions().sameOrigin()
                 .and()
