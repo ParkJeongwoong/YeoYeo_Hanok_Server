@@ -45,7 +45,7 @@ public class AdminController {
 
     // Auth
     @PostMapping("/signup")
-    public String signup(SignupDto dto) {
+    public String signup(@RequestBody SignupDto dto) {
         return authService.signup(dto);
     }
 

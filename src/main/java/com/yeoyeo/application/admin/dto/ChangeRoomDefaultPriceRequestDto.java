@@ -1,14 +1,16 @@
 package com.yeoyeo.application.admin.dto;
 
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
+@NoArgsConstructor
 public class ChangeRoomDefaultPriceRequestDto {
 
-    private final int price;
-    private final int priceWeekend;
-    private final int priceWeekdaySpecial;
-    private final int priceWeekendSpecial;
+    private int price;
+    private int priceWeekend;
+    private int priceWeekdaySpecial;
+    private int priceWeekendSpecial;
 
     public ChangeRoomDefaultPriceRequestDto(int price, int priceWeekend, int priceWeekdaySpecial, int priceWeekendSpecial) {
         this.price = price;
