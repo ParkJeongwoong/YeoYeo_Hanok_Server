@@ -10,7 +10,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.Arrays;
 
 @Component
 public class WebAuthenticationEntryPoint implements AuthenticationEntryPoint {
@@ -18,7 +17,6 @@ public class WebAuthenticationEntryPoint implements AuthenticationEntryPoint {
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response,
                          AuthenticationException authException) throws IOException, ServletException {
-        System.out.println(Arrays.stream(request.getCookies()).findAny().get().getValue());
         System.out.println("Not authenticated");
         // 방법1. 인증되지 않은 경우 페이지 이동 시 사용
 //        response.sendRedirect("/login.html");
