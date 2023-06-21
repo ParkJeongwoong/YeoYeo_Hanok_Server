@@ -180,13 +180,13 @@ public class DateRoomService extends Thread {
     @Transactional
     public GeneralResponseDto changeDateRoomListPrice(ChangeDateRoomListPriceRequestDto requestDto) {
         List<String> dateRoomIdList = requestDto.getDateRoomIdList();
-        log.info("CHANGING DATEROOM {}", dateRoomIdList.toString());
+        log.info("CHANGING DATEROOM PRICE {}", dateRoomIdList.toString());
         int price = requestDto.getPrice();
         int priceType = requestDto.getPriceType();
         List<DateRoom> dateRoomList = dateRoomRepository.findAllById(dateRoomIdList);
         if (dateRoomList.size()==0) return GeneralResponseDto.builder().success(false).message("유효한 dateroomId가 아닙니다.").build();
         for (DateRoom dateRoom:dateRoomList) {
-            if (price>0 || priceType == 0) dateRoom.changePrice(price);
+            if (priceType == 0 && price>0) dateRoom.changePrice(price);
             else dateRoom.changePriceType(priceType);
         }
         return GeneralResponseDto.builder().success(true).build();
@@ -195,6 +195,7 @@ public class DateRoomService extends Thread {
     @Transactional
     public GeneralResponseDto changeDateRoomListStatus(ChangeDateRoomListStatusRequestDto requestDto) {
         List<String> dateRoomIdList = requestDto.getDateRoomIdList();
+        log.info("CHANGING DATEROOM STATUS {}", dateRoomIdList.toString());
         long roomReservationState = requestDto.getRoomReservationState();
         List<DateRoom> dateRoomList = dateRoomRepository.findAllById(dateRoomIdList);
         if (dateRoomList.size()==0) return GeneralResponseDto.builder().success(false).message("유효한 dateroomId가 아닙니다.").build();
