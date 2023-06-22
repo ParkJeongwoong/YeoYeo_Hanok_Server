@@ -144,6 +144,10 @@ public class ReservationService {
         }
     }
 
+    public Reservation getReservation(long reservationId) {
+        return reservationRepository.findById(reservationId).orElse(null);
+    }
+
     // PhoneNumber가 없는 에어비앤비 예약 필터링
     private void checkPhoneNumber(Reservation reservation) throws ReservationException {
         String phoneNumber = reservation.getGuest().getPhoneNumber();

@@ -148,8 +148,10 @@ public class AdminController {
         adminManageService.createAdminManageInfoList();
     }
 
+    @Transactional
     @PostMapping("/manage/message/notice")
     public void sendAdminManageInfoNoticeMessage(@RequestBody AdminManageInfoRequestDto requestDto) {
+        reservationService.getReservation(requestDto.getReservationId()).setManagementLevel(2);
         messageService.sendNoticeMsg(requestDto.getNumberOnlyPhoneNumber());
     }
 
