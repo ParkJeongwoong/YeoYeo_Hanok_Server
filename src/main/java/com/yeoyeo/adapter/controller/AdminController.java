@@ -4,6 +4,7 @@ import com.yeoyeo.application.admin.dto.*;
 import com.yeoyeo.application.admin.etc.exception.AdminManageInfoException;
 import com.yeoyeo.application.admin.service.AdminManageService;
 import com.yeoyeo.application.admin.service.AuthService;
+import com.yeoyeo.application.calendar.service.CalendarService;
 import com.yeoyeo.application.common.dto.GeneralResponseDto;
 import com.yeoyeo.application.dateroom.dto.ChangeDateRoomListPriceRequestDto;
 import com.yeoyeo.application.dateroom.dto.ChangeDateRoomListStatusRequestDto;
@@ -40,6 +41,7 @@ public class AdminController {
     private final ReservationService reservationService;
     private final PaymentService paymentService;
     private final AdminManageService adminManageService;
+    private final CalendarService calendarService;
     private final AuthService authService;
     private final MessageService messageService;
 
@@ -145,6 +147,8 @@ public class AdminController {
 
     @PostMapping("/manage/info/list")
     public void createAdminManageInfoList() {
+        calendarService.syncInICSFile_Airbnb_A();
+        calendarService.syncInICSFile_Airbnb_B();
         adminManageService.createAdminManageInfoList();
     }
 
