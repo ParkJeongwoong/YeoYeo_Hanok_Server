@@ -122,7 +122,7 @@ public class AdminController {
     // ADMIN MANAGE INFO 관련
     @GetMapping("/manage/info")
     public ResponseEntity<List<AdminManageInfoResponseDto>> getAdminManageInfoList() {
-        List<AdminManageInfoResponseDto> getAdminMangeInfoList = adminManageService.getAdminManageInfoList(LocalDate.now());
+        List<AdminManageInfoResponseDto> getAdminMangeInfoList = adminManageService.getAdminManageInfoList(LocalDate.now().minusDays(3));
         return ResponseEntity.status(HttpStatus.OK).body(getAdminMangeInfoList);
     }
 

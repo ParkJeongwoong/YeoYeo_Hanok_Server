@@ -149,9 +149,9 @@ public class ReservationScheduler {
     @Scheduled(cron = "0 30 23 * * *") // 매일 23시 30분 0초 동작
     public void dailyAdminMangeInfoDeactivate() {
         log.info("[SCHEDULE - Daily AdminManageInfo Deactivate]");
-        LocalDate today = LocalDate.now();
-        log.info("체크아웃 대상 날짜 : {}", today);
-        List<AdminManageInfo> adminManageInfos = adminManageInfoRepository.findAllByCheckoutAndActivated(today, true);
+        LocalDate before2days = LocalDate.now().minusDays(2);
+        log.info("체크아웃 대상 날짜 : {}", before2days);
+        List<AdminManageInfo> adminManageInfos = adminManageInfoRepository.findAllByCheckoutAndActivated(before2days, true);
         log.info("체크아웃 건수 : {}건", adminManageInfos.size());
         for (AdminManageInfo adminManageInfo : adminManageInfos) adminManageInfo.setActivated(false);
         adminManageInfoRepository.saveAll(adminManageInfos);
