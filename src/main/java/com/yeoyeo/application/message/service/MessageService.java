@@ -301,7 +301,7 @@ public class MessageService {
                 roomB_guestName = guestInfo.getName();
                 roomB_guestPhone = guestInfo.getPhoneNumber();
                 roomB_guestCount = guestInfo.getGuestCount();
-                roomA_string = "\n여행 : " + roomB_guestName + " (" + roomB_guestPhone + ") " + roomB_guestCount + "명";
+                roomB_string = "\n여행 : " + roomB_guestName + " (" + roomB_guestPhone + ") " + roomB_guestCount + "명";
             }
         }
 
