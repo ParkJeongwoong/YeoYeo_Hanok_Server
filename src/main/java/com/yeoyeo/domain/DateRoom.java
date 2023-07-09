@@ -129,9 +129,9 @@ public class DateRoom {
                 this.priceType = 1;
                 break;
         }
-        if (checkHoliday(webClientService, key)) {
-            this.priceType = 2;
-        }
+//        if (checkHoliday(webClientService, key)) {
+//            this.priceType = 2;
+//        }
     }
 
     private boolean checkHoliday(WebClientService webClientService, String key) {

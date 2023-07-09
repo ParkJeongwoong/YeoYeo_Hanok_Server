@@ -58,5 +58,8 @@ dependencies {
 
     // iCal4j
     implementation('org.mnode.ical4j:ical4j:3.2.11')
+
+    // Apache commons-io
+    implementation('commons-io:commons-io:2.11.0')
 }
 targetCompatibility = JavaVersion.VERSION_1_9

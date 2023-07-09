@@ -10,9 +10,9 @@ import com.yeoyeo.application.reservation.repository.ReservationRepository;
 import com.yeoyeo.application.reservation.service.ReservationService;
 import com.yeoyeo.domain.*;
 import com.yeoyeo.domain.Guest.Factory.GuestAirbnbFactory;
+import com.yeoyeo.domain.Guest.Factory.GuestBookingFactory;
 import com.yeoyeo.domain.Guest.Factory.GuestFactory;
 import com.yeoyeo.domain.Guest.Guest;
-import com.yeoyeo.domain.Guest.GuestAirbnb;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.fortuna.ical4j.data.CalendarBuilder;
@@ -24,23 +24,19 @@ import net.fortuna.ical4j.model.property.Uid;
 import net.fortuna.ical4j.util.FixedUidGenerator;
 import net.fortuna.ical4j.util.SimpleHostInfo;
 import net.fortuna.ical4j.util.UidGenerator;
+import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.buffer.DataBuffer;
-import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Flux;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.net.SocketException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
+import java.net.URL;
 import java.text.ParseException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -57,10 +53,15 @@ public class CalendarService {
     String AIRBNB_FILE_URL_A;
     @Value("${ics.airbnb.b.url}")
     String AIRBNB_FILE_URL_B;
+    @Value("${ics.booking.b.url}")
+    String BOOKING_FILE_URL_B;
+
     @Value("${ics.airbnb.a.path}")
     String AIRBNB_FILE_PATH_A;
     @Value("${ics.airbnb.b.path}")
     String AIRBNB_FILE_PATH_B;
+    @Value("${ics.booking.b.path}")
+    String BOOKING_FILE_PATH_B;
     @Value("${ics.yeoyeo.a.path}")
     String YEOYEO_FILE_PATH_A;
     @Value("${ics.yeoyeo.b.path}")
@@ -78,6 +79,9 @@ public class CalendarService {
     public void getICSFile_Airbnb_A() { getIcsFileFromPlatform(AIRBNB_FILE_URL_A, AIRBNB_FILE_PATH_A); }
     public void getICSFile_Airbnb_B() { getIcsFileFromPlatform(AIRBNB_FILE_URL_B, AIRBNB_FILE_PATH_B); }
 
+    public void readICSFile_Booking_B() { syncIcalendarFile(BOOKING_FILE_PATH_B, getGuestBookingFactory(), getPaymentBooking(), 2);}
+    public void getICSFile_Booking_B() { getIcsFileFromPlatform(BOOKING_FILE_URL_B, BOOKING_FILE_PATH_B); }
+
     @Transactional
     @Async
     public void syncInICSFile_Reservation(long roomId) {
@@ -93,6 +97,12 @@ public class CalendarService {
         getIcsFileFromPlatform(AIRBNB_FILE_URL_B, AIRBNB_FILE_PATH_B);
         syncIcalendarFile(AIRBNB_FILE_PATH_B, getGuestAirbnbFactory(), getPaymentAirbnb(), 2);
     }
+
+    public void syncInICSFile_Booking_B() {
+        getIcsFileFromPlatform(BOOKING_FILE_URL_B, BOOKING_FILE_PATH_B);
+        syncIcalendarFile(BOOKING_FILE_PATH_B, getGuestBookingFactory(), getPaymentBooking(), 2);
+    }
+    public void writeFullICSFile(long roomId) { writeFullIcalendarFile(roomId); }
     public void writeICSFile(long roomId) { writeIcalendarFile(roomId); }
     public void sendICalendarData(HttpServletResponse response, long roomId) {
         try {
@@ -147,9 +157,27 @@ public class CalendarService {
     }
 
     @Transactional
-    private void writeIcalendarFile(long roomId) {
+    private void writeFullIcalendarFile(long roomId) {
         try {
             List<Reservation> reservationList = reservationRepository.findAllByReservationState(1);
+            Calendar calendar = getCalendar(roomId);
+            UidGenerator uidGenerator = new FixedUidGenerator(new SimpleHostInfo("yeoyeo"), "9091");
+            for (Reservation reservation : reservationList) {
+                VEvent event = createVEvent(reservation, uidGenerator);
+                if (reservation.getRoom().getId()==roomId) calendar.withComponent(event);
+            }
+            createIcsFile(calendar, roomId);
+        } catch (SocketException e) {
+            log.error("UidGenerator Issue : InetAddressHostInfo process Error", e);
+        } catch (IOException e) {
+            log.error("ICS File Creation Exception", e);
+        }
+    }
+
+    @Transactional
+    private void writeIcalendarFile(long roomId) {
+        try {
+            List<Reservation> reservationList = reservationRepository.findAllByReservationStateAndReservedFrom(1, "GuestHome");
             Calendar calendar = getCalendar(roomId);
             UidGenerator uidGenerator = new FixedUidGenerator(new SimpleHostInfo("yeoyeo"), "9091");
             for (Reservation reservation : reservationList) {
@@ -196,9 +224,9 @@ public class CalendarService {
 
     private Reservation findExistingReservation(String uid, long roomId, String guestClassName) {
         List<Reservation> reservationList = reservationRepository.findAllByUniqueId(uid);
-        log.info("TESTING - COUNT : {}", reservationList.size());
+        log.info("COUNT : {}", reservationList.size());
         for (Reservation reservation : reservationList) {
-            log.info("TESTING - INFO : {} {} {}", reservation.getReservationState(), reservation.getRoom().getId(), reservation.getGuest().getName());
+            log.info("INFO : {} {} {}", reservation.getReservationState(), reservation.getRoom().getId(), reservation.getGuest().getName());
             if (reservation.getReservationState() == 5 && reservation.getRoom().getId() == roomId && reservation.getReservedFrom().equals(guestClassName)) return reservation;
         }
         log.info("일치하는 reservation 없음");
@@ -306,16 +334,21 @@ public class CalendarService {
         log.info("get ICS File From Platform : {}", downloadUrl);
         if (downloadUrl == null || downloadUrl.length() == 0) return;
 
-        Flux<DataBuffer> dataBufferFlux = WebClient("application/json").get()
-                .uri(downloadUrl)
-                .accept(MediaType.APPLICATION_OCTET_STREAM)
-                .retrieve()
-                .bodyToFlux(DataBuffer.class);
+//        Flux<DataBuffer> dataBufferFlux = WebClient("application/json").get()
+//                .uri(downloadUrl)
+//                .accept(MediaType.APPLICATION_OCTET_STREAM)
+//                .retrieve()
+//                .bodyToFlux(DataBuffer.class);
+//
+//        Path path = Paths.get(downloadPath);
+//        DataBufferUtils.write(dataBufferFlux, path, StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING).block();
 
-        Path path = Paths.get(downloadPath);
-        DataBufferUtils.write(dataBufferFlux, path, StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING).block();
-
-        log.info("ICS File Download Complete From : {}", downloadUrl);
+        try {
+            FileUtils.copyURLToFile(new URL(downloadUrl), new File(downloadPath));
+            log.info("ICS File Download Complete From : {}", downloadUrl);
+        } catch (IOException e) {
+            log.error("ICS File Download Error : new URL(downloadUrl)", e);
+        }
     }
 
     private void createIcsFile(Calendar calendar, long roomId) throws IOException {
@@ -351,9 +384,18 @@ public class CalendarService {
         return new GuestAirbnbFactory();
     }
 
+    private GuestBookingFactory getGuestBookingFactory() {
+        return new GuestBookingFactory();
+    }
+
     private Payment getPaymentAirbnb() {
         return Payment.builder()
                 .amount(0).buyer_name("AirBnbGuest").buyer_tel("000-0000-0000").imp_uid("none").pay_method("airbnb").receipt_url("none").status("paid").build();
+    }
+
+    private Payment getPaymentBooking() {
+        return Payment.builder()
+                .amount(0).buyer_name("BookingGuest").buyer_tel("000-0000-0000").imp_uid("none").pay_method("booking").receipt_url("none").status("paid").build();
     }
 
     private WebClient WebClient(String contentType) {

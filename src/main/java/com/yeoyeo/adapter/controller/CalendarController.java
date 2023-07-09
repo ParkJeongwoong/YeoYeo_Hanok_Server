@@ -42,14 +42,16 @@ public class CalendarController {
     @PutMapping("/manual/airbnb/b")
     public void syncAirbnbB() { calendarService.syncInICSFile_Airbnb_B(); }
 
-
+    @ApiOperation(value = "Sync-Booking-B", notes = "부킹닷컴 B호실 예약정보 동기화")
+    @PutMapping("/manual/booking/b")
+    public void syncBookingB() { calendarService.syncInICSFile_Booking_B(); }
 
     @ApiOperation(value = "Read", notes = "수신된 에어비앤비 A호실 ICS 파일 읽기")
     @PostMapping("/manual/airbnb/a")
     public void readAirbnbA() {
         calendarService.readICSFile_Airbnb_A();
     }
-    @ApiOperation(value = "Read", notes = "수신된 에어비앤비 A호실 ICS 파일 읽기")
+    @ApiOperation(value = "Read", notes = "수신된 에어비앤비 B호실 ICS 파일 읽기")
     @PostMapping("/manual/airbnb/b")
     public void readAirbnbB() { calendarService.readICSFile_Airbnb_B(); }
     @ApiOperation(value = "Receive", notes = "에어비앤비 A호실 예약정보 수신")
@@ -57,17 +59,33 @@ public class CalendarController {
     public void receiveAirbnbA() {
         calendarService.getICSFile_Airbnb_A();
     }
-    @ApiOperation(value = "Receive", notes = "에어비앤비 A호실 예약정보 수신")
+    @ApiOperation(value = "Receive", notes = "에어비앤비 B호실 예약정보 수신")
     @GetMapping("/manual/airbnb/b")
     public void receiveAirbnbB() {
         calendarService.getICSFile_Airbnb_B();
     }
 
-    @ApiOperation(value = "Write", notes = "ICS 파일 쓰기")
+    @ApiOperation(value = "Read", notes = "수신된 부킹닷컴 B호실 ICS 파일 읽기")
+    @PostMapping("/manual/booking/b")
+    public void readBookingB() { calendarService.readICSFile_Booking_B(); }
+    @ApiOperation(value = "Receive", notes = "부킹닷컴 B호실 예약정보 수신")
+    @GetMapping("/manual/booking/b")
+    public void receiveBookingB() {
+        calendarService.getICSFile_Booking_B();
+    }
+
+    @ApiOperation(value = "Write", notes = "ICS 파일 쓰기 (홈페이지 데이터)")
     @PostMapping("/manual")
     public void manualWrite() {
         calendarService.writeICSFile(1);
         calendarService.writeICSFile(2);
+    }
+
+    @ApiOperation(value = "Write", notes = "ICS 파일 쓰기 (종합 데이터)")
+    @PostMapping("/manual/full")
+    public void writeFullICSFile() {
+        calendarService.writeFullICSFile(1);
+        calendarService.writeFullICSFile(2);
     }
 
     private void sendIcalendarData(HttpServletResponse response, long roomId) {
