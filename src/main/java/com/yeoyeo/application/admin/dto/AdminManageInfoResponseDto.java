@@ -37,6 +37,9 @@ public class AdminManageInfoResponseDto {
             case 2:
                 this.guestType = GuestType.DIRECT;
                 break;
+            case 3:
+                this.guestType = GuestType.BOOKING;
+                break;
             default:
                 this.guestType = GuestType.OTHER;
         }
