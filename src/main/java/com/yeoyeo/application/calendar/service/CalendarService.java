@@ -86,7 +86,10 @@ public class CalendarService {
     @Async
     public void syncInICSFile_Reservation(long roomId) {
         if (roomId == 1) syncInICSFile_Airbnb_A();
-        else if (roomId == 2) syncInICSFile_Airbnb_B();
+        else if (roomId == 2) {
+            syncInICSFile_Airbnb_B();
+            syncInICSFile_Booking_B();
+        }
         else log.error("syncInICSFile_Reservation - Reservation Room ID is WRONG : given {}", roomId);
     }
     public void syncInICSFile_Airbnb_A() {

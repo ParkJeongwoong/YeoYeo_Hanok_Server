@@ -20,6 +20,7 @@ public class CalendarScheduler {
         log.info("[SCHEDULE - Regular Calendar Synchronization : Airbnb ]");
         calendarService.syncInICSFile_Airbnb_A();
         calendarService.syncInICSFile_Airbnb_B();
+        calendarService.syncInICSFile_Booking_B();
     }
 
 }

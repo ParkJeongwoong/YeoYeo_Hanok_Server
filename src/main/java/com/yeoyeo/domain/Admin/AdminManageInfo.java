@@ -26,7 +26,7 @@ public class AdminManageInfo {
 //    @Enumerated(EnumType.STRING) // Enum은 DB와 연결했을 때 단점이 생기기 때문에 사용 X
     @Column(nullable = false)
 //    private GuestType guestType;
-    private int guestType; // 0: 홈페이지 예약 손님 , 1: 에어비앤비 예약 손님, 2: 전화 예약 손님
+    private int guestType; // 0: 홈페이지 예약 손님 , 1: 에어비앤비 예약 손님, 2: 전화 예약 손님, 3: 부킹닷컴 예약 손님
 
     @Column(nullable = false)
     private LocalDate checkin;
@@ -80,12 +80,24 @@ public class AdminManageInfo {
                 break;
             case "GuestAirbnb":
                 if (reservation.getManagementLevel()>0) {
-                    this.guestType =2;
+                    this.guestType = 2;
                     this.checkin = reservation.getFirstDate();
                     this.checkout = reservation.getFirstDate().plusDays(1);
                 }
                 else {
                     this.guestType = 1;
+                    this.checkin = reservation.getFirstDate();
+                    this.checkout = reservation.getLastDateRoom().getDate().plusDays(1);
+                }
+                break;
+            case "GuestBooking":
+                if (reservation.getManagementLevel()>0) {
+                    this.guestType = 2;
+                    this.checkin = reservation.getFirstDate();
+                    this.checkout = reservation.getFirstDate().plusDays(1);
+                }
+                else {
+                    this.guestType = 3;
                     this.checkin = reservation.getFirstDate();
                     this.checkout = reservation.getLastDateRoom().getDate().plusDays(1);
                 }
