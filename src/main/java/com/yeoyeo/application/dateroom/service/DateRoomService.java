@@ -69,7 +69,7 @@ public class DateRoomService extends Thread {
                         dateRoom2.setUnReservable();
                     }
                 } catch (Exception e) {
-                    log.error("초기 6개월치 방 날짜 생성 중 에러 발생 - {}", preDateRoomId, e);
+                    log.error("초기 9개월치 방 날짜 생성 중 에러 발생 - {}", preDateRoomId, e);
                 }
             } else {
                 DateRoom dateRoom2_found = dateRoomRepository.findById(preDateRoomId+"2").orElse(null);
@@ -77,7 +77,7 @@ public class DateRoomService extends Thread {
                     dateRoom1_found.resetDefaultPriceType(webClientService,holidayKey);
                     dateRoom2_found.resetDefaultPriceType(webClientService,holidayKey);
                 } else {
-                    log.error("초기 6개월치 방 날짜 생성 중 에러 발생 - {}", preDateRoomId);
+                    log.error("초기 9개월치 방 날짜 업데이트 중 에러 발생 - {}", preDateRoomId);
                 }
             }
             date = date.plusDays(1);
