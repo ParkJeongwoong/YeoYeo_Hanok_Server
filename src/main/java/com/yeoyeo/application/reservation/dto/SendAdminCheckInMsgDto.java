@@ -15,11 +15,7 @@ public class SendAdminCheckInMsgDto {
     }
 
     public boolean validationCheck() {
-        if (getSize() == 0) return false;
-        for (AdminManageInfo guestInfo : guestInfos) {
-            if (guestInfo.getGuestType() != 1) return true;
-        }
-        return false;
+        return getSize() != 0;
     }
 
     public int getSize() {
