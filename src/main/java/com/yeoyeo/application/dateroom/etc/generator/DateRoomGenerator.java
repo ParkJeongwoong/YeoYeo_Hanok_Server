@@ -45,6 +45,7 @@ public class DateRoomGenerator {
         try {
             dateRoomService.makeDateRoom(2, date);
             dateRoomService.makeDateRoom(1, date);
+            dateRoomService.setDateRoomUnReservableByDay(date);
         } catch (Exception e) {
             log.error("방 날짜 생성 중 에러 발생", e);
         }
