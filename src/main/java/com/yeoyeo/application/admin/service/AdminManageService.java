@@ -53,10 +53,11 @@ public class AdminManageService {
             AdminManageInfo adminManageInfo = adminManageInfoRepository.findByCheckinAndRoom_IdAndActivated(reservation.getFirstDate(), reservation.getRoom().getId(), true);
             log.info("ADMIN MANGE INFO : {}", adminManageInfo);
             if (adminManageInfo == null) adminManageInfoList.add(new AdminManageInfo(reservation));
-            else if (reservation.getGuest().getName().equals("AirBnbGuest_External")) {
-                continue;
-            }
             else if (adminManageInfo.getReservation().getId() != reservation.getId()) {
+                String reservedFrom = adminManageInfo.getReservation().getReservedFrom();
+                if (reservedFrom.equals(reservation.getReservedFrom()) && reservedFrom.matches("^.*_External$")) {
+                        continue;
+                    }
                 adminManageInfo.setActivated(false);
                 adminManageInfoList.add(new AdminManageInfo(reservation));
             }
@@ -120,7 +121,7 @@ public class AdminManageService {
         return adminManageInfoRepository.findAllByCheckoutGreaterThanOrderByCheckinAscRoom_Id(LocalDate.now())
                 .stream().filter(adminManageInfo -> {
                     DateRoom dateRoom = dateRoomRepository.findById(adminManageInfo.getCheckin().format(DateTimeFormatter.ofPattern("yyyyMMdd"))+adminManageInfo.getRoom().getId()).orElse(null);
-                    return dateRoom == null || dateRoom.isReservable() == false || dateRoom.getRoomReservationState() == 0;
+                    return dateRoom == null || !dateRoom.isReservable() || dateRoom.getRoomReservationState() == 0;
                 }).collect(Collectors.toList());
     }
 

@@ -47,9 +47,9 @@ public class PaymentServiceTest {
 
 
     String dateRoom1Id = LocalDate.now().toString().replaceAll("[^0-9]","")+"1";
-    String dateRoom2Id = LocalDate.now().toString().replaceAll("[^0-9]","")+"2";
-    String dateRoom3Id = LocalDate.now().plusDays(1).toString().replaceAll("[^0-9]","")+"2";
-    String dateRoom4Id = LocalDate.now().plusDays(2).toString().replaceAll("[^0-9]","")+"2";
+    String dateRoom2Id = LocalDate.now().plusDays(1).toString().replaceAll("[^0-9]","")+"2";
+    String dateRoom3Id = LocalDate.now().plusDays(2).toString().replaceAll("[^0-9]","")+"2";
+    String dateRoom4Id = LocalDate.now().plusDays(3).toString().replaceAll("[^0-9]","")+"2";
 
     @BeforeEach
     public void setup() {
