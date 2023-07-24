@@ -290,6 +290,7 @@ public class MessageService {
         String roomB_guestPhone;
         int roomB_guestCount;
         String roomB_string = null;
+        boolean airbnbRouting = false;
 
         for (AdminManageInfo guestInfo : guestInfos) {
             if (guestInfo.getRoom().getId() == 1) {
@@ -297,11 +298,13 @@ public class MessageService {
                 roomA_guestPhone = guestInfo.getPhoneNumber();
                 roomA_guestCount = guestInfo.getGuestCount();
                 roomA_string = "\n여유 : " + roomA_guestName + " (" + roomA_guestPhone + ") " + roomA_guestCount + "명";
+                if (roomA_guestName.equals("AirBnbGuest")) airbnbRouting = true;
             } else if (guestInfo.getRoom().getId() == 2) {
                 roomB_guestName = guestInfo.getName();
                 roomB_guestPhone = guestInfo.getPhoneNumber();
                 roomB_guestCount = guestInfo.getGuestCount();
                 roomB_string = "\n여행 : " + roomB_guestName + " (" + roomB_guestPhone + ") " + roomB_guestCount + "명";
+                if (roomB_guestName.equals("AirBnbGuest")) airbnbRouting = true;
             }
         }
 
@@ -309,6 +312,9 @@ public class MessageService {
         stringBuilder.append(checkInDate + " 체크인 숫자 : " + msgDto.getSize() + "팀");
         if (roomA_string != null) stringBuilder.append(roomA_string);
         if (roomB_string != null) stringBuilder.append(roomB_string);
+        if (airbnbRouting) {
+            stringBuilder.append("\n\n에어비앤비를 통해 예약을 확인하세요. (https://www.airbnb.co.kr/login?redirect_url=%2Fhosting%2Freservations)");
+        }
         String content = stringBuilder.toString();
 
         return sendMessage("LMS", subject, content, getNumberOnly(HOST));
