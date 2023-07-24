@@ -230,7 +230,9 @@ public class CalendarService {
         log.info("COUNT : {}", reservationList.size());
         for (Reservation reservation : reservationList) {
             log.info("INFO : {} {} {}", reservation.getReservationState(), reservation.getRoom().getId(), reservation.getGuest().getName());
-            if (reservation.getReservationState() == 5 && reservation.getRoom().getId() == roomId && reservation.getReservedFrom().equals(guestClassName)) return reservation;
+            if (reservation.getReservationState() == 5
+                && reservation.getRoom().getId() == roomId
+                && reservation.getReservedFrom().equals(guestClassName)) return reservation;
         }
         log.info("일치하는 reservation 없음");
         return null;
@@ -372,7 +374,7 @@ public class CalendarService {
         LocalDate lastDate = getLocalDateFromString(end);
         LocalDate today = LocalDate.now();
         LocalDate aYearAfter = today.plusMonths(6);
-        return !startDate.isAfter(today) || !lastDate.isBefore(aYearAfter);
+        return !startDate.isAfter(today) || !lastDate.isBefore(aYearAfter); // 시작일이 과거~오늘 or 종료일이 1년뒤~미래라면 True => 내일 ~ 1년 뒤의 하루 전 이면 False
     }
 
     private List<DateRoom> getDateRoomList(String start, String end, long roomId) {

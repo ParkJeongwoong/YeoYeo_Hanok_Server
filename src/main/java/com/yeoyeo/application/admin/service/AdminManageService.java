@@ -50,6 +50,7 @@ public class AdminManageService {
         List<Reservation> reservations = reservationRepository.findAllByReservationState(1);
         log.info("RESERVATION COUNT : {}", reservations.size());
         for (Reservation reservation : reservations) {
+            if (!reservation.getFirstDateRoom().getDate().isAfter(LocalDate.now())) continue;
             AdminManageInfo adminManageInfo = adminManageInfoRepository.findByCheckinAndRoom_IdAndActivated(reservation.getFirstDate(), reservation.getRoom().getId(), true);
             log.info("ADMIN MANGE INFO : {}", adminManageInfo);
             if (adminManageInfo == null) adminManageInfoList.add(new AdminManageInfo(reservation));
