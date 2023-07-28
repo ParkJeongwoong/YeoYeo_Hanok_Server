@@ -92,7 +92,7 @@ public class AdminManageInfo {
                 break;
             case "GuestBooking":
                 if (reservation.getManagementLevel()>0) {
-                    this.guestType = 2;
+                    this.guestType = 3;
                     this.checkin = reservation.getFirstDate();
                     this.checkout = reservation.getFirstDate().plusDays(1);
                 }
