@@ -198,9 +198,10 @@ public class CalendarService {
     @Transactional
     private void setReservationStateSync(String guestClassName, long roomId) {
         List<Reservation> reservationList = reservationRepository.findAllByReservationState(1);
+        LocalDate now = LocalDate.now();
         for (Reservation reservation : reservationList) {
             try {
-                if (reservation.getRoom().getId()==roomId && reservation.getReservedFrom().equals(guestClassName)) {
+                if (reservation.getRoom().getId()==roomId && reservation.getReservedFrom().equals(guestClassName) && reservation.getFirstDate().isAfter(now)) {
                     reservation.setStateSyncStart();
                 }
             } catch (ReservationException e) {
