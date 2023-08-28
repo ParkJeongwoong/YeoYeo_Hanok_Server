@@ -94,7 +94,7 @@ public class ReservationScheduler {
         int cnt = 0;
         for (Reservation reservation : reservationList) {
             if (reservation.getFirstDate().isEqual(today)) {
-                if (validateManagingCondition(reservation)) messageService.sendCheckInMsg(reservation.getGuest().getNumberOnlyPhoneNumber());
+                if (validateManagingCondition(reservation)) messageService.sendCheckInMsg(reservation.getGuest().getNumberOnlyPhoneNumber(), reservation.getRoom().getName());
                 cnt += 1;
             }
             else break;
@@ -103,7 +103,7 @@ public class ReservationScheduler {
         List<AdminManageInfo> adminManageInfoList = adminManageInfoRepository.findAllByCheckinAndActivated(today, true);
         for (AdminManageInfo adminManageInfo : adminManageInfoList) {
             if (adminManageInfo.getGuestType() == 2 && adminManageInfo.getPhoneNumber() != null) {
-                messageService.sendCheckInMsg(adminManageInfo.getNumberOnlyPhoneNumber());
+                messageService.sendCheckInMsg(adminManageInfo.getNumberOnlyPhoneNumber(), adminManageInfo.getRoom().getName());
             }
         }
         log.info("금일 체크인 고객 수 : {}건", cnt);

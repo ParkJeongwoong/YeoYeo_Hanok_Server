@@ -78,11 +78,12 @@ public class MessageService {
         String subject = "[한옥스테이 여여] 예약 확정 안내 문자입니다.";
         String content = "[한옥스테이 여여 예약 확정 안내]\n\n" +
                 "안녕하세요, 한옥스테이 여여입니다.\n" +
-                "고객님의 "+startDate_string+" ~ "+endDate_string+" "+room+" 예약이 확정되셨습니다.\n" +
+                "고객님의 "+startDate_string+" ~ "+endDate_string+" ["+room+"] 예약이 확정되셨습니다.\n" +
                 "(예약번호 :"+reservation.getId()+")\n\n" +
                 "입실은 15시부터 이며 퇴실은 11시입니다.\n\n" +
                 "한옥스테이 여여에서 여유롭고 행복한 시간 보내시길 바라겠습니다.\n" +
-                "감사합니다.:)";
+                "감사합니다.:)\n\n" +
+                "(추가적인 문의가 있으시면 " + HOST + " 로 연락 부탁드립니다.)";
 
         String subject4Admin = "[한옥스테이 여여] 예약 확정 알림";
         String content4Admin = "[한옥스테이 여여 - 예약 확정 알림]\n\n" +
@@ -204,17 +205,20 @@ public class MessageService {
                 "- 입욕제를 사용할 수 없는 점 양해 부탁드립니다. 착색/배수구 막힘 발생 시 예약을 받지 못하게 되므로 예약비와 수리비가 청구됩니다. (물에 녹는 입욕솔트는 사용 가능합니다)\n" +
                 "\n" +
                 "여여에서의 시간이 편안한 휴식이 되시길 바랍니다.\n" +
-                "감사합니다.";
+                "감사합니다.\n\n" +
+                "(추가적인 문의가 있으시면 " + HOST + " 로 연락 부탁드립니다.)";
 
         return sendMessage("LMS", subject, content, numberOnlyPhoneNumber);
     }
 
     // LMS
-    public SendMessageResponseDto sendCheckInMsg(String numberOnlyPhoneNumber) {
+    public SendMessageResponseDto sendCheckInMsg(String numberOnlyPhoneNumber, String room) {
         String subject = "[한옥스테이 여여] 체크인 안내문자";
         String content = "안녕하세요 :)\n" +
                 "한옥스테이 여여 입니다.\n" +
                 "여여에 머무르시는 동안 필요한 내용들을 안내해드리겠습니다.\n" +
+                "\n" +
+                "[고객님이 머무실 방은 " + room + "입니다.]\n" +
                 "\n" +
                 "<입퇴실 안내>\n" +
                 "[입퇴실은 셀프 체크인, 체크아웃]으로 진행되며 [체크아웃 시 문자로 확인] 부탁드립니다 :)\n" +
@@ -259,7 +263,8 @@ public class MessageService {
                 "- 입욕제는 사용이 불가능합니다. 입욕제로 인해 착색/배수구 막힘 발생 시 예약을 받지 못하게 되므로 예약비와 수리비가 청구됩니다. (물에 녹는 입욕솔트는 가능합니다)\n" +
                 "\n" +
                 "편안하고 즐거운 시간 보내시길 바랍니다.\n" +
-                "감사합니다!";
+                "감사합니다!\n\n" +
+                "(추가적인 문의가 있으시면 " + HOST + " 로 연락 부탁드립니다.)";
 
         return sendMessage("LMS", subject, content, numberOnlyPhoneNumber);
     }
