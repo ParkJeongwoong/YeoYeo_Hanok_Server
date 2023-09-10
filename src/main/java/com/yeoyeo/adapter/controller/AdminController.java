@@ -9,6 +9,7 @@ import com.yeoyeo.application.common.dto.GeneralResponseDto;
 import com.yeoyeo.application.dateroom.dto.ChangeDateRoomListPriceRequestDto;
 import com.yeoyeo.application.dateroom.dto.ChangeDateRoomListStatusRequestDto;
 import com.yeoyeo.application.dateroom.service.DateRoomService;
+import com.yeoyeo.application.message.dto.SendMessageResponseDto;
 import com.yeoyeo.application.message.service.MessageService;
 import com.yeoyeo.application.payment.service.PaymentService;
 import com.yeoyeo.application.reservation.dto.MakeReservationRequestDto.MakeReservationAdminRequestDto;
@@ -162,7 +163,11 @@ public class AdminController {
 
     // TEST
     @PostMapping("/message/checkInMsg")
-    public void testSendMessage(@RequestBody MessageTestRequestDto requestDto) {
-        messageService.sendCheckInMsg(requestDto.getNumberOnlyPhoneNumber(), requestDto.getRoomName());
+    public SendMessageResponseDto testCheckInMsg(@RequestBody MessageTestRequestDto requestDto) {
+        return messageService.sendCheckInMsg(requestDto.getNumberOnlyPhoneNumber(), requestDto.getRoomName());
+    }
+    @PostMapping("/message/noticeMsg")
+    public SendMessageResponseDto testNoticeMsg(@RequestBody MessageTestRequestDto requestDto) {
+        return messageService.sendNoticeMsg(requestDto.getNumberOnlyPhoneNumber());
     }
 }

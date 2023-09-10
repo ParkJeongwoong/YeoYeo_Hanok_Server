@@ -52,6 +52,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 //                    .antMatchers("/admin/login", "/admin/logout", "/dateroom/**", "/calendar/**", "/guest/**","/payment/**","/reservation/**", "/login**").permitAll()
 //                    .antMatchers("/admin/reservation/list/**", "/admin/manage/**").permitAll() // Admin 개발 중 임시 용도(TEST)
                     .antMatchers("/admin/**", "/swagger-ui/**", "/adminManage.html", "/index.html", "/").authenticated() // 인증된 사용자만 접근 허용
+                    .antMatchers("/web/*", "/actuator/*").permitAll()
                     .anyRequest().permitAll()
 //                    .anyRequest().authenticated()
                 .and()

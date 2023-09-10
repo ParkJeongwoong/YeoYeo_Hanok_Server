@@ -2,6 +2,7 @@ package com.yeoyeo.application.reservation.etc.scheduler;
 
 import com.yeoyeo.application.admin.repository.AdminManageInfoRepository;
 import com.yeoyeo.application.admin.service.AdminManageService;
+import com.yeoyeo.application.message.dto.SendMessageResponseDto;
 import com.yeoyeo.application.message.service.MessageService;
 import com.yeoyeo.application.reservation.dto.SendAdminCheckInMsgDto;
 import com.yeoyeo.application.reservation.etc.exception.ReservationException;
@@ -95,8 +96,8 @@ public class ReservationScheduler {
         for (Reservation reservation : reservationList) {
             if (reservation.getFirstDate().isEqual(today)) {
                 if (validateManagingCondition(reservation)) {
-                    messageService.sendCheckInMsg(reservation.getGuest().getNumberOnlyPhoneNumber(), reservation.getRoom().getName());
-                    log.info("고객 번호 : {}, 체크인 예약 번호 : {}, 체크인 예약 날짜 : {}", reservation.getGuest().getPhoneNumber(), reservation.getId(), reservation.getFirstDate());
+                    SendMessageResponseDto responseDto = messageService.sendCheckInMsg(reservation.getGuest().getNumberOnlyPhoneNumber(), reservation.getRoom().getName());
+                    log.info("문자 발송 결과 : {}", responseDto.toString());
                 }
                 cnt += 1;
             }
@@ -106,7 +107,8 @@ public class ReservationScheduler {
         List<AdminManageInfo> adminManageInfoList = adminManageInfoRepository.findAllByCheckinAndActivated(today, true);
         for (AdminManageInfo adminManageInfo : adminManageInfoList) {
             if (adminManageInfo.getGuestType() == 2 && adminManageInfo.getPhoneNumber() != null) {
-                messageService.sendCheckInMsg(adminManageInfo.getNumberOnlyPhoneNumber(), adminManageInfo.getRoom().getName());
+                SendMessageResponseDto responseDto = messageService.sendCheckInMsg(adminManageInfo.getNumberOnlyPhoneNumber(), adminManageInfo.getRoom().getName());
+                log.info("문자 발송 결과 : {}", responseDto.toString());
             }
         }
         log.info("금일 체크인 고객 수 : {}건", cnt);

@@ -2,6 +2,8 @@
 .gradle
 .idea
 application-env.properties
+application-real1.properties
+application-real2.properties
 
 build/
 out/
