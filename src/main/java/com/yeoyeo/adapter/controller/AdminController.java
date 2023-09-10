@@ -161,21 +161,8 @@ public class AdminController {
     }
 
     // TEST
-    @Getter
-    class MessageRequestDto {
-        private final String phoneNumber;
-        private final String roomName;
-
-        public MessageRequestDto(String phoneNumber, String roomName) {
-            this.phoneNumber = phoneNumber;
-            this.roomName = roomName;
-        }
-        public String getNumberOnlyPhoneNumber() {
-            return this.phoneNumber.replaceAll("[^0-9]","");
-        }
-    }
     @PostMapping("/message/checkInMsg")
-    public void testSendMessage(@RequestBody MessageRequestDto requestDto) {
+    public void testSendMessage(@RequestBody MessageTestRequestDto requestDto) {
         messageService.sendCheckInMsg(requestDto.getNumberOnlyPhoneNumber(), requestDto.getRoomName());
     }
 }
