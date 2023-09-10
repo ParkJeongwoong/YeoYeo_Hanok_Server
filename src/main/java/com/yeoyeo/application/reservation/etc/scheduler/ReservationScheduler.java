@@ -84,7 +84,7 @@ public class ReservationScheduler {
         adminManageService.createAdminManageInfoList();
     }
 
-    @Scheduled(cron = "0 0 8 * * *") // 매일 8시 0분 0초 동작
+    @Scheduled(cron = "0 0 10 * * *") // 매일 10시 0분 0초 동작
     public void noticeMessage_BeforeCheckIn() {
         log.info("[SCHEDULE - Sending Notice Message - Before Check-in]");
         LocalDate today = LocalDate.now();
@@ -94,7 +94,10 @@ public class ReservationScheduler {
         int cnt = 0;
         for (Reservation reservation : reservationList) {
             if (reservation.getFirstDate().isEqual(today)) {
-                if (validateManagingCondition(reservation)) messageService.sendCheckInMsg(reservation.getGuest().getNumberOnlyPhoneNumber(), reservation.getRoom().getName());
+                if (validateManagingCondition(reservation)) {
+                    messageService.sendCheckInMsg(reservation.getGuest().getNumberOnlyPhoneNumber(), reservation.getRoom().getName());
+                    log.info("고객 번호 : {}, 체크인 예약 번호 : {}, 체크인 예약 날짜 : {}", reservation.getGuest().getPhoneNumber(), reservation.getId(), reservation.getFirstDate());
+                }
                 cnt += 1;
             }
             else break;

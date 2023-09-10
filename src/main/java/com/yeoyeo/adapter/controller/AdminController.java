@@ -19,6 +19,7 @@ import com.yeoyeo.application.room.service.RoomService;
 import com.yeoyeo.domain.Reservation;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -159,4 +160,22 @@ public class AdminController {
         messageService.sendNoticeMsg(requestDto.getNumberOnlyPhoneNumber());
     }
 
+    // TEST
+    @Getter
+    class MessageRequestDto {
+        private final String phoneNumber;
+        private final String roomName;
+
+        public MessageRequestDto(String phoneNumber, String roomName) {
+            this.phoneNumber = phoneNumber;
+            this.roomName = roomName;
+        }
+        public String getNumberOnlyPhoneNumber() {
+            return this.phoneNumber.replaceAll("[^0-9]","");
+        }
+    }
+    @PostMapping("/message/checkInMsg")
+    public void testSendMessage(@RequestBody MessageRequestDto requestDto) {
+        messageService.sendCheckInMsg(requestDto.getNumberOnlyPhoneNumber(), requestDto.getRoomName());
+    }
 }
