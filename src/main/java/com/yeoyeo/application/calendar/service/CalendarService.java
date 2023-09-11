@@ -85,8 +85,10 @@ public class CalendarService {
     @Transactional
     @Async
     public void syncInICSFile_Reservation(long roomId) {
-        if (roomId == 1) syncInICSFile_Airbnb_A();
-        else if (roomId == 2) {
+        log.info("syncInICSFile_Reservation - Reservation Room ID : {}", roomId);
+        if (roomId == 1) {
+            syncInICSFile_Airbnb_A();
+        } else if (roomId == 2) {
             syncInICSFile_Airbnb_B();
             syncInICSFile_Booking_B();
         }

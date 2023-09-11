@@ -213,9 +213,8 @@ public class MessageService {
 
     // LMS
     public SendMessageResponseDto sendCheckInMsg(String numberOnlyPhoneNumber, String room) {
-        String subject1 = "[한옥스테이 여여] 체크인 안내문자 (1)";
-        String subject2 = "[한옥스테이 여여] 체크인 안내문자 (2)";
-        String content1 = "안녕하세요 :)\n" +
+        String subject = "[한옥스테이 여여] 체크인 안내문자";
+        String content = "안녕하세요 :)\n" +
                 "한옥스테이 여여 입니다.\n" +
                 "여여에 머무르시는 동안 필요한 내용들을 안내해드리겠습니다.\n" +
                 "\n" +
@@ -269,8 +268,7 @@ public class MessageService {
                 "감사합니다!\n\n" +
                 "(추가적인 문의가 있으시면 " + HOST + " 로 연락 부탁드립니다.)";
 
-        return sendMessage("LMS", subject1, content1, numberOnlyPhoneNumber);
-//        return sendMessage("LMS", subject2, content2, numberOnlyPhoneNumber);
+        return sendMessage("LMS", subject, content, numberOnlyPhoneNumber);
     }
 
     // LMS

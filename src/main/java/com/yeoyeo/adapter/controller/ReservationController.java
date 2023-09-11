@@ -37,6 +37,7 @@ public class ReservationController {
     @Transactional
     @PostMapping("/reserve")
     public ResponseEntity<GeneralResponseDto> createReservation(@RequestBody MakeReservationHomeRequestDto requestDto) {
+        log.info("예약 정보 생성 요청");
         try {
             MakeReservationHomeDto reservationHomeDto = requestDto.getMakeReservationDto(dateRoomRepository);
             calendarService.syncInICSFile_Reservation(reservationHomeDto.getDateRoomList().get(0).getRoom().getId());
