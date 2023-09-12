@@ -20,7 +20,6 @@ import com.yeoyeo.application.room.service.RoomService;
 import com.yeoyeo.domain.Reservation;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -151,6 +150,7 @@ public class AdminController {
     public void createAdminManageInfoList() {
         calendarService.syncInICSFile_Airbnb_A();
         calendarService.syncInICSFile_Airbnb_B();
+        calendarService.syncInICSFile_Booking_B();
         adminManageService.createAdminManageInfoList();
     }
 

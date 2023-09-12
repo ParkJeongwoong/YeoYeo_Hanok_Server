@@ -45,13 +45,30 @@ public class AdminManageService {
     }
 
     @Transactional
+    private AdminManageInfo getUniqueAdminManageInfo(LocalDate checkIn, long roomId) {
+        List<AdminManageInfo> adminManageInfoList = adminManageInfoRepository.findAllByCheckinAndActivated(checkIn, true)
+                .stream().filter(adminManageInfo -> adminManageInfo.getRoom().getId() == roomId).collect(Collectors.toList());
+        if (adminManageInfoList.size() == 0) throw new NoSuchElementException("해당 날짜에 AdminManageInfo 가 존재하지 않습니다.");
+        else if (adminManageInfoList.size() > 1) {
+            log.info("해당 날짜에 AdminManageInfo 가 여러개 존재합니다.");
+            log.info("AdminManageInfoList 사이즈 : {}", adminManageInfoList.size());
+            for (int i=1; i<adminManageInfoList.size(); i++) {
+                AdminManageInfo adminManageInfo = adminManageInfoList.get(i);
+                adminManageInfo.setActivated(false);
+            }
+            adminManageInfoRepository.saveAll(adminManageInfoList);
+        }
+        return adminManageInfoList.get(0);
+    }
+
+    @Transactional
     public void createAdminManageInfoList() {
         List<AdminManageInfo> adminManageInfoList = new ArrayList<>();
         List<Reservation> reservations = reservationRepository.findAllByReservationState(1);
         log.info("RESERVATION COUNT : {}", reservations.size());
         for (Reservation reservation : reservations) {
             if (!reservation.getFirstDateRoom().getDate().isAfter(LocalDate.now())) continue;
-            AdminManageInfo adminManageInfo = adminManageInfoRepository.findByCheckinAndRoom_IdAndActivated(reservation.getFirstDate(), reservation.getRoom().getId(), true);
+            AdminManageInfo adminManageInfo = getUniqueAdminManageInfo(reservation.getFirstDate(), reservation.getRoom().getId());
             log.info("ADMIN MANGE INFO : {}", adminManageInfo);
             if (adminManageInfo == null) adminManageInfoList.add(new AdminManageInfo(reservation));
             else if (adminManageInfo.getReservation().getId() != reservation.getId()) {
