@@ -43,6 +43,7 @@ public class DateRoomGenerator {
         LocalDate date = LocalDate.now().plusDays(270);
         log.info("270일 후 날짜 : {}", date);
         try {
+            dateRoomService.fetchHolidayData(date.getYear(), date.getMonthValue());
             dateRoomService.makeDateRoom(2, date);
             dateRoomService.makeDateRoom(1, date);
             dateRoomService.setDateRoomUnReservableByDay(date);
@@ -56,7 +57,9 @@ public class DateRoomGenerator {
     @Scheduled(cron = "0 0 3 * * 1")
     private void weeklyDefaultPriceTypeReset() { // 매주 월요일 새벽 3시에 동작
         log.info("[SCHEDULE - Weekly Default Price-type Reset Job]");
-        dateRoomService.resetDateRoomPriceType_month(LocalDate.now());
+        LocalDate today = LocalDate.now();
+        dateRoomService.fetchHolidayData(today.getYear(), today.getMonthValue());
+        dateRoomService.resetDateRoomPriceType_month(today);
     }
 
     @Transactional

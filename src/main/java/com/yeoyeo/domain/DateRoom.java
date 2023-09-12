@@ -1,17 +1,12 @@
 package com.yeoyeo.domain;
 
 import com.yeoyeo.application.dateroom.etc.exception.RoomReservationException;
-import com.yeoyeo.application.common.service.WebClientService;
+import com.yeoyeo.application.dateroom.repository.HolidayRepository;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.annotations.OptimisticLocking;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
-import org.springframework.http.MediaType;
 
 import javax.persistence.*;
 import java.time.DayOfWeek;
@@ -55,12 +50,12 @@ public class DateRoom {
     private int version;
 
     @Builder
-    DateRoom(LocalDate date, Room room, WebClientService webClientService, String key) {
+    DateRoom(LocalDate date, Room room, HolidayRepository holidayRepository) {
         this.id = date.toString().replaceAll("[^0-9]","") + room.getId();
         this.date = date;
         this.room = room;
         this.roomReservationState = 0;
-        setDefaultPriceType(webClientService, key);
+        setDefaultPriceType(holidayRepository);
         setPrice();
         this.isReservable = true;
     }
@@ -96,8 +91,8 @@ public class DateRoom {
         this.priceType = 0;
     }
 
-    public void resetDefaultPriceType(WebClientService webClientService, String key) {
-        if (this.priceType == 1 || this.priceType == 2) setDefaultPriceType(webClientService, key);
+    public void resetDefaultPriceType(HolidayRepository holidayRepository) {
+        if (this.priceType == 1 || this.priceType == 2) setDefaultPriceType(holidayRepository);
         if (this.priceType != 0) setPrice();
     }
 
@@ -118,7 +113,7 @@ public class DateRoom {
         }
     }
 
-    private void setDefaultPriceType(WebClientService webClientService, String key) {
+    private void setDefaultPriceType(HolidayRepository holidayRepository) {
         DayOfWeek dayOfWeek = this.date.getDayOfWeek();
         switch (dayOfWeek) {
             case FRIDAY:
@@ -129,43 +124,15 @@ public class DateRoom {
                 this.priceType = 1;
                 break;
         }
-        if (checkHoliday(webClientService, key)) {
+        if (checkHoliday(holidayRepository)) {
             this.priceType = 2;
         }
     }
 
-    private boolean checkHoliday(WebClientService webClientService, String key) {
+    private boolean checkHoliday(HolidayRepository holidayRepository) {
         LocalDate dayAfter = this.date.plusDays(1);
-        String year = String.valueOf(dayAfter.getYear());
-        String month = dayAfter.getMonthValue()>9 ? String.valueOf(dayAfter.getMonthValue()) : "0"+dayAfter.getMonthValue();
-        String day = dayAfter.getDayOfMonth()>9 ? String.valueOf(dayAfter.getDayOfMonth()) : "0"+dayAfter.getDayOfMonth();
-        String url = "http://apis.data.go.kr/B090041/openapi/service/SpcdeInfoService/getRestDeInfo?solYear="+year+"&solMonth="+month+"&_type=json&ServiceKey="+key;
-        JSONParser parser = new JSONParser();
-
-        JSONObject response = webClientService.get("application/json;charset=UTF-8", url, MediaType.TEXT_XML);
-        if (response == null) { throw new RuntimeException("Return 데이터 문제"); }
-        try {
-            response = (JSONObject) parser.parse(response.toString().replaceAll("\"","\\\""));
-            JSONObject res = (JSONObject) response.get("response");
-            JSONObject body = (JSONObject) res.get("body");
-            String totalCount = String.valueOf(body.get("totalCount"));
-            if (totalCount.equals("0")) return false;
-            JSONObject items = (JSONObject) body.get("items");
-            if (totalCount.equals("1")) { // 1개면 그냥 객체로 응답됨
-                JSONObject holiday = (JSONObject) items.get("item");
-                String date = String.valueOf(holiday.get("locdate"));
-                return (date.equals(year + month + day));
-            } else {
-                JSONArray holidays = (JSONArray) items.get("item");
-                for (Object holiday : holidays) { // 2개 이상이면 배열로 응답됨
-                    String date = String.valueOf(((JSONObject) holiday).get("locdate"));
-                    if ((date.equals(year + month + day))) return true;
-                }
-            }
-        } catch (ParseException e) {
-            log.error("공휴일 공공 데이터 확인 중 JSON Parsing Error 발생", e);
-        }
-        return false;
+        Holiday holiday = holidayRepository.findById(dayAfter).orElse(null);
+        return holiday != null;
     }
 
     public void setReservable() {

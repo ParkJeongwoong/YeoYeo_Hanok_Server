@@ -7,9 +7,11 @@ import com.yeoyeo.application.reservation.dto.MakeReservationDto.MakeReservation
 import com.yeoyeo.application.reservation.etc.exception.ReservationException;
 import com.yeoyeo.application.reservation.repository.ReservationRepository;
 import com.yeoyeo.application.reservation.service.ReservationService;
-import com.yeoyeo.domain.*;
+import com.yeoyeo.domain.DateRoom;
 import com.yeoyeo.domain.Guest.GuestAirbnb;
 import com.yeoyeo.domain.Guest.GuestHome;
+import com.yeoyeo.domain.Payment;
+import com.yeoyeo.domain.Reservation;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -45,10 +47,10 @@ public class ReservationServiceTest {
     @Autowired
     ReservationService reservationService;
 
-    String dateRoom1Id = LocalDate.now().toString().replaceAll("[^0-9]","")+"1";
-    String dateRoom2Id = LocalDate.now().toString().replaceAll("[^0-9]","")+"2";
-    String dateRoom3Id = LocalDate.now().plusDays(1).toString().replaceAll("[^0-9]","")+"2";
-    String dateRoom4Id = LocalDate.now().plusDays(2).toString().replaceAll("[^0-9]","")+"2";
+    String dateRoom1Id = LocalDate.now().plusDays(10).toString().replaceAll("[^0-9]","")+"1";
+    String dateRoom2Id = LocalDate.now().plusDays(10).toString().replaceAll("[^0-9]","")+"2";
+    String dateRoom3Id = LocalDate.now().plusDays(11).toString().replaceAll("[^0-9]","")+"2";
+    String dateRoom4Id = LocalDate.now().plusDays(12).toString().replaceAll("[^0-9]","")+"2";
     Payment payment;
     Payment payment_airbnb;
 
