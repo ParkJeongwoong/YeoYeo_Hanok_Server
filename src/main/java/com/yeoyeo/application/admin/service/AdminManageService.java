@@ -48,7 +48,7 @@ public class AdminManageService {
     private AdminManageInfo getUniqueAdminManageInfo(LocalDate checkIn, long roomId) {
         List<AdminManageInfo> adminManageInfoList = adminManageInfoRepository.findAllByCheckinAndActivated(checkIn, true)
                 .stream().filter(adminManageInfo -> adminManageInfo.getRoom().getId() == roomId).collect(Collectors.toList());
-        if (adminManageInfoList.size() == 0) throw new NoSuchElementException("해당 날짜에 AdminManageInfo 가 존재하지 않습니다.");
+        if (adminManageInfoList.size() == 0) return null;
         else if (adminManageInfoList.size() > 1) {
             log.info("해당 날짜에 AdminManageInfo 가 여러개 존재합니다.");
             log.info("AdminManageInfoList 사이즈 : {}", adminManageInfoList.size());
