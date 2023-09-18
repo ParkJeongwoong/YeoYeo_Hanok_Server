@@ -25,7 +25,7 @@ public class Reservation extends BaseTimeEntity {
     @OneToMany(mappedBy = "reservation", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private final List<MapDateRoomReservation> mapDateRoomReservations = new ArrayList<>();
 
-    @OneToOne(cascade = CascadeType.ALL)
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinColumn(name = "guest_id", nullable = false)
     private Guest guest;
 
@@ -41,7 +41,7 @@ public class Reservation extends BaseTimeEntity {
     @Column
     private int managementLevel; // 0 : 외부 플랫폼 관리, 1 : 홈페이지 관리 예약 (외부 동기화 미완료), 2: 홈페이지 관리 예약 (외부 동기화 완료)
 
-    @OneToOne(cascade = CascadeType.ALL)
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinColumn(name = "payment_id")
     private Payment payment;
 

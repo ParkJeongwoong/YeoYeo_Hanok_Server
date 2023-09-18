@@ -50,7 +50,7 @@ public class AdminManageService {
                 .stream().filter(adminManageInfo -> adminManageInfo.getRoom().getId() == roomId).collect(Collectors.toList());
         if (adminManageInfoList.size() == 0) return null;
         else if (adminManageInfoList.size() > 1) {
-            log.info("해당 날짜에 AdminManageInfo 가 여러개 존재합니다.");
+            log.info("해당 날짜에 AdminManageInfo 가 여러 개 존재합니다.");
             log.info("AdminManageInfoList 사이즈 : {}", adminManageInfoList.size());
             for (int i=1; i<adminManageInfoList.size(); i++) {
                 AdminManageInfo adminManageInfo = adminManageInfoList.get(i);

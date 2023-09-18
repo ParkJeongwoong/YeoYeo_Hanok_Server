@@ -8,17 +8,22 @@ import com.yeoyeo.application.reservation.dto.MakeReservationDto.MakeReservation
 import com.yeoyeo.application.reservation.etc.exception.ReservationException;
 import com.yeoyeo.application.reservation.repository.ReservationRepository;
 import com.yeoyeo.application.reservation.service.ReservationService;
-import com.yeoyeo.domain.*;
+import com.yeoyeo.domain.DateRoom;
 import com.yeoyeo.domain.Guest.Factory.GuestAirbnbFactory;
 import com.yeoyeo.domain.Guest.Factory.GuestBookingFactory;
 import com.yeoyeo.domain.Guest.Factory.GuestFactory;
 import com.yeoyeo.domain.Guest.Guest;
+import com.yeoyeo.domain.MapDateRoomReservation;
+import com.yeoyeo.domain.Payment;
+import com.yeoyeo.domain.Reservation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.fortuna.ical4j.data.CalendarBuilder;
 import net.fortuna.ical4j.data.CalendarOutputter;
 import net.fortuna.ical4j.data.ParserException;
-import net.fortuna.ical4j.model.*;
+import net.fortuna.ical4j.model.Calendar;
+import net.fortuna.ical4j.model.Component;
+import net.fortuna.ical4j.model.Date;
 import net.fortuna.ical4j.model.component.VEvent;
 import net.fortuna.ical4j.model.property.Uid;
 import net.fortuna.ical4j.util.FixedUidGenerator;
@@ -276,7 +281,7 @@ public class CalendarService {
         String eventEnd = event.getEndDate().getValue();
         try {
             if (!getLocalDateFromString(eventStart).isEqual(reservation.getFirstDate())
-            || !getLocalDateFromString(eventEnd).isEqual(reservation.getLastDateRoom().getDate().plusDays(1))) {
+                || !getLocalDateFromString(eventEnd).isEqual(reservation.getLastDateRoom().getDate().plusDays(1))) {
                 log.info("Update 중 날짜 변동사항 발견 - 예약취소 후 재등록 : {} ~ {} -> {} ~ {}", reservation.getFirstDate(), reservation.getLastDateRoom().getDate(), eventStart, eventEnd);
                 reservationService.cancel(reservation);
                 registerReservation(event, reservation.getGuest(), reservation.getPayment(), reservation.getRoom().getId());
