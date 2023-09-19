@@ -75,6 +75,14 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .deleteCookies("SESSION")
                 .and()
 
+                // 쿠키 관리
+                .rememberMe()
+                .rememberMeParameter("remember")
+                .tokenValiditySeconds(2592000)
+                .alwaysRemember(false)
+                .key("yeoyeoAdmin")
+                .and()
+                
                 // 사용자 인증 필터 적용;
                 .addFilterBefore(apiAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
 //                .addFilterAt(customAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
