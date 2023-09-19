@@ -74,14 +74,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .logoutSuccessHandler(logoutSuccessHandler)
                 .deleteCookies("SESSION")
                 .and()
-
-                // 쿠키 관리
-                .rememberMe()
-                .rememberMeParameter("remember")
-                .tokenValiditySeconds(2592000)
-                .alwaysRemember(false)
-                .key("yeoyeoAdmin")
-                .and()
                 
                 // 사용자 인증 필터 적용;
                 .addFilterBefore(apiAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
@@ -92,6 +84,15 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .sessionManagement()
                 .sessionFixation().migrateSession()
                 .maximumSessions(1)
+                .and()
+                .and()
+
+                // 쿠키 관리
+                .rememberMe()
+                .alwaysRemember(false)
+                .tokenValiditySeconds(60 * 60 * 24 * 30)
+                .key("yeoyeoAdmin")
+                .rememberMeParameter("remember")
                 ;
     }
 
