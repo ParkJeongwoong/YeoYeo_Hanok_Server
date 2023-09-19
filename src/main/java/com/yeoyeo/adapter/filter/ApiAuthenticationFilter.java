@@ -42,9 +42,11 @@ public class ApiAuthenticationFilter extends AbstractAuthenticationProcessingFil
 
         String userId = (String) parsedJsonMap.get("userId");
         String userPassword = (String) parsedJsonMap.get("userPassword");
-        log.info("{} {}",userId, userPassword);
+        Boolean remember = (Boolean) parsedJsonMap.get("remember");
+        log.info("{} {} {}",userId, userPassword, remember);
 
         UsernamePasswordAuthenticationToken authRequest = new UsernamePasswordAuthenticationToken(userId, userPassword);
+        authRequest.setDetails(remember);
 
         return super.getAuthenticationManager().authenticate(authRequest);
     }
