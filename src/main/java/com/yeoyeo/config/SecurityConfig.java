@@ -5,6 +5,7 @@ import com.yeoyeo.adapter.filter.CustomAuthenticationFilter;
 import com.yeoyeo.adapter.handler.*;
 import com.yeoyeo.adapter.provider.CustomAuthenticationProvider;
 import com.yeoyeo.application.admin.repository.AdministratorRepository;
+import com.yeoyeo.application.admin.service.CustomUserDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -33,6 +34,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     // 인증되지 않은 사용자 접근에 대한 handler
     @Autowired private WebAuthenticationEntryPoint webAuthenticationEntryPoint;
     @Autowired private LogoutSuccessHandler logoutSuccessHandler;
+    @Autowired private CustomUserDetailsService customUserDetailsService;
 
     // 스프링 시큐리티가 사용자를 인증하는 방법이 담긴 객체
     @Override
@@ -93,6 +95,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .tokenValiditySeconds(60 * 60 * 24 * 30)
                 .key("yeoyeoAdmin")
                 .rememberMeParameter("remember")
+                .userDetailsService(customUserDetailsService)
                 ;
     }
 
