@@ -48,7 +48,13 @@ public class ApiAuthenticationFilter extends AbstractAuthenticationProcessingFil
         UsernamePasswordAuthenticationToken authRequest = new UsernamePasswordAuthenticationToken(userId, userPassword);
         authRequest.setDetails(remember);
 
-        return super.getAuthenticationManager().authenticate(authRequest);
+        Authentication authentication = super.getAuthenticationManager().authenticate(authRequest);
+
+        if (authentication.isAuthenticated() && (Boolean) authentication.getDetails()) {
+            getRememberMeServices().loginSuccess(request, response, authentication);
+        }
+
+        return authentication;
     }
 
     private Boolean isValidRequest(HttpServletRequest request) {
