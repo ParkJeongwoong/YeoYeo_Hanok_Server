@@ -5,6 +5,7 @@ import com.yeoyeo.adapter.filter.CustomAuthenticationFilter;
 import com.yeoyeo.adapter.handler.*;
 import com.yeoyeo.adapter.provider.CustomAuthenticationProvider;
 import com.yeoyeo.application.admin.repository.AdministratorRepository;
+import com.yeoyeo.application.admin.service.CustomPersistentTokenBasedRememberMeServices;
 import com.yeoyeo.application.admin.service.CustomUserDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -16,7 +17,6 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.web.authentication.RememberMeServices;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.rememberme.JdbcTokenRepositoryImpl;
-import org.springframework.security.web.authentication.rememberme.PersistentTokenBasedRememberMeServices;
 import org.springframework.security.web.authentication.rememberme.PersistentTokenRepository;
 import org.springframework.session.web.http.CookieSerializer;
 import org.springframework.session.web.http.DefaultCookieSerializer;
@@ -39,7 +39,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     // 인증되지 않은 사용자 접근에 대한 handler
     @Autowired private WebAuthenticationEntryPoint webAuthenticationEntryPoint;
     @Autowired private LogoutSuccessHandler logoutSuccessHandler;
-    @Autowired private CustomUserDetailsService customUserDetailsService;
     @Autowired private DataSource dataSource;
 
     // 스프링 시큐리티가 사용자를 인증하는 방법이 담긴 객체
@@ -84,7 +83,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .and()
                 
                 // 사용자 인증 필터 적용;
-                .addFilterBefore(apiAuthenticationFilter(rememberMeServices()), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(apiAuthenticationFilter(rememberMeServices(tokenRepository())), UsernamePasswordAuthenticationFilter.class)
 //                .addFilterAt(customAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
 //                .addFilterBefore(customAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
 
@@ -94,14 +93,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .maximumSessions(1)
                 .and()
                 .and()
-
-                // 쿠키 관리
-                .rememberMe()
-                .alwaysRemember(false)
-                .tokenValiditySeconds(60 * 60 * 24 * 30)
-                .key("yeoyeoAdmin")
-                .rememberMeParameter("remember")
-                .userDetailsService(customUserDetailsService)
                 ;
     }
 
@@ -158,20 +149,19 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     @Bean
-    public RememberMeServices rememberMeServices() {
-        PersistentTokenBasedRememberMeServices services = new PersistentTokenBasedRememberMeServices("yeoyeoAdmin", customUserDetailsService, tokenRepository());
-        services.setAlwaysRemember(false);
-        services.setTokenValiditySeconds(60 * 60 * 24 * 30);
-        services.setCookieName("remember");
-        services.setParameter("remember");
-        return services;
-    }
-
-    @Bean
     public PersistentTokenRepository tokenRepository() {
         JdbcTokenRepositoryImpl repository = new JdbcTokenRepositoryImpl();
         repository.setDataSource(dataSource);
         return repository;
+    }
+
+    @Bean
+    public RememberMeServices rememberMeServices(PersistentTokenRepository tokenRepository) {
+        CustomPersistentTokenBasedRememberMeServices services = new CustomPersistentTokenBasedRememberMeServices("yeoyeoAdmin", new CustomUserDetailsService(adminRepository), tokenRepository);
+        services.setAlwaysRemember(false);
+        services.setTokenValiditySeconds(60 * 60 * 24 * 30);
+        services.setParameter("remember");
+        return services;
     }
 
 }
