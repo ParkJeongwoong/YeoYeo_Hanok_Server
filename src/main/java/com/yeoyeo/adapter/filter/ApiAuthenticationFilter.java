@@ -53,6 +53,11 @@ public class ApiAuthenticationFilter extends AbstractAuthenticationProcessingFil
         if (authentication == null) {
             authentication = super.getAuthenticationManager().authenticate(authRequest);
             ((CustomPersistentTokenBasedRememberMeServices) getRememberMeServices()).customLoginSuccess(request, response, authentication);
+        } else {
+            log.info("Remembered {}", authentication.getName());
+            log.info(authentication.getCredentials().toString());
+            log.info(authentication.getAuthorities().toString());
+            log.info(authentication.getPrincipal().toString());
         }
 
         return authentication;
