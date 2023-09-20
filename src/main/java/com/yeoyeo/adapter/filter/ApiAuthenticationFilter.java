@@ -1,6 +1,7 @@
 package com.yeoyeo.adapter.filter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.yeoyeo.application.admin.service.CustomPersistentTokenBasedRememberMeServices;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
@@ -50,9 +51,7 @@ public class ApiAuthenticationFilter extends AbstractAuthenticationProcessingFil
 
         Authentication authentication = super.getAuthenticationManager().authenticate(authRequest);
 
-        if (authentication.isAuthenticated() && (Boolean) authentication.getDetails()) {
-            getRememberMeServices().loginSuccess(request, response, authentication);
-        }
+        ((CustomPersistentTokenBasedRememberMeServices) getRememberMeServices()).customLoginSuccess(request, response, authentication);
 
         return authentication;
     }
