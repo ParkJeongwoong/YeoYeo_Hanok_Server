@@ -49,8 +49,18 @@ public class ApiAuthenticationFilter extends AbstractAuthenticationProcessingFil
         UsernamePasswordAuthenticationToken authRequest = new UsernamePasswordAuthenticationToken(userId, userPassword);
         authRequest.setDetails(remember);
 
-        Authentication authentication = super.getAuthenticationManager().authenticate(authRequest);
-        ((CustomPersistentTokenBasedRememberMeServices) getRememberMeServices()).customLoginSuccess(request, response, authentication);
+        Authentication authentication = getRememberMeServices().autoLogin(request, response);
+        if (authentication == null) {
+            authentication = super.getAuthenticationManager().authenticate(authRequest);
+            ((CustomPersistentTokenBasedRememberMeServices) getRememberMeServices()).customLoginSuccess(request, response, authentication);
+        } else {
+            log.info("Remembered {}", authentication.getName());
+            log.info(authentication.getCredentials().toString());
+            log.info(authentication.getAuthorities().toString());
+            log.info(authentication.getPrincipal().toString());
+        }
+//        Authentication authentication = super.getAuthenticationManager().authenticate(authRequest);
+//        ((CustomPersistentTokenBasedRememberMeServices) getRememberMeServices()).customLoginSuccess(request, response, authentication);
 
         return authentication;
     }
