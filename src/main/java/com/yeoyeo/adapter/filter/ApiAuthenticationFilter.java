@@ -49,9 +49,11 @@ public class ApiAuthenticationFilter extends AbstractAuthenticationProcessingFil
         UsernamePasswordAuthenticationToken authRequest = new UsernamePasswordAuthenticationToken(userId, userPassword);
         authRequest.setDetails(remember);
 
-        Authentication authentication = super.getAuthenticationManager().authenticate(authRequest);
-
-        ((CustomPersistentTokenBasedRememberMeServices) getRememberMeServices()).customLoginSuccess(request, response, authentication);
+        Authentication authentication = getRememberMeServices().autoLogin(request, response);
+        if (authentication == null) {
+            authentication = super.getAuthenticationManager().authenticate(authRequest);
+            ((CustomPersistentTokenBasedRememberMeServices) getRememberMeServices()).customLoginSuccess(request, response, authentication);
+        }
 
         return authentication;
     }
