@@ -62,5 +62,8 @@ dependencies {
 
     // Apache commons-io
     implementation('commons-io:commons-io:2.11.0')
+
+    // AOP
+    implementation('org.springframework.boot:spring-boot-starter-aop')
 }
 targetCompatibility = JavaVersion.VERSION_1_9

@@ -12,7 +12,6 @@ import com.yeoyeo.domain.Reservation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,7 +40,7 @@ public class ReservationScheduler {
 
     @Transactional
     @Scheduled(cron = "0 1 0 * * *") // 매일 0시 1분 0초 동작
-    protected void dailyReservationCompletion() {
+    public void dailyReservationCompletion() {
         log.info("[SCHEDULE - Daily Past Reservation Completion]");
         LocalDate today = LocalDate.now();
         log.info("{} 예약 완료 처리 시작", today);

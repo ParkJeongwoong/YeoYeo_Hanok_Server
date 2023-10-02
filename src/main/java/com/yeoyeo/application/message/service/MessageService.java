@@ -1,5 +1,6 @@
 package com.yeoyeo.application.message.service;
 
+import com.yeoyeo.application.common.method.CommonMethod;
 import com.yeoyeo.application.common.service.WebClientService;
 import com.yeoyeo.application.message.dto.SendMessageResponseDto;
 import com.yeoyeo.application.reservation.dto.SendAdminCheckInMsgDto;
@@ -8,10 +9,7 @@ import com.yeoyeo.domain.Admin.AdminManageInfo;
 import com.yeoyeo.domain.Reservation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,7 +24,6 @@ import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
 import java.util.Random;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -45,10 +42,9 @@ public class MessageService {
     @Value("${sms.ncloud.secretKey}")
     String secretKey;
 
-    @Autowired
-    private final RedisTemplate redisTemplate;
-
     private final WebClientService webClientService;
+
+    private final CommonMethod commonMethod;
 
     private final ReservationRepository reservationRepository;
 
@@ -386,16 +382,14 @@ public class MessageService {
     }
 
     private void registerAuthKey(String phoneNumber, String authKey) {
-        ValueOperations<String, String> valueOperations = redisTemplate.opsForValue();
-        valueOperations.set(phoneNumber, authKey, 3, TimeUnit.MINUTES);
+        commonMethod.setCache(phoneNumber, authKey, 3);
     }
 
     private boolean checkAuthKey(String phoneNumber, String authKey) {
-        ValueOperations<String, String> valueOperations = redisTemplate.opsForValue();
-        String redisAuthKey = valueOperations.get(phoneNumber);
+        String redisAuthKey = commonMethod.getCache(phoneNumber);
         if (redisAuthKey == null) return false;
-        if (valueOperations.get(phoneNumber).equals(authKey)) {
-            return redisTemplate.delete(phoneNumber);
+        if (redisAuthKey.equals(authKey)) {
+            return commonMethod.delCache(phoneNumber);
         }
         return false;
     }
