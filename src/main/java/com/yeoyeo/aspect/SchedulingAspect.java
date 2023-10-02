@@ -20,9 +20,11 @@ public class SchedulingAspect {
 
     @Pointcut("execution(* com.yeoyeo.application..*Scheduler.*(..))")
     private void schedulerPointcut() {}
+    @Pointcut("execution(* com.yeoyeo.application..*Generator.*(..))")
+    private void generatorPointcut() {}
 
     @Transactional
-    @Around("schedulerPointcut()")
+    @Around("schedulerPointcut() || generatorPointcut()")
     public void schedulerLogging(ProceedingJoinPoint joinPoint) throws Throwable {
         String scheduleName = joinPoint.getSignature().getName();
         try {
