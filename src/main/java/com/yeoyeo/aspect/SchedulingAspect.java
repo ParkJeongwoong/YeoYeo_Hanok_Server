@@ -29,7 +29,7 @@ public class SchedulingAspect {
             log.info("=== Server Profile : {} / Scheduler : {} ===", commonMethod.getServerProfile(), scheduleName);
             commonMethod.startScheduling(scheduleName);
             joinPoint.proceed();
-//            commonMethod.endScheduling(scheduleName);
+            commonMethod.endScheduling(scheduleName);
             log.info("-- Scheduler : {} [SUCCESS] --", scheduleName);
         } catch (Exception exception) {
             log.error("-- Scheduler : {} [ERROR] (1) --", scheduleName);
