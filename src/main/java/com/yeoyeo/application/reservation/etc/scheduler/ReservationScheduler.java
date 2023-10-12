@@ -151,7 +151,7 @@ public class ReservationScheduler {
 
     @Transactional
     @Scheduled(cron = "0 30 23 * * *") // 매일 23시 30분 0초 동작
-    public void dailyAdminMangeInfoDeactivate() {
+    public void dailyAdminManageInfoDeactivate() {
         log.info("[SCHEDULE - Daily AdminManageInfo Deactivate]");
         LocalDate before2days = LocalDate.now().minusDays(2);
         log.info("체크아웃 대상 날짜 : {}", before2days);
