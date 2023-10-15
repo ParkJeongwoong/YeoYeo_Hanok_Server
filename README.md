@@ -1,7 +1,11 @@
-[Todo - 2023-05]
-- 안내 문자 발송
-- 외부 예약 추가 관리 (동기화시 예외처리)
-- 외부 예약 안내 문자 발송
+[Build]
+- ./gradlew clean build -x test (빌드파일 지웠다가 다시 시작)
+- docker build -t dvlprjw/yeoyeo . (도커 이미지 빌드)
+- docker push dvlprjw/yeoyeo (도커 이미지 푸시)
+
+[Deploy]
+- docker pull dvlprjw/yeoyeo (도커 이미지 풀)
+- docker run -itd -p 8081:8080 -e IDLE_PROFILE=real1 -e JAVA_AGENT=/home/ec2-user/app/pinpoint/pinpoint-agent-2.2.2/pinpoint-bootstrap-2.2.2.jar -e PINPOINT_CONFIG=/home/ec2-user/app/pinpoint/pinpoint-agent-2.2.2/pinpoint-root.config -v /home/ec2-user/app/hanok/log:/log -v /home/ec2-user/app/pinpoint/pinpoint-agent-2.2.2:/pinpoint --name yeoyeo dvlprjw/yeoyeo (도커 컨테이너 실행)
 
 [동기화 테스트]
 
