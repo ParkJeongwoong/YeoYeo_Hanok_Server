@@ -2,8 +2,11 @@
 .gradle
 .idea
 application-env.properties
+application-real-db.properties
 application-real1.properties
 application-real2.properties
+*.properties
+*.log
 
 build/
 out/

@@ -3,3 +3,4 @@ Dockerfile
 .gitignore
 README.md
 log/
+*.log
