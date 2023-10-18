@@ -7,9 +7,15 @@
 [Deploy]
 - docker pull dvlprjw/yeoyeo (도커 이미지 풀)
 - docker run -d -p 8080:8080 -v ./log:/log --name yeoyeo dvlprjw/yeoyeo
-- docker run -d -p 8091:8080 -e TZ=Asia/Seoul -e IDLE_PROFILE=real1 -v /home/ec2-user/app/hanok/back/log:/log --name yeoyeo dvlprjw/yeoyeo
-- docker run -d -p 8081:8080 -e TZ=Asia/Seoul -e IDLE_PROFILE=real1 -e JAVA_AGENT=/home/ec2-user/app/pinpoint/pinpoint-agent-2.2.2/pinpoint-bootstrap-2.2.2.jar -e PINPOINT_CONFIG=/home/ec2-user/app/pinpoint/pinpoint-agent-2.2.2/pinpoint-root.config -v /home/ec2-user/app/hanok/log:/log -v /home/ec2-user/app/pinpoint/pinpoint-agent-2.2.2:/pinpoint --name yeoyeo dvlprjw/yeoyeo (도커 컨테이너 실행)
+- docker run -d -p 8091:8080 --add-host=host.docker.internal:host-gateway -e TZ=Asia/Seoul -e IDLE_PROFILE=real1 -v /home/ec2-user/app/hanok/back/log:/log --name yeoyeo dvlprjw/yeoyeo
+- docker run -d -p 8081:8080 --add-host=host.docker.internal:host-gateway -e TZ=Asia/Seoul -e IDLE_PROFILE=real1 -e JAVA_AGENT=/home/ec2-user/app/pinpoint/pinpoint-agent-2.2.2/pinpoint-bootstrap-2.2.2.jar -e PINPOINT_CONFIG=/home/ec2-user/app/pinpoint/pinpoint-agent-2.2.2/pinpoint-root.config -v /home/ec2-user/app/hanok/log:/log -v /home/ec2-user/app/pinpoint/pinpoint-agent-2.2.2:/pinpoint --name yeoyeo dvlprjw/yeoyeo (도커 컨테이너 실행)
   ,C:\Users\dvlprjw\IdeaProjects\Yeoyeo_Hanok\src\main\resources\application-real1.properties
+- docker-compose up -d (도커 컨테이너 실행)
+
+[Docker]
+- docker exec -it yeoyeo /bin/bash (도커 컨테이너 접속)
+- docker run -d -p 6379:6379 -e TZ=Asia/Seoul -v /home/ec2-user/app/redis/data:/data -v /home/ec2-user/app/redis/conf/redis.conf:/usr/local/conf/redis.conf --name redis redis
+- docker exec -it redis /bin/bash (redis 컨테이너 접속)
 
 [Dockerfile]
 ```dockerfile

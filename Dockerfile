@@ -1,6 +1,6 @@
 FROM openjdk:17
 
-VOLUME /log
+VOLUME /logs
 
 ARG JAR_FILE=./build/libs/*.jar
 ENV IDLE_PROFILE dev
