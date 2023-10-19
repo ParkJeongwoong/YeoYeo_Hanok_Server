@@ -11,3 +11,4 @@ application-real2.properties
 build/
 out/
 logs/
+pinpoint-agent-2.5.3/
