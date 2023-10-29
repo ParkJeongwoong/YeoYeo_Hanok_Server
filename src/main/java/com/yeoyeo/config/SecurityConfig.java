@@ -160,7 +160,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         CustomPersistentTokenBasedRememberMeServices services = new CustomPersistentTokenBasedRememberMeServices("yeoyeoAdmin", new CustomUserDetailsService(adminRepository), tokenRepository);
         services.setAlwaysRemember(false);
         services.setTokenValiditySeconds(60 * 60 * 24 * 30);
-        services.setParameter("remember");
+        services.setParameter("remember-me");
         return services;
     }
 
