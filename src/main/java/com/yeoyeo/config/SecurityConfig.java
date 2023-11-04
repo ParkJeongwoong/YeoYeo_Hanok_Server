@@ -2,11 +2,17 @@ package com.yeoyeo.config;
 
 import com.yeoyeo.adapter.filter.ApiAuthenticationFilter;
 import com.yeoyeo.adapter.filter.CustomAuthenticationFilter;
-import com.yeoyeo.adapter.handler.*;
+import com.yeoyeo.adapter.handler.LoginFailHandler;
+import com.yeoyeo.adapter.handler.LoginSuccessHandler;
+import com.yeoyeo.adapter.handler.LogoutSuccessHandler;
+import com.yeoyeo.adapter.handler.WebAccessDeniedHandler;
+import com.yeoyeo.adapter.handler.WebAuthenticationEntryPoint;
 import com.yeoyeo.adapter.provider.CustomAuthenticationProvider;
 import com.yeoyeo.application.admin.repository.AdministratorRepository;
 import com.yeoyeo.application.admin.service.CustomPersistentTokenBasedRememberMeServices;
 import com.yeoyeo.application.admin.service.CustomUserDetailsService;
+import java.util.Arrays;
+import javax.sql.DataSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -23,9 +29,6 @@ import org.springframework.session.web.http.DefaultCookieSerializer;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-
-import javax.sql.DataSource;
-import java.util.Arrays;
 
 @EnableWebSecurity
 @Configuration
@@ -96,22 +99,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 ;
     }
 
-    /*
-     * customLoginSuccessHandler를 CustomAuthenticationFilter의 인증 성공 핸들러로 추가
-     * 로그인 성공 시 /user/login 로그인 url을 체크하고 인증 토큰 발급
-     */
-    @Bean
-    public CustomAuthenticationFilter customAuthenticationFilter() throws Exception {
-        CustomAuthenticationFilter customAuthenticationFilter = new CustomAuthenticationFilter(authenticationManager());
-        customAuthenticationFilter.setFilterProcessesUrl("/admin/login");
-        customAuthenticationFilter.setUsernameParameter("userId");
-        customAuthenticationFilter.setPasswordParameter("userPassword");
-        customAuthenticationFilter.setAuthenticationSuccessHandler(new LoginSuccessHandler()); // 로그인 성공 시 실행될 handler bean
-        customAuthenticationFilter.setAuthenticationFailureHandler(new LoginFailHandler()); // 로그인 실패 시 실행될 handler bean
-        customAuthenticationFilter.afterPropertiesSet();
-        return customAuthenticationFilter;
-    }
-
     @Bean
     public ApiAuthenticationFilter apiAuthenticationFilter(RememberMeServices rememberMeServices) throws Exception {
         ApiAuthenticationFilter apiAuthenticationFilter = new ApiAuthenticationFilter(authenticationManager());
@@ -137,17 +124,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         return source;
     }
 
-    /* API 주소를 서브도메인으로 바꾸면서 필요없어짐 */
-    @Bean
-    public CookieSerializer cookieSerializer() {
-        DefaultCookieSerializer serializer = new DefaultCookieSerializer();
-//        serializer.setSameSite("none");
-        serializer.setUseSecureCookie(true);
-        serializer.setUseHttpOnlyCookie(true);
-//        serializer.setDomainName("yeoyeo.co.kr");
-        return serializer;
-    }
-
     @Bean
     public PersistentTokenRepository tokenRepository() {
         JdbcTokenRepositoryImpl repository = new JdbcTokenRepositoryImpl();
@@ -162,6 +138,33 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         services.setTokenValiditySeconds(60 * 60 * 24 * 30);
         services.setParameter("remember-me");
         return services;
+    }
+
+    /*
+     * customLoginSuccessHandler를 CustomAuthenticationFilter의 인증 성공 핸들러로 추가
+     * 로그인 성공 시 /user/login 로그인 url을 체크하고 인증 토큰 발급
+     */
+    @Bean
+    public CustomAuthenticationFilter customAuthenticationFilter() throws Exception {
+        CustomAuthenticationFilter customAuthenticationFilter = new CustomAuthenticationFilter(authenticationManager());
+        customAuthenticationFilter.setFilterProcessesUrl("/admin/login");
+        customAuthenticationFilter.setUsernameParameter("userId");
+        customAuthenticationFilter.setPasswordParameter("userPassword");
+        customAuthenticationFilter.setAuthenticationSuccessHandler(new LoginSuccessHandler()); // 로그인 성공 시 실행될 handler bean
+        customAuthenticationFilter.setAuthenticationFailureHandler(new LoginFailHandler()); // 로그인 실패 시 실행될 handler bean
+        customAuthenticationFilter.afterPropertiesSet();
+        return customAuthenticationFilter;
+    }
+
+    /* API 주소를 서브도메인으로 바꾸면서 필요없어짐 */
+    @Bean
+    public CookieSerializer cookieSerializer() {
+        DefaultCookieSerializer serializer = new DefaultCookieSerializer();
+//        serializer.setSameSite("none");
+        serializer.setUseSecureCookie(true);
+        serializer.setUseHttpOnlyCookie(true);
+//        serializer.setDomainName("yeoyeo.co.kr");
+        return serializer;
     }
 
 }

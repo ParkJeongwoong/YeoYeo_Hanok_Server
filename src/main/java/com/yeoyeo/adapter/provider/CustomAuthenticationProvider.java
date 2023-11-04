@@ -18,7 +18,7 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
 
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
-        System.out.println("Auth Provider");
+        log.info("Auth Provider");
         UsernamePasswordAuthenticationToken token = (UsernamePasswordAuthenticationToken) authentication;
 
         // AuthenticationFilter 에서 생성된 토큰으로 아이디와 비밀번호를 조회

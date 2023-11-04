@@ -2,6 +2,12 @@ package com.yeoyeo.adapter.filter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yeoyeo.application.admin.service.CustomPersistentTokenBasedRememberMeServices;
+import java.io.IOException;
+import java.util.Map;
+import java.util.stream.Collectors;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
@@ -12,13 +18,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
-
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 /*
     Spring Security는 API 방식(JSON 이 담긴 Request Body)를 이용한 인증을 지원하지 않기 때문에 API용 Filter가 필요 (이게 없으면 로그인 요청이 GET 요청으로만 받을 수 있음)
@@ -36,7 +35,7 @@ public class ApiAuthenticationFilter extends AbstractAuthenticationProcessingFil
 
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException, IOException, ServletException {
-        System.out.println("API Filter");
+        log.info("API Filter");
         if (!isValidRequest(request)) throw new AuthenticationServiceException("로그인 요청 Method, Type이 잘못되었습다.");
 
         Map<String, Object> parsedJsonMap = parseJsonMap(request);

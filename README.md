@@ -17,32 +17,6 @@
 - docker run -d -p 6379:6379 -e TZ=Asia/Seoul -v /home/ec2-user/app/redis/data:/data -v /home/ec2-user/app/redis/conf/redis.conf:/usr/local/conf/redis.conf --name redis redis
 - docker exec -it redis /bin/bash (redis 컨테이너 접속)
 
-[Dockerfile]
-```dockerfile
-FROM openjdk:17-jdk-slim
-
-VOLUME /log
-
-ARG JAR_FILE=./build/libs/*.jar
-ENV IDLE_PROFILE local
-ENV JAVA_AGENT /home/ec2-user/app/pinpoint/pinpoint-agent-2.2.2/pinpoint-bootstrap-2.2.2.jar
-ENV PINPOINT_CONFIG /home/ec2-user/app/pinpoint/pinpoint-agent-2.2.2/pinpoint-root.config
-ENV SPRING_CONFIG /home/ec2-user/app/hanok/config/application-real-db.properties,/home/ec2-user/app/hanok/config/application-env.properties,/home/ec2-user/app/hanok/config/application-${IDLE_PROFILE}.properties
-
-COPY ${JAR_FILE} yeoyeo.jar
-
-# 실행 명령
-
-ENTRYPOINT ["nohup", "java","-jar",\
-"-javaagent:${JAVA_AGENT}",\
-"-Dpinpoint.agentId=${IDLE_PROFILE}",\
-"-Dpinpoint.applicationName=yeoyeo",\
-"-Dpinpoint.config=${PINPOINT_CONFIG}",\
-"-Dspring.config.location=classpath:${SPRING_CONFIG}", \
-"-Dspring.profiles.active=${IDLE_PROFILE}",\
-"yeoyeo.jar", "2>&1", "&"]
-```
-
 [동기화 테스트]
 
 1. yeoyeo가 맞으면 무시 v
