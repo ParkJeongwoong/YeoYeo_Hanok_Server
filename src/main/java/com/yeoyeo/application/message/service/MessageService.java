@@ -7,15 +7,6 @@ import com.yeoyeo.application.reservation.dto.SendAdminCheckInMsgDto;
 import com.yeoyeo.application.reservation.repository.ReservationRepository;
 import com.yeoyeo.domain.Admin.AdminManageInfo;
 import com.yeoyeo.domain.Reservation;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.Async;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -25,6 +16,14 @@ import java.util.Base64;
 import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -294,19 +293,23 @@ public class MessageService {
         int roomB_guestCount;
         String roomB_string = null;
         boolean airbnbRouting = false;
+        int roomA_night = 0;
+        int roomB_night = 0;
 
         for (AdminManageInfo guestInfo : guestInfos) {
             if (guestInfo.getRoom().getId() == 1) {
                 roomA_guestName = guestInfo.getName();
                 roomA_guestPhone = guestInfo.getPhoneNumber();
                 roomA_guestCount = guestInfo.getGuestCount();
-                roomA_string = "\n여유 : " + roomA_guestName + " (" + roomA_guestPhone + ") " + roomA_guestCount + "명";
+                roomA_night = guestInfo.getNight();
+                roomA_string = "\n여유 : " + roomA_guestName + " / " + roomA_guestPhone + " / " + roomA_guestCount + "명" + " / " + roomA_night + "박";
                 if (roomA_guestName.equals("AirBnbGuest")) airbnbRouting = true;
             } else if (guestInfo.getRoom().getId() == 2) {
                 roomB_guestName = guestInfo.getName();
                 roomB_guestPhone = guestInfo.getPhoneNumber();
                 roomB_guestCount = guestInfo.getGuestCount();
-                roomB_string = "\n여행 : " + roomB_guestName + " (" + roomB_guestPhone + ") " + roomB_guestCount + "명";
+                roomB_night = guestInfo.getNight();
+                roomB_string = "\n여행 : " + roomB_guestName + " / " + roomB_guestPhone + " / " + roomB_guestCount + "명" + " / " + roomB_night + "박";
                 if (roomB_guestName.equals("AirBnbGuest")) airbnbRouting = true;
             }
         }

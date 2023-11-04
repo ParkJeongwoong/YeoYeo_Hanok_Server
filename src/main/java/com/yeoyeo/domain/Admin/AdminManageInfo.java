@@ -3,14 +3,20 @@ package com.yeoyeo.domain.Admin;
 import com.yeoyeo.application.admin.dto.AdminManageInfoResponseDto;
 import com.yeoyeo.domain.Reservation;
 import com.yeoyeo.domain.Room;
+import java.time.LocalDate;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-
-import javax.persistence.*;
-import java.time.LocalDate;
 
 @Slf4j
 @NoArgsConstructor
@@ -132,6 +138,10 @@ public class AdminManageInfo {
 
     public String getNumberOnlyPhoneNumber() {
         return this.phoneNumber.replaceAll("[^0-9]","");
+    }
+
+    public int getNight() {
+        return (int) (this.checkout.toEpochDay() - this.checkin.toEpochDay());
     }
 
 }
