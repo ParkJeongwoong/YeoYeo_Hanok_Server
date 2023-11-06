@@ -9,18 +9,17 @@ import com.yeoyeo.application.reservation.etc.exception.ReservationException;
 import com.yeoyeo.application.reservation.repository.ReservationRepository;
 import com.yeoyeo.domain.Admin.AdminManageInfo;
 import com.yeoyeo.domain.Reservation;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
-
-import javax.annotation.PostConstruct;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
+import javax.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -147,6 +146,22 @@ public class ReservationScheduler {
         log.info("익일 체크인 건수 : {}건", adminManageInfos.size());
         messageService.sendAdminCheckInMsg(new SendAdminCheckInMsgDto(adminManageInfos));
         log.info("익일 체크인 정보 문자 전송 정상 종료");
+    }
+
+    @Transactional
+    @Scheduled(cron = "10 30 20 * * *") // 매일 20시 30분 10초 동작
+    public void noticeBefore7days() {
+        log.info("[SCHEDULE - Notice Before 7 Days of Check-in]");
+        LocalDate after7days = LocalDate.now().plusDays(7);
+        log.info("대상 날짜 : {}", after7days);
+        List<AdminManageInfo> adminManageInfos = adminManageInfoRepository.findAllByCheckinAndActivated(after7days, true);
+        for (AdminManageInfo adminManageInfo : adminManageInfos) {
+            if (adminManageInfo.getPhoneNumber() != null) {
+                SendMessageResponseDto responseDto = messageService.sendNotice7DaysBeforeMsg(adminManageInfo.getNumberOnlyPhoneNumber());
+                log.info("문자 발송 결과 : {}", responseDto.toString());
+            }
+        }
+        log.info("체크인 7일 전 안내 문자 전송 정상 종료");
     }
 
     @Transactional
