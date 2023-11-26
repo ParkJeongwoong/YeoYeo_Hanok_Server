@@ -1,7 +1,6 @@
 package com.yeoyeo.adapter.filter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.yeoyeo.application.admin.service.CustomPersistentTokenBasedRememberMeServices;
 import java.io.IOException;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -42,23 +41,11 @@ public class ApiAuthenticationFilter extends AbstractAuthenticationProcessingFil
 
         String userId = (String) parsedJsonMap.get("userId");
         String userPassword = (String) parsedJsonMap.get("userPassword");
-        Boolean remember = (Boolean) parsedJsonMap.get("remember-me");
-        log.info("{} {} {}",userId, userPassword, remember);
+        log.info("{} {}",userId, userPassword);
 
         UsernamePasswordAuthenticationToken authRequest = new UsernamePasswordAuthenticationToken(userId, userPassword);
-        authRequest.setDetails(remember);
 
-        Authentication authentication = getRememberMeServices().autoLogin(request, response);
-        if (authentication == null) {
-            authentication = super.getAuthenticationManager().authenticate(authRequest);
-            log.info("Authenticated {}", authentication.getName());
-            ((CustomPersistentTokenBasedRememberMeServices) getRememberMeServices()).customLoginSuccess(request, response, authentication);
-        } else {
-            log.info("Remembered {}", authentication.getName());
-        }
-
-        log.info("Authentication Success : {}", authentication.getName());
-        return authentication;
+        return super.getAuthenticationManager().authenticate(authRequest);
     }
 
     private Boolean isValidRequest(HttpServletRequest request) {
