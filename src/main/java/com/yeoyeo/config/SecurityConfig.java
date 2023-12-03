@@ -1,6 +1,7 @@
 package com.yeoyeo.config;
 
 import com.yeoyeo.adapter.filter.ApiAuthenticationFilter;
+import com.yeoyeo.adapter.filter.CustomAuthFilter;
 import com.yeoyeo.adapter.filter.CustomAuthenticationFilter;
 import com.yeoyeo.adapter.handler.LoginFailHandler;
 import com.yeoyeo.adapter.handler.LoginSuccessHandler;
@@ -8,17 +9,23 @@ import com.yeoyeo.adapter.handler.LogoutSuccessHandler;
 import com.yeoyeo.adapter.handler.WebAccessDeniedHandler;
 import com.yeoyeo.adapter.handler.WebAuthenticationEntryPoint;
 import com.yeoyeo.adapter.provider.CustomAuthenticationProvider;
-import com.yeoyeo.application.admin.repository.AdministratorRepository;
+import com.yeoyeo.application.admin.service.CustomPersistentTokenBasedRememberMeServices;
+import com.yeoyeo.application.admin.service.CustomUserDetailsService;
 import java.util.Arrays;
 import javax.sql.DataSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.RememberMeAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.web.authentication.RememberMeServices;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.rememberme.JdbcTokenRepositoryImpl;
+import org.springframework.security.web.authentication.rememberme.PersistentTokenRepository;
+import org.springframework.security.web.authentication.rememberme.RememberMeAuthenticationFilter;
 import org.springframework.session.web.http.CookieSerializer;
 import org.springframework.session.web.http.DefaultCookieSerializer;
 import org.springframework.web.cors.CorsConfiguration;
@@ -29,20 +36,23 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @Configuration
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
-    // Admin repository
-    @Autowired
-    private AdministratorRepository adminRepository;
+    private final static String REMEMBER_ME_KEY = "yeoyeoAdmin";
+
     // 권한이 없는 사용자 접근에 대한 handler
     @Autowired private WebAccessDeniedHandler webAccessDeniedHandler;
     // 인증되지 않은 사용자 접근에 대한 handler
     @Autowired private WebAuthenticationEntryPoint webAuthenticationEntryPoint;
+    @Autowired private LoginSuccessHandler loginSuccessHandler;
     @Autowired private LogoutSuccessHandler logoutSuccessHandler;
     @Autowired private DataSource dataSource;
 
+    @Autowired private CustomUserDetailsService customUserDetailsService;
+
     // 스프링 시큐리티가 사용자를 인증하는 방법이 담긴 객체
     @Override
-    public void configure(AuthenticationManagerBuilder authenticationManagerBuilder) {
-        authenticationManagerBuilder.authenticationProvider(new CustomAuthenticationProvider(adminRepository));
+    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+        auth.authenticationProvider(rememberMeAuthenticationProvider());
+        auth.authenticationProvider(new CustomAuthenticationProvider(REMEMBER_ME_KEY, customUserDetailsService));
     }
 
     // 스프링 시큐리티 규칙
@@ -50,12 +60,15 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         http.csrf().disable() // csrf 보안 설정 비활성화
                 .cors().configurationSource(corsConfigurationSource())
-//                .headers().frameOptions().sameOrigin()
                 .and()
+
+//                .headers().frameOptions().sameOrigin() // 개발 중 h2-console 사용을 위한 설정
+//                .and()
 
                 .authorizeRequests() // 보호된 리소스 URI에 접근할 수 있는 권한 설정
 //                    .antMatchers("/admin/login", "/admin/logout", "/dateroom/**", "/calendar/**", "/guest/**","/payment/**","/reservation/**", "/login**").permitAll()
 //                    .antMatchers("/admin/reservation/list/**", "/admin/manage/**").permitAll() // Admin 개발 중 임시 용도(TEST)
+//                    .antMatchers("/admin/reservation/list/**").authenticated() // TEST
                     .antMatchers("/admin/**", "/swagger-ui/**", "/adminManage.html", "/index.html", "/").authenticated() // 인증된 사용자만 접근 허용
                     .antMatchers("/web/*", "/actuator/*").permitAll()
                     .anyRequest().permitAll()
@@ -66,6 +79,16 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .exceptionHandling()
                 .accessDeniedHandler(webAccessDeniedHandler) // 권한이 없는 사용자 접근 시
                 .authenticationEntryPoint(webAuthenticationEntryPoint) // 인증되지 않은 사용자 접근 시
+                .and()
+
+                .rememberMe()
+                .key(REMEMBER_ME_KEY)
+                .rememberMeServices(rememberMeServices(tokenRepository()))
+                .rememberMeParameter("remember-me")
+                .tokenValiditySeconds(2592000)
+                .alwaysRemember(false)
+                .userDetailsService(customUserDetailsService)
+                .authenticationSuccessHandler(loginSuccessHandler)
                 .and()
 
                 .formLogin()
@@ -80,8 +103,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .deleteCookies("SESSION")
                 .and()
                 
-                // 사용자 인증 필터 적용;
-                .addFilterBefore(apiAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
+                // 사용자 인증 필터 적용
+                .addFilterBefore(apiAuthenticationFilter(rememberMeServices(tokenRepository())), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(rememberMeAuthenticationFilter(rememberMeServices(tokenRepository())), ApiAuthenticationFilter.class)
+//                .addFilterBefore(customAuthFilter(rememberMeServices(tokenRepository())), ApiAuthenticationFilter.class)
 
                 // 세션 관리
                 .sessionManagement()
@@ -92,13 +117,18 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 ;
     }
 
-    @Bean
-    public ApiAuthenticationFilter apiAuthenticationFilter() throws Exception {
+    public ApiAuthenticationFilter apiAuthenticationFilter(RememberMeServices rememberMeServices) throws Exception {
         ApiAuthenticationFilter apiAuthenticationFilter = new ApiAuthenticationFilter(authenticationManager());
+        apiAuthenticationFilter.setRememberMeServices(rememberMeServices); // rememberMeServices 설정
         apiAuthenticationFilter.setAuthenticationSuccessHandler(new LoginSuccessHandler()); // 로그인 성공 시 실행될 handler bean
         apiAuthenticationFilter.setAuthenticationFailureHandler(new LoginFailHandler()); // 로그인 실패 시 실행될 handler bean
         apiAuthenticationFilter.afterPropertiesSet();
         return apiAuthenticationFilter;
+    }
+
+    public RememberMeAuthenticationFilter customAuthFilter(RememberMeServices rememberMeServices) throws Exception {
+        CustomAuthFilter customAuthFilter = new CustomAuthFilter(authenticationManager(), rememberMeServices);
+        return customAuthFilter;
     }
 
     @Bean
@@ -116,11 +146,37 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         return source;
     }
 
+    @Bean
+    public PersistentTokenRepository tokenRepository() {
+        JdbcTokenRepositoryImpl repository = new JdbcTokenRepositoryImpl();
+        repository.setDataSource(dataSource);
+        return repository;
+    }
+
+    @Bean
+    public RememberMeServices rememberMeServices(PersistentTokenRepository tokenRepository) {
+        CustomPersistentTokenBasedRememberMeServices services = new CustomPersistentTokenBasedRememberMeServices(REMEMBER_ME_KEY, customUserDetailsService, tokenRepository);
+        services.setAlwaysRemember(false);
+        services.setTokenValiditySeconds(60 * 60 * 24 * 30);
+        services.setParameter("remember-me");
+        return services;
+    }
+
+    public RememberMeAuthenticationFilter rememberMeAuthenticationFilter(RememberMeServices rememberMeServices)
+        throws Exception {
+        RememberMeAuthenticationFilter rememberMeAuthenticationFilter = new RememberMeAuthenticationFilter(authenticationManager(), rememberMeServices);
+        return rememberMeAuthenticationFilter;
+    }
+
+    @Bean
+    public RememberMeAuthenticationProvider rememberMeAuthenticationProvider() {
+        return new RememberMeAuthenticationProvider(REMEMBER_ME_KEY);
+    }
+
     /*
      * customLoginSuccessHandler를 CustomAuthenticationFilter의 인증 성공 핸들러로 추가
      * 로그인 성공 시 /user/login 로그인 url을 체크하고 인증 토큰 발급
      */
-    @Bean
     public CustomAuthenticationFilter customAuthenticationFilter() throws Exception {
         CustomAuthenticationFilter customAuthenticationFilter = new CustomAuthenticationFilter(authenticationManager());
         customAuthenticationFilter.setFilterProcessesUrl("/admin/login");

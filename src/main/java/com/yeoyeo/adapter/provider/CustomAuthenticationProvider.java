@@ -1,24 +1,28 @@
 package com.yeoyeo.adapter.provider;
 
-import com.yeoyeo.application.admin.repository.AdministratorRepository;
+import com.yeoyeo.application.admin.service.CustomUserDetailsService;
 import com.yeoyeo.domain.Admin.Administrator;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.RememberMeAuthenticationProvider;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 
 @Slf4j
-@RequiredArgsConstructor
-public class CustomAuthenticationProvider implements AuthenticationProvider {
+public class CustomAuthenticationProvider extends RememberMeAuthenticationProvider implements AuthenticationProvider {
 
-    private final AdministratorRepository adminRepository;
+    private final CustomUserDetailsService userDetailsService;
+
+    public CustomAuthenticationProvider(String key, CustomUserDetailsService userDetailsService) {
+        super(key);
+        this.userDetailsService = userDetailsService;
+    }
 
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
-        log.info("Auth Provider");
+        log.info("[Auth Provider]");
         UsernamePasswordAuthenticationToken token = (UsernamePasswordAuthenticationToken) authentication;
 
         // AuthenticationFilter 에서 생성된 토큰으로 아이디와 비밀번호를 조회
@@ -27,7 +31,7 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
 
         log.info("ID : {}", userId);
         log.info("PW : {}", userPw);
-        Administrator administrator = adminRepository.findById(userId).orElseThrow(()->new BadCredentialsException(userId + " Invalid id"));
+        Administrator administrator = userDetailsService.loadUserById(userId);
         log.info("NAME : {}", administrator.getName());
 
         // 비밀번호 일치 여부 체크

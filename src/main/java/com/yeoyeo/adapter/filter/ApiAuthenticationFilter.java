@@ -1,6 +1,7 @@
 package com.yeoyeo.adapter.filter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.yeoyeo.application.admin.service.CustomPersistentTokenBasedRememberMeServices;
 import java.io.IOException;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -34,18 +35,23 @@ public class ApiAuthenticationFilter extends AbstractAuthenticationProcessingFil
 
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException, IOException, ServletException {
-        log.info("API Filter");
+        log.info("[API Filter]");
         if (!isValidRequest(request)) throw new AuthenticationServiceException("로그인 요청 Method, Type이 잘못되었습다.");
 
         Map<String, Object> parsedJsonMap = parseJsonMap(request);
 
         String userId = (String) parsedJsonMap.get("userId");
         String userPassword = (String) parsedJsonMap.get("userPassword");
-        log.info("{} {}",userId, userPassword);
+        Boolean remember = (Boolean) parsedJsonMap.get("remember-me");
+        log.info("ID : {}", userId, " / PW : {}", userPassword, " / Remember : {}", remember);
 
         UsernamePasswordAuthenticationToken authRequest = new UsernamePasswordAuthenticationToken(userId, userPassword);
+        authRequest.setDetails(remember);
 
-        return super.getAuthenticationManager().authenticate(authRequest);
+        Authentication authentication = super.getAuthenticationManager().authenticate(authRequest);
+        ((CustomPersistentTokenBasedRememberMeServices) getRememberMeServices()).customLoginSuccess(request, response, authentication);
+
+        return authentication;
     }
 
     private Boolean isValidRequest(HttpServletRequest request) {

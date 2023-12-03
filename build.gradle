@@ -22,6 +22,10 @@ dependencies {
     testImplementation('org.springframework.boot:spring-boot-starter-test')
     implementation('org.springframework.boot:spring-boot-starter-actuator')
 
+    // Junit
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
+
     // Lombok
     implementation('org.projectlombok:lombok:1.18.26')
     annotationProcessor('org.projectlombok:lombok:1.18.26')
@@ -50,10 +54,6 @@ dependencies {
     // Swagger
     implementation('io.springfox:springfox-boot-starter:3.0.0')
     implementation('io.springfox:springfox-swagger-ui:3.0.0')
-
-    // Junit
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
 
     // Redis
     implementation('org.springframework.boot:spring-boot-starter-data-redis')
