@@ -43,6 +43,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     // 인증되지 않은 사용자 접근에 대한 handler
     @Autowired private WebAuthenticationEntryPoint webAuthenticationEntryPoint;
     @Autowired private LoginSuccessHandler loginSuccessHandler;
+    @Autowired private LoginFailHandler loginFailHandler;
     @Autowired private LogoutSuccessHandler logoutSuccessHandler;
     @Autowired private DataSource dataSource;
 
@@ -50,7 +51,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     // 스프링 시큐리티가 사용자를 인증하는 방법이 담긴 객체
     @Override
-    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+    protected void configure(AuthenticationManagerBuilder auth) {
         auth.authenticationProvider(rememberMeAuthenticationProvider());
         auth.authenticationProvider(new CustomAuthenticationProvider(REMEMBER_ME_KEY, customUserDetailsService));
     }
@@ -88,7 +89,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .tokenValiditySeconds(2592000)
                 .alwaysRemember(false)
                 .userDetailsService(customUserDetailsService)
-                .authenticationSuccessHandler(loginSuccessHandler)
+//                .authenticationSuccessHandler(loginSuccessHandler)
                 .and()
 
                 .formLogin()
@@ -120,15 +121,14 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     public ApiAuthenticationFilter apiAuthenticationFilter(RememberMeServices rememberMeServices) throws Exception {
         ApiAuthenticationFilter apiAuthenticationFilter = new ApiAuthenticationFilter(authenticationManager());
         apiAuthenticationFilter.setRememberMeServices(rememberMeServices); // rememberMeServices 설정
-        apiAuthenticationFilter.setAuthenticationSuccessHandler(new LoginSuccessHandler()); // 로그인 성공 시 실행될 handler bean
-        apiAuthenticationFilter.setAuthenticationFailureHandler(new LoginFailHandler()); // 로그인 실패 시 실행될 handler bean
+        apiAuthenticationFilter.setAuthenticationSuccessHandler(loginSuccessHandler); // 로그인 성공 시 실행될 handler bean
+        apiAuthenticationFilter.setAuthenticationFailureHandler(loginFailHandler); // 로그인 실패 시 실행될 handler bean
         apiAuthenticationFilter.afterPropertiesSet();
         return apiAuthenticationFilter;
     }
 
     public RememberMeAuthenticationFilter customAuthFilter(RememberMeServices rememberMeServices) throws Exception {
-        CustomAuthFilter customAuthFilter = new CustomAuthFilter(authenticationManager(), rememberMeServices);
-        return customAuthFilter;
+        return new CustomAuthFilter(authenticationManager(), rememberMeServices);
     }
 
     @Bean
@@ -164,8 +164,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     public RememberMeAuthenticationFilter rememberMeAuthenticationFilter(RememberMeServices rememberMeServices)
         throws Exception {
-        RememberMeAuthenticationFilter rememberMeAuthenticationFilter = new RememberMeAuthenticationFilter(authenticationManager(), rememberMeServices);
-        return rememberMeAuthenticationFilter;
+        return new RememberMeAuthenticationFilter(authenticationManager(), rememberMeServices);
     }
 
     @Bean
@@ -182,8 +181,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         customAuthenticationFilter.setFilterProcessesUrl("/admin/login");
         customAuthenticationFilter.setUsernameParameter("userId");
         customAuthenticationFilter.setPasswordParameter("userPassword");
-        customAuthenticationFilter.setAuthenticationSuccessHandler(new LoginSuccessHandler()); // 로그인 성공 시 실행될 handler bean
-        customAuthenticationFilter.setAuthenticationFailureHandler(new LoginFailHandler()); // 로그인 실패 시 실행될 handler bean
+        customAuthenticationFilter.setAuthenticationSuccessHandler(loginSuccessHandler); // 로그인 성공 시 실행될 handler bean
+        customAuthenticationFilter.setAuthenticationFailureHandler(loginFailHandler); // 로그인 실패 시 실행될 handler bean
         customAuthenticationFilter.afterPropertiesSet();
         return customAuthenticationFilter;
     }
