@@ -2,16 +2,23 @@ package com.yeoyeo.domain;
 
 import com.yeoyeo.application.reservation.etc.exception.ReservationException;
 import com.yeoyeo.domain.Guest.Guest;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-
-import javax.persistence.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
+import javax.persistence.Cacheable;
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @NoArgsConstructor
 @Getter
@@ -22,10 +29,10 @@ public class Reservation extends BaseTimeEntity {
     @Id
     private long id;
 
-    @OneToMany(mappedBy = "reservation", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "reservation", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private final List<MapDateRoomReservation> mapDateRoomReservations = new ArrayList<>();
 
-    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "guest_id", nullable = false)
     private Guest guest;
 
@@ -41,7 +48,7 @@ public class Reservation extends BaseTimeEntity {
     @Column
     private int managementLevel; // 0 : 외부 플랫폼 관리, 1 : 홈페이지 관리 예약 (외부 동기화 미완료), 2: 홈페이지 관리 예약 (외부 동기화 완료)
 
-    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "payment_id")
     private Payment payment;
 
