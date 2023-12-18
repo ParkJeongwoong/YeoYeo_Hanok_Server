@@ -3,12 +3,12 @@ package com.yeoyeo.application.reservation.dto.MakeReservationRequestDto;
 import com.yeoyeo.application.dateroom.repository.DateRoomRepository;
 import com.yeoyeo.application.reservation.dto.MakeReservationDto.MakeReservationHomeDto;
 import com.yeoyeo.application.reservation.etc.exception.ReservationException;
+import com.yeoyeo.domain.Admin.Administrator;
 import com.yeoyeo.domain.DateRoom;
 import com.yeoyeo.domain.Guest.GuestHome;
+import java.util.List;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.util.List;
 
 @Getter
 @NoArgsConstructor
@@ -31,6 +31,11 @@ public class MakeReservationAdminRequestDto extends MakeReservationHomeRequestDt
                 .request("관리자가 생성한 예약입니다.")
                 .build();
         return new MakeReservationHomeDto(dateRoomList, guest);
+    }
+
+    public void setAdministrator(Administrator administrator) {
+        this.phoneNumber = administrator.getContact();
+        this.request = administrator.getName() + "관리자가 생성한 예약입니다.";
     }
 
 }

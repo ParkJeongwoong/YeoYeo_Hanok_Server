@@ -1,6 +1,10 @@
 package com.yeoyeo.adapter.controller;
 
-import com.yeoyeo.application.admin.dto.*;
+import com.yeoyeo.application.admin.dto.AdminManageInfoRequestDto;
+import com.yeoyeo.application.admin.dto.AdminManageInfoResponseDto;
+import com.yeoyeo.application.admin.dto.ChangeRoomDefaultPriceRequestDto;
+import com.yeoyeo.application.admin.dto.MessageTestRequestDto;
+import com.yeoyeo.application.admin.dto.SignupDto;
 import com.yeoyeo.application.admin.etc.exception.AdminManageInfoException;
 import com.yeoyeo.application.admin.service.AdminManageService;
 import com.yeoyeo.application.admin.service.AuthService;
@@ -17,18 +21,26 @@ import com.yeoyeo.application.reservation.dto.ReservationInfoDto;
 import com.yeoyeo.application.reservation.etc.exception.ReservationException;
 import com.yeoyeo.application.reservation.service.ReservationService;
 import com.yeoyeo.application.room.service.RoomService;
+import com.yeoyeo.domain.Admin.Administrator;
 import com.yeoyeo.domain.Reservation;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import java.time.LocalDate;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.*;
-
-import java.time.LocalDate;
-import java.util.List;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @Api(tags = {"관리자 API"})
 @Slf4j
@@ -94,8 +106,12 @@ public class AdminController {
     @ApiOperation(value = "Reservation", notes = "관리자의 해당 날짜 예약 불가능 처리")
     @Transactional
     @PostMapping("/reserve")
-    public ResponseEntity<GeneralResponseDto> createReservation(@RequestBody MakeReservationAdminRequestDto requestDto) {
+    public ResponseEntity<GeneralResponseDto> createReservation(@RequestBody MakeReservationAdminRequestDto requestDto,
+        @AuthenticationPrincipal Administrator administrator) {
         try {
+            if (administrator != null) {
+                requestDto.setAdministrator(administrator);
+            }
             Reservation reservation = reservationService.createReservation(requestDto);
             return ResponseEntity.status(HttpStatus.OK).body(GeneralResponseDto.builder().success(true).resultId(reservation.getId()).message("예약 정보 생성 완료").build());
         } catch (ReservationException e) {
