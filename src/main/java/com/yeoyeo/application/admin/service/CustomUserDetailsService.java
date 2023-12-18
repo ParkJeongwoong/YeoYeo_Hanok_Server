@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 @RequiredArgsConstructor
@@ -15,8 +16,8 @@ public class CustomUserDetailsService implements UserDetailsService {
     private final AdministratorRepository adminRepository;
 
     @Override
-    public UserDetails loadUserByUsername(String username) {
-        return adminRepository.findById(username).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 아이디입니다."));
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        return adminRepository.findById(username).orElseThrow(() -> new UsernameNotFoundException("존재하지 않는 아이디입니다."));
     }
 
     public Administrator loadUserById(String id) {

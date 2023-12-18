@@ -25,17 +25,17 @@ public class MakeReservationAdminRequestDto extends MakeReservationHomeRequestDt
         List<DateRoom> dateRoomList = dateRoomRepository.findAllById(this.dateRoomIdList);
         GuestHome guest = GuestHome.builder()
                 .name("관리자 생성 예약")
-                .phoneNumber("000-0000-0000")
+                .phoneNumber(this.phoneNumber!=null?this.phoneNumber:"000-0000-0000")
                 .email("yeoyeo@gmail.com")
                 .guestCount(1)
-                .request("관리자가 생성한 예약입니다.")
+                .request(this.request!=null?this.request:"관리자가 생성한 예약입니다.")
                 .build();
         return new MakeReservationHomeDto(dateRoomList, guest);
     }
 
     public void setAdministrator(Administrator administrator) {
         this.phoneNumber = administrator.getContact();
-        this.request = administrator.getName() + "관리자가 생성한 예약입니다.";
+        this.request = "관리자(" + administrator.getName() + ")가 생성한 예약입니다.";
     }
 
 }

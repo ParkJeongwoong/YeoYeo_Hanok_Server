@@ -1,12 +1,16 @@
 package com.yeoyeo.domain;
 
 import com.yeoyeo.application.payment.etc.exception.PaymentException;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
-import javax.persistence.*;
 
 @Slf4j
 @NoArgsConstructor
@@ -44,7 +48,6 @@ public class Payment {
     @Column(nullable = false)
     private String status;
 
-    @OneToOne(mappedBy = "payment", cascade = CascadeType.ALL)
     @JoinColumn(name = "reservation_id")
     private Reservation reservation;
 
