@@ -16,6 +16,21 @@ import com.yeoyeo.domain.Guest.Guest;
 import com.yeoyeo.domain.MapDateRoomReservation;
 import com.yeoyeo.domain.Payment;
 import com.yeoyeo.domain.Reservation;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.net.SocketException;
+import java.net.URL;
+import java.text.ParseException;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Collectors;
+import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.fortuna.ical4j.data.CalendarBuilder;
@@ -37,17 +52,6 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
-
-import javax.servlet.http.HttpServletResponse;
-import java.io.*;
-import java.net.SocketException;
-import java.net.URL;
-import java.text.ParseException;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.Comparator;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -284,7 +288,9 @@ public class CalendarService {
                 || !getLocalDateFromString(eventEnd).isEqual(reservation.getLastDateRoom().getDate().plusDays(1))) {
                 log.info("Update 중 날짜 변동사항 발견 - 예약취소 후 재등록 : {} ~ {} -> {} ~ {}", reservation.getFirstDate(), reservation.getLastDateRoom().getDate(), eventStart, eventEnd);
                 reservationService.cancel(reservation);
-                registerReservation(event, reservation.getGuest(), reservation.getPayment(), reservation.getRoom().getId());
+                Guest guestClone = reservation.getGuest().clone();
+                Payment paymentClone = reservation.getPayment().clone();
+                registerReservation(event, guestClone, paymentClone, reservation.getRoom().getId());
             } else reservation.setStateSyncEnd(); // 동기화 완료
         } catch (ReservationException e) {
             messageService.sendAdminMsg("동기화 오류 알림 - 수정된 예약정보 반영을 위해 기존 예약 변경 중 오류 발생");

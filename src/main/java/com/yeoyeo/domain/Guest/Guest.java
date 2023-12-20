@@ -2,13 +2,16 @@ package com.yeoyeo.domain.Guest;
 
 import com.yeoyeo.application.reservation.dto.MakeReservationDto.MakeReservationDto;
 import com.yeoyeo.domain.DateRoom;
+import java.util.List;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import net.fortuna.ical4j.model.property.Description;
 import net.fortuna.ical4j.model.property.Summary;
-
-import javax.persistence.*;
-import java.util.List;
 
 //@SuperBuilder
 @Getter
@@ -54,5 +57,9 @@ public class Guest {
 
     public MakeReservationDto createMakeReservationDto(List<DateRoom> dateRoomList, Description description, Summary summary) {
         return new MakeReservationDto(dateRoomList, this, 1);
+    }
+
+    public Guest clone() {
+        return new Guest(this.name, this.phoneNumber, this.email, this.guestCount, this.request);
     }
 }

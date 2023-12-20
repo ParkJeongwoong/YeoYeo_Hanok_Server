@@ -1,12 +1,14 @@
 package com.yeoyeo.domain;
 
 import com.yeoyeo.application.payment.etc.exception.PaymentException;
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.OneToOne;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -48,6 +50,7 @@ public class Payment {
     @Column(nullable = false)
     private String status;
 
+    @OneToOne(mappedBy = "payment", cascade = CascadeType.ALL)
     @JoinColumn(name = "reservation_id")
     private Reservation reservation;
 
@@ -76,6 +79,24 @@ public class Payment {
         this.canceled_amount = 0;
     }
 
+    public Payment(Integer amount, String buyer_name, String buyer_tel, String buyer_email, String buyer_addr,
+                   String imp_uid, String pay_method, String receipt_url, String status, Reservation reservation,
+                   Integer canceled_amount, String cancel_reason, String cancel_receipt_url) {
+        this.amount = amount;
+        this.buyer_name = buyer_name;
+        this.buyer_tel = buyer_tel;
+        this.buyer_email = buyer_email;
+        this.buyer_addr = buyer_addr;
+        this.imp_uid = imp_uid;
+        this.pay_method = pay_method;
+        this.receipt_url = receipt_url;
+        this.status = status;
+        this.reservation = reservation;
+        this.canceled_amount = canceled_amount;
+        this.cancel_reason = cancel_reason;
+        this.cancel_receipt_url = cancel_receipt_url;
+    }
+
     public Integer getCancelableAmount() throws PaymentException {
         int cancelableAmount = this.amount - this.canceled_amount;
         if (cancelableAmount <= 0) throw new PaymentException("전액환불된 결제입니다.");
@@ -87,5 +108,11 @@ public class Payment {
         this.cancel_reason = cancel_reason;
         this.cancel_receipt_url = cancel_receipt_url;
         this.status = "cancelled";
+    }
+
+    public Payment clone() {
+        return new Payment(this.amount, this.buyer_name, this.buyer_tel, this.buyer_email, this.buyer_addr,
+                           this.imp_uid, this.pay_method, this.receipt_url, this.status, this.reservation,
+                           this.canceled_amount, this.cancel_reason, this.cancel_receipt_url);
     }
 }
