@@ -64,6 +64,9 @@ public class MessageService {
 
     // LMS
     public SendMessageResponseDto sendReservationMsg(Reservation reservation) {
+        if (checkAdminName(reservation.getGuest().getName())) {
+            return null;
+        }
         LocalDate startDate = reservation.getFirstDateRoom().getDate();
         LocalDate endDate = reservation.getLastDateRoom().getDate().plusDays(1);
         String startDate_string = String.format("%d년 %d월 %d일", startDate.getYear(), startDate.getMonthValue(), startDate.getDayOfMonth());
@@ -94,6 +97,9 @@ public class MessageService {
 
     // LMS
     public SendMessageResponseDto sendCancelMsg(Reservation reservation) {
+        if (checkAdminName(reservation.getGuest().getName())) {
+            return null;
+        }
         LocalDate startDate = reservation.getFirstDateRoom().getDate();
         LocalDate endDate = reservation.getLastDateRoom().getDate().plusDays(1);
         String startDate_string = startDate.getYear()+"년 "+startDate.getMonthValue()+"월"+startDate.getDayOfMonth()+"일";
@@ -130,6 +136,9 @@ public class MessageService {
 
     // LMS
     public void sendCollisionMsg(Reservation reservation) {
+        if (checkAdminName(reservation.getGuest().getName())) {
+            return;
+        }
         LocalDate startDate = reservation.getFirstDateRoom().getDate();
         LocalDate endDate = reservation.getLastDateRoom().getDate().plusDays(1);
         String startDate_string = startDate.getYear()+"년 "+startDate.getMonthValue()+"월"+startDate.getDayOfMonth()+"일";
@@ -175,6 +184,9 @@ public class MessageService {
 
     // LMS
     public SendMessageResponseDto sendNoticeMsg(String numberOnlyPhoneNumber) {
+        if (checkAdminPhone(numberOnlyPhoneNumber)) {
+            return null;
+        }
         String subject = "[한옥스테이 여여] 숙박 안내문자";
         String content = "안녕하세요 :)\n" +
                 "한옥스테이 여여 입니다.\n" +
@@ -208,6 +220,9 @@ public class MessageService {
 
     // LMS
     public SendMessageResponseDto sendNotice7DaysBeforeMsg(String numberOnlyPhoneNumber) {
+        if (checkAdminPhone(numberOnlyPhoneNumber)) {
+            return null;
+        }
         String subject = "[한옥스테이 여여] 숙박 안내문자";
         String content = "안녕하세요 :)\n" +
             "한옥스테이 여여 입니다.\n" +
@@ -240,6 +255,9 @@ public class MessageService {
 
     // LMS
     public SendMessageResponseDto sendCheckInMsg(String numberOnlyPhoneNumber, String room) {
+        if (checkAdminPhone(numberOnlyPhoneNumber)) {
+            return null;
+        }
         String subject = "[한옥스테이 여여] 체크인 안내문자";
         String content = "안녕하세요 :)\n" +
                 "한옥스테이 여여 입니다.\n" +
@@ -300,6 +318,9 @@ public class MessageService {
 
     // LMS
     public SendMessageResponseDto sendAfterCheckInMsg(String numberOnlyPhoneNumber) {
+        if (checkAdminPhone(numberOnlyPhoneNumber)) {
+            return null;
+        }
         String subject = "[한옥스테이 여여] 안내문자";
         String content = "안녕하세요 :)\n" +
                 "한옥스테이 여여 입니다.\n" +
@@ -313,9 +334,9 @@ public class MessageService {
     // LMS
     public SendMessageResponseDto sendAdminCheckInMsg(SendAdminCheckInMsgDto msgDto) {
         String subject = "[한옥스테이 여여] 체크인 알림";
-        if (!msgDto.validationCheck()) return null;
-        List<AdminManageInfo> guestInfos = msgDto.getGuestInfos();
-        LocalDate checkInDate = guestInfos.get(0).getCheckin();
+        List<AdminManageInfo> guestInfoList = msgDto.getGuestInfos().stream().filter(guestInfo -> !checkAdminName(guestInfo.getName())).collect(Collectors.toList());
+        if (guestInfoList.size() == 0) return null;
+        LocalDate checkInDate = guestInfoList.get(0).getCheckin();
         String roomA_guestName; // 여유
         String roomA_guestPhone;
         int roomA_guestCount;
@@ -328,7 +349,7 @@ public class MessageService {
         int roomA_night;
         int roomB_night;
 
-        for (AdminManageInfo guestInfo : guestInfos) {
+        for (AdminManageInfo guestInfo : guestInfoList) {
             if (guestInfo.getRoom().getId() == 1) {
                 roomA_guestName = guestInfo.getName();
                 roomA_guestPhone = guestInfo.getPhoneNumber();
@@ -347,7 +368,7 @@ public class MessageService {
         }
 
         StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append(checkInDate).append(" 체크인 숫자 : ").append(msgDto.getSize()).append("팀");
+        stringBuilder.append(checkInDate).append(" 체크인 숫자 : ").append(guestInfoList.size()).append("팀");
         if (roomA_string != null) stringBuilder.append(roomA_string);
         if (roomB_string != null) stringBuilder.append(roomB_string);
         if (airbnbRouting) {
@@ -431,6 +452,15 @@ public class MessageService {
 
     private String getNumberOnly(String string) {
         return string.replaceAll("[^0-9]","");
+    }
+
+    private boolean checkAdminName(String name) {
+        // check name if exist in admin list
+        return name.equals("관리자 생성 예약");
+    }
+
+    private boolean checkAdminPhone(String phoneNumber) {
+        return ADMIN_LIST.contains(phoneNumber);
     }
 
 }
