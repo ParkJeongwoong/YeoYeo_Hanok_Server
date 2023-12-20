@@ -1,5 +1,9 @@
 package com.yeoyeo.application.common.method;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+import javax.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.env.Environment;
@@ -8,11 +12,6 @@ import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
-
-import javax.servlet.http.HttpServletRequest;
-import java.util.Arrays;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -57,7 +56,7 @@ public class CommonMethod {
     public void startScheduling(String schedulingName) throws RuntimeException {
         String serverName = getServerProfile();
         ValueOperations<String, String> valueOperations = redisTemplate.opsForValue();
-        if (!valueOperations.setIfAbsent(schedulingName, serverName)) {
+        if (!valueOperations.setIfAbsent(schedulingName, serverName, 1, TimeUnit.HOURS)) {
             throw new RuntimeException("Scheduling is already started");
         }
     }
