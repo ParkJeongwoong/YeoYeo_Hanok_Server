@@ -2,12 +2,27 @@ package com.yeoyeo.application.dateroom.service;
 
 import com.yeoyeo.application.common.dto.GeneralResponseDto;
 import com.yeoyeo.application.common.service.WebClientService;
-import com.yeoyeo.application.dateroom.dto.*;
+import com.yeoyeo.application.dateroom.dto.ChangeDateRoomListPriceRequestDto;
+import com.yeoyeo.application.dateroom.dto.ChangeDateRoomListStatusRequestDto;
+import com.yeoyeo.application.dateroom.dto.DateRoom2MonthDto;
+import com.yeoyeo.application.dateroom.dto.DateRoomIdPriceInfoDto;
+import com.yeoyeo.application.dateroom.dto.DateRoomInfoByDateDto;
+import com.yeoyeo.application.dateroom.dto.DateRoomInfoDto;
+import com.yeoyeo.application.dateroom.dto.DateRoomPriceInfoDto;
 import com.yeoyeo.application.dateroom.etc.exception.RoomReservationException;
 import com.yeoyeo.application.dateroom.repository.DateRoomRepository;
 import com.yeoyeo.application.dateroom.repository.HolidayRepository;
 import com.yeoyeo.application.room.repository.RoomRepository;
-import com.yeoyeo.domain.*;
+import com.yeoyeo.domain.DateRoom;
+import com.yeoyeo.domain.Holiday;
+import com.yeoyeo.domain.MapDateRoomReservation;
+import com.yeoyeo.domain.Reservation;
+import com.yeoyeo.domain.Room;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.json.simple.JSONArray;
@@ -18,12 +33,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -77,7 +86,7 @@ public class DateRoomService extends Thread {
                 String dateString = String.valueOf(jsonObject.get("locdate"));
                 String name = String.valueOf(jsonObject.get("dateName"));
                 LocalDate date = LocalDate.parse(dateString, DateTimeFormatter.ofPattern("yyyyMMdd"));
-                Holiday holiday = Holiday.builder().date(date).name(name).build();
+                Holiday holiday = new Holiday(date, name);
                 holidayRepository.save(holiday);
             } else { // 2개 이상이면 배열로 응답됨
                 JSONArray holidays = (JSONArray) items.get("item");
@@ -85,7 +94,7 @@ public class DateRoomService extends Thread {
                     String dateString = String.valueOf(((JSONObject) jsonObject).get("locdate"));
                     String name = String.valueOf(((JSONObject) jsonObject).get("dateName"));
                     LocalDate date = LocalDate.parse(dateString, DateTimeFormatter.ofPattern("yyyyMMdd"));
-                    Holiday holiday = Holiday.builder().date(date).name(name).build();
+                    Holiday holiday = new Holiday(date, name);
                     holidayRepository.save(holiday);
                 }
             }

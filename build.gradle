@@ -1,5 +1,5 @@
 plugins {
-    id 'org.springframework.boot' version '2.4.1'
+    id 'org.springframework.boot' version '3.1.0'
     id 'io.spring.dependency-management' version '1.0.10.RELEASE'
     id 'java'
 }
@@ -52,8 +52,7 @@ dependencies {
     implementation('com.googlecode.json-simple:json-simple:1.1.1')
 
     // Swagger
-    implementation('io.springfox:springfox-boot-starter:3.0.0')
-    implementation('io.springfox:springfox-swagger-ui:3.0.0')
+    implementation('org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0')
 
     // Redis
     implementation('org.springframework.boot:spring-boot-starter-data-redis')
@@ -71,4 +70,4 @@ dependencies {
     // AOP
     implementation('org.springframework.boot:spring-boot-starter-aop')
 }
-targetCompatibility = JavaVersion.VERSION_1_9
+targetCompatibility = JavaVersion.VERSION_17

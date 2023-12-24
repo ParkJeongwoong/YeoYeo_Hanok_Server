@@ -23,8 +23,8 @@ import com.yeoyeo.application.reservation.service.ReservationService;
 import com.yeoyeo.application.room.service.RoomService;
 import com.yeoyeo.domain.Admin.Administrator;
 import com.yeoyeo.domain.Reservation;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.time.LocalDate;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -42,7 +42,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@Api(tags = {"관리자 API"})
+@Tag(name = "관리자 API", description = "관리자가 사용할 수 있는 API")
 @Slf4j
 @RequiredArgsConstructor
 @RestController
@@ -65,7 +65,7 @@ public class AdminController {
     }
 
     // ROOM 관련
-    @ApiOperation(value = "Change Default Price", notes = "방의 기본가(평일가격, 주말가격, 성수기 평일가격, 성수기 주말가격) 설정")
+    @Operation(summary = "기본가 수정", description = "방의 기본가(평일가격, 주말가격, 성수기 평일가격, 성수기 주말가격) 설정")
     @PutMapping("/room/{roomId}")
     public ResponseEntity<GeneralResponseDto> changeRoomDefaultPrice(@PathVariable long roomId, @RequestBody ChangeRoomDefaultPriceRequestDto requestDto) {
         GeneralResponseDto responseDto = roomService.changeRoomDefaultPrice(roomId, requestDto);
@@ -74,7 +74,7 @@ public class AdminController {
     }
 
     // DATEROOM 관련
-    @ApiOperation(value = "Change (Multiple) Date Rooms Price", notes = "배열 형태의 dateRoomId를 모아 dateroom 가격 일괄 변경 (priceType - 0 : 직접 설정, 1 : 주중, 2 : 주말, 3 : 성수기 주중, 4 : 성수기 주말)")
+    @Operation(summary = "날짜별 방 가격 일괄 변경", description = "배열 형태의 dateRoomId를 모아 dateroom 가격 일괄 변경 (priceType - 0 : 직접 설정, 1 : 주중, 2 : 주말, 3 : 성수기 주중, 4 : 성수기 주말)")
     @PutMapping("/dateroom/list/price")
     public ResponseEntity<GeneralResponseDto> changeDateRoomListPrice(@RequestBody ChangeDateRoomListPriceRequestDto requestDto) {
         GeneralResponseDto responseDto = dateRoomService.changeDateRoomListPrice(requestDto);
@@ -82,7 +82,7 @@ public class AdminController {
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
-    @ApiOperation(value = "Change (Multiple) Date Rooms Status", notes = "배열 형태의 dateRoomId를 모아 dateroom 예약 상태 일괄 변경 (0 : 예약 가능, 1 : 예약 완료) *예약되지 않은 방만 변경 가능")
+    @Operation(summary = "날짜별 방 상태 일괄 변경", description = "배열 형태의 dateRoomId를 모아 dateroom 예약 상태 일괄 변경 (0 : 예약 가능, 1 : 예약 완료) *예약되지 않은 방만 변경 가능")
     @PutMapping("/dateroom/list/status")
     public ResponseEntity<GeneralResponseDto> changeDateRoomListStatus(@RequestBody ChangeDateRoomListStatusRequestDto requestDto) {
         GeneralResponseDto responseDto = dateRoomService.changeDateRoomListStatus(requestDto);
@@ -90,20 +90,20 @@ public class AdminController {
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
-    @ApiOperation(value = "Dateroom Creation", notes = "문제가 발생해서 방 날짜 정보가 생성되지 않았을 때 사용하는 용도")
+    @Operation(summary = "날짜별 방 생성", description = "문제가 발생해서 방 날짜 정보가 생성되지 않았을 때 사용하는 용도")
     @PostMapping("/dateroom/{year}/{month}/{day}/{roomId}")
     public ResponseEntity<GeneralResponseDto> createDateRoom(
             @PathVariable("year") int year, @PathVariable("month") int month, @PathVariable("day") int day, @PathVariable("roomId") long roomId
     ) { return ResponseEntity.status(HttpStatus.OK).body(dateRoomService.makeDateRoom(year, month, day, roomId)); }
 
     // RESERVATION 관련
-    @ApiOperation(value = "Reservation List", notes = "관리자의 예약 관리용 예약 정보 조회 (0 : 전체, 1 : 숙박 대기, 2 : 숙박 완료, 3 : 예약 취소, 4 : 환불 완료")
+    @Operation(summary = "예약 정보 조회", description = "관리자의 예약 관리용 예약 정보 조회 (0 : 전체, 1 : 숙박 대기, 2 : 숙박 완료, 3 : 예약 취소, 4 : 환불 완료")
     @GetMapping("/reservation/list/{type}")
     public ResponseEntity<List<ReservationInfoDto>> showReservations(@PathVariable("type") int type) {
         return ResponseEntity.status(HttpStatus.OK).body(reservationService.showReservations(type));
     }
 
-    @ApiOperation(value = "Reservation", notes = "관리자의 해당 날짜 예약 불가능 처리")
+    @Operation(summary = "예약 정보 생성", description = "관리자의 해당 날짜 예약 불가능 처리")
     @Transactional
     @PostMapping("/reserve")
     public ResponseEntity<GeneralResponseDto> createReservation(@RequestBody MakeReservationAdminRequestDto requestDto,
@@ -119,7 +119,7 @@ public class AdminController {
         }
     }
 
-    @ApiOperation(value = "Reservation Cancel", notes = "관리자의 해당 날짜 예약 취소 처리 (환불 미포함)")
+    @Operation(summary = "예약 취소(환불 미포함)", description = "관리자의 해당 날짜 예약 취소 처리 (환불 미포함)")
     @DeleteMapping("/reservation/{reservationId}")
     public ResponseEntity<GeneralResponseDto> cancelReservation(@PathVariable("reservationId") long reservationId) {
         GeneralResponseDto responseDto = reservationService.cancel(reservationId);
@@ -128,7 +128,7 @@ public class AdminController {
     }
 
     // PAYMENT 관련
-    @ApiOperation(value = "Payment Refund", notes = "관리자의 예약 취소 및 환불 처리 (전액 환불)")
+    @Operation(summary = "전액 환불 처리", description = "관리자의 예약 취소 및 환불 처리 (전액 환불)")
     @DeleteMapping("/payment/{reservationId}")
     public ResponseEntity<GeneralResponseDto> refundPayment(@PathVariable("reservationId") long reservationId) {
         GeneralResponseDto responseDto = paymentService.refundByAdmin(reservationId);

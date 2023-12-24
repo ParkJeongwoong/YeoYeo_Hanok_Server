@@ -1,14 +1,13 @@
 package com.yeoyeo.domain;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import java.time.LocalDate;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import java.time.LocalDate;
 
 @Slf4j
 @Getter
@@ -17,23 +16,23 @@ import java.time.LocalDate;
 public class Holiday {
 
     @Id
-    private LocalDate date;
+    private LocalDate holiday_date;
     @Column
-    private String name;
+    private String holiday_name;
     @Column
-    private Integer year;
+    private Integer holiday_year;
     @Column
-    private Integer month;
+    private Integer holiday_month;
     @Column
-    private Integer day;
+    private Integer holiday_day;
 
     @Builder
     public Holiday(LocalDate date, String name) {
-        this.date = date;
-        this.name = name;
-        this.year = date.getYear();
-        this.month = date.getMonthValue();
-        this.day = date.getDayOfMonth();
+        this.holiday_date = date;
+        this.holiday_name = name;
+        this.holiday_year = date.getYear();
+        this.holiday_month = date.getMonthValue();
+        this.holiday_day = date.getDayOfMonth();
     }
 
 }

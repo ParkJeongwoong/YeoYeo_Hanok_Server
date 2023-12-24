@@ -2,11 +2,14 @@ package com.yeoyeo.domain;
 
 import com.yeoyeo.application.admin.dto.ChangeRoomDefaultPriceRequestDto;
 import com.yeoyeo.application.room.dto.MakeRoomDto;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import javax.persistence.*;
 
 @Getter
 @NoArgsConstructor

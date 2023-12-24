@@ -1,10 +1,9 @@
 package com.yeoyeo.domain.Guest;
 
+import jakarta.persistence.Entity;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import javax.persistence.Entity;
 
 //@SuperBuilder
 @Getter

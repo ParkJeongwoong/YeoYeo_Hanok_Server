@@ -1,12 +1,12 @@
 package com.yeoyeo.adapter.filter;
 
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
@@ -17,7 +17,7 @@ import org.springframework.security.web.authentication.rememberme.RememberMeAuth
 @Slf4j
 public class CustomAuthFilter extends RememberMeAuthenticationFilter {
 
-	private AuthenticationManager authenticationManager;
+	private final AuthenticationManager authenticationManager;
 
 	public CustomAuthFilter(
 		AuthenticationManager authenticationManager, RememberMeServices rememberMeServices) {

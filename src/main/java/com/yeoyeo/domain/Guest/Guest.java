@@ -2,12 +2,12 @@ package com.yeoyeo.domain.Guest;
 
 import com.yeoyeo.application.reservation.dto.MakeReservationDto.MakeReservationDto;
 import com.yeoyeo.domain.DateRoom;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 import java.util.List;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import net.fortuna.ical4j.model.property.Description;
