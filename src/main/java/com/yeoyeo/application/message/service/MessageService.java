@@ -88,7 +88,7 @@ public class MessageService {
                 "새로운 예약이 \"확정\" 되었습니다.\n" +
                 "예약번호 : " + reservation.getId() + "\n" +
                 "예약 날짜 : " + startDate_string+" ~ "+endDate_string+" "+room + "\n" +
-                "고객명 : " + reservation.getGuest().getName() + "\n" +
+                "고객명 : " + reservation.getGuest().getName() + " (" + reservation.getGuest().getGuestCount() + "명)\n" +
                 "연락처 : " + reservation.getGuest().getPhoneNumber() + "\n\n";
 
         sendMultipleMessage("LMS", subject4Admin, content4Admin, ADMIN_LIST);
