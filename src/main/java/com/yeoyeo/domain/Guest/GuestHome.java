@@ -16,4 +16,9 @@ public class GuestHome extends Guest {
         super(name, phoneNumber, email, guestCount, request);
     }
 
+    @Override
+    public GuestHome clone() {
+        return new GuestHome(this.name, super.phoneNumber, this.email, this.guestCount, this.request);
+    }
+
 }

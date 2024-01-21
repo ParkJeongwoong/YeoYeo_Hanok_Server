@@ -18,6 +18,10 @@ public class GuestAirbnb extends Guest {
         super.name = "AirBnbGuest";
     }
 
+    private GuestAirbnb(String name) {
+        super.name = name;
+    }
+
     public GuestAirbnb(Description description, Summary summary) {
         if (description == null || summary == null || !summary.getValue().equals("Reserved")) super.name = "AirBnbGuest_External";
         else super.name = "AirBnbGuest";
@@ -32,6 +36,11 @@ public class GuestAirbnb extends Guest {
     public MakeReservationDto createMakeReservationDto(List<DateRoom> dateRoomList, Description description, Summary summary) {
         if (description == null || summary == null || !summary.getValue().equals("Reserved")) return new MakeReservationDto(dateRoomList, this, 1);
         return new MakeReservationDto(dateRoomList, this, 0);
+    }
+
+    @Override
+    public GuestAirbnb clone() {
+        return new GuestAirbnb(this.name);
     }
 
 }

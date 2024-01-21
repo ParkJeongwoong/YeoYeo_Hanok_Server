@@ -27,16 +27,16 @@ public class Guest {
     protected String name;
 
     @Column(length = 20)
-    private String phoneNumber;
+    protected String phoneNumber;
 
     @Column(length = 50)
-    private String email;
+    protected String email;
 
     @Column
-    private int guestCount;
+    protected int guestCount;
 
     @Column(length = 255)
-    private String request;
+    protected String request;
 
 //    @Builder
     public Guest(String name, String phoneNumber, String email, int guestCount, String request) {

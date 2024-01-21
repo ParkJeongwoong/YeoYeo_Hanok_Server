@@ -17,6 +17,10 @@ public class GuestBooking extends Guest {
         super.name = "BookingGuest";
     }
 
+    private GuestBooking(String name) {
+        super.name = name;
+    }
+
     public GuestBooking(Description description, Summary summary) {
         if (description == null || summary == null || !summary.getValue().equals("Reserved")) super.name = "BookingGuest_External";
         else super.name = "BookingGuest";
@@ -31,6 +35,11 @@ public class GuestBooking extends Guest {
     public MakeReservationDto createMakeReservationDto(List<DateRoom> dateRoomList, Description description, Summary summary) {
         if (description == null || summary == null || !summary.getValue().equals("Reserved")) return new MakeReservationDto(dateRoomList, this, 1);
         return new MakeReservationDto(dateRoomList, this, 0);
+    }
+
+    @Override
+    public GuestBooking clone() {
+        return new GuestBooking(this.name);
     }
 
 }
