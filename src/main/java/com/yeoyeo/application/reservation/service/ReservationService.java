@@ -3,28 +3,28 @@ package com.yeoyeo.application.reservation.service;
 import com.yeoyeo.application.common.dto.GeneralResponseDto;
 import com.yeoyeo.application.dateroom.etc.exception.RoomReservationException;
 import com.yeoyeo.application.dateroom.repository.DateRoomRepository;
-import com.yeoyeo.application.reservation.dto.MakeReservationRequestDto.MakeReservationAdminRequestDto;
+import com.yeoyeo.application.dateroom.service.DateRoomService;
+import com.yeoyeo.application.message.service.MessageService;
 import com.yeoyeo.application.reservation.dto.MakeReservationDto.MakeReservationDto;
+import com.yeoyeo.application.reservation.dto.MakeReservationRequestDto.MakeReservationAdminRequestDto;
 import com.yeoyeo.application.reservation.dto.ReservationDetailInfoDto;
 import com.yeoyeo.application.reservation.dto.ReservationInfoDto;
 import com.yeoyeo.application.reservation.etc.exception.ReservationException;
 import com.yeoyeo.application.reservation.repository.ReservationRepository;
-import com.yeoyeo.application.message.service.MessageService;
 import com.yeoyeo.domain.DateRoom;
 import com.yeoyeo.domain.Guest.Guest;
 import com.yeoyeo.domain.Payment;
 import com.yeoyeo.domain.Reservation;
+import java.util.Comparator;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.StaleObjectStateException;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Comparator;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.stream.Collectors;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -33,6 +33,7 @@ public class ReservationService {
 
     private final DateRoomRepository dateRoomRepository;
     private final ReservationRepository reservationRepository;
+    private final DateRoomService dateRoomService;
     private final MessageService messageService;
 
     public List<ReservationInfoDto> showReservations(int type) {
@@ -81,17 +82,15 @@ public class ReservationService {
 
     @Transactional
     public void setReservationPaid(Reservation reservation, Payment payment) throws ReservationException {
-//        List<DateRoom> dateRoomList = reservation.getDateRoomList();
         List<String> dateRoomIdList = reservation.getDateRoomIdList();
         try {
-//            for (DateRoom dateRoom:dateRoomList) {
             for (String dateRoomId:dateRoomIdList) {
                 DateRoom dateRoom = dateRoomRepository.findById(dateRoomId).orElseThrow(NoSuchElementException::new);
                 log.info("{} : {} {} 예약시도", reservation.getGuest().getName(), dateRoom.getDate(), dateRoom.getRoom().getId());
                 dateRoom.setStateBooked();
                 dateRoomRepository.save(dateRoom);
-//                dateRoomRepository.saveAndFlush(dateRoom); // 이렇게 해야 메서드 내에서 ObjectOptimisticLockingFailureException 발생
                 log.info("{} : {} {} 예약성공", reservation.getGuest().getName(), dateRoom.getDate(), dateRoom.getRoom().getId());
+                dateRoomService.updateCache(dateRoom);
             }
             reservation.setPayment(payment);
             reservationRepository.save(reservation);
@@ -114,7 +113,10 @@ public class ReservationService {
             checkPhoneNumber(reservation);
             List<DateRoom> dateRoomList = reservation.getDateRoomList();
             reservation.setStateCanceled();
-            for (DateRoom dateRoom:dateRoomList) dateRoom.resetState();
+            for (DateRoom dateRoom:dateRoomList) {
+                dateRoom.resetState();
+                dateRoomService.updateCache(dateRoom);
+            }
             reservationRepository.save(reservation);
             messageService.sendCancelMsg(reservation);
             log.info("{} 고객님의 예약이 취소되었습니다.", reservation.getGuest().getName());
@@ -135,7 +137,10 @@ public class ReservationService {
     public void cancel(Reservation reservation) throws ReservationException {
         try {
             reservation.setStateRefund();
-            for (DateRoom dateRoom:reservation.getDateRoomList()) dateRoom.resetState();
+            for (DateRoom dateRoom:reservation.getDateRoomList()) {
+                dateRoom.resetState();
+                dateRoomService.updateCache(dateRoom);
+            }
             reservationRepository.save(reservation);
             log.info("{} 고객님의 예약이 취소되었습니다.", reservation.getGuest().getName());
         } catch (ReservationException reservationException) {

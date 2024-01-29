@@ -4,15 +4,26 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yeoyeo.application.common.dto.GeneralResponseDto;
 import com.yeoyeo.application.common.service.WebClientService;
-import com.yeoyeo.application.payment.dto.*;
+import com.yeoyeo.application.message.service.MessageService;
+import com.yeoyeo.application.payment.dto.ImpConfirmDto;
+import com.yeoyeo.application.payment.dto.ImpTokenRequestDto;
+import com.yeoyeo.application.payment.dto.ImpTokenResponseDto;
+import com.yeoyeo.application.payment.dto.ImpWebHookDto;
+import com.yeoyeo.application.payment.dto.PaymentRequestDto;
+import com.yeoyeo.application.payment.dto.RefundClientRequestDto;
+import com.yeoyeo.application.payment.dto.RefundServerRequestDto;
 import com.yeoyeo.application.payment.etc.exception.PaymentException;
 import com.yeoyeo.application.reservation.etc.exception.ReservationException;
 import com.yeoyeo.application.reservation.repository.ReservationRepository;
 import com.yeoyeo.application.reservation.service.ReservationService;
-import com.yeoyeo.application.message.service.MessageService;
 import com.yeoyeo.domain.DateRoom;
 import com.yeoyeo.domain.Payment;
 import com.yeoyeo.domain.Reservation;
+import java.time.LocalDate;
+import java.time.Period;
+import java.util.List;
+import java.util.Map;
+import java.util.NoSuchElementException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.json.simple.JSONObject;
@@ -21,12 +32,6 @@ import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.BodyInserters;
-
-import java.time.LocalDate;
-import java.time.Period;
-import java.util.List;
-import java.util.Map;
-import java.util.NoSuchElementException;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -370,16 +375,6 @@ public class PaymentService {
             throw new PaymentException(reservationException.getMessage());
         }
     }
-
-//    @Transactional
-//    private void completeWebhookRefund(Reservation reservation) throws PaymentException {
-//        try {
-//            for (DateRoom dateRoom:reservation.getDateRoomList()) dateRoom.resetState();
-//            reservationRepository.save(reservation);
-//        } catch (RoomReservationException e) {
-//            throw new PaymentException(e.getMessage());
-//        }
-//    }
 
     private long getRefundableAmount(Reservation reservation) {
         LocalDate reservationDate = reservation.getFirstDateRoom().getDate();

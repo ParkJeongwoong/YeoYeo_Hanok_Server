@@ -22,6 +22,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,7 +31,10 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.HashOperations;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.MediaType;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -44,6 +48,7 @@ public class DateRoomService extends Thread {
     private final HolidayRepository holidayRepository;
 
     private final WebClientService webClientService;
+    private final RedisTemplate<String, Object> redisTemplate;
     @Value("${data.holiday.key}")
     String holidayKey;
 
@@ -53,11 +58,21 @@ public class DateRoomService extends Thread {
     }
 
     public DateRoom2MonthDto show2MonthsDateRooms(int year, int month) {
+        LocalDate now = LocalDate.now();
+        int cachedYear = now.getYear();
+        int cachedMonth = now.getMonthValue();
+        if (year == cachedYear && month == cachedMonth) {
+            return cachedDateRoomInfo();
+        }
         LocalDate thisMonthStartDate = LocalDate.of(year, month, 1);
         LocalDate nextMonthStartDate = thisMonthStartDate.plusMonths(1);
-        List<DateRoomInfoByDateDto> thisMonth = getDateRoomInfoList(getMonthDateRooms(thisMonthStartDate));
-        List<DateRoomInfoByDateDto> nextMonth = getDateRoomInfoList(getMonthDateRooms(nextMonthStartDate));
+        List<DateRoomInfoByDateDto> thisMonth = getDateRoomInfoListByDate(thisMonthStartDate);
+        List<DateRoomInfoByDateDto> nextMonth = getDateRoomInfoListByDate(nextMonthStartDate);
         return new DateRoom2MonthDto(thisMonth, nextMonth);
+    }
+
+    private List<DateRoomInfoByDateDto> getDateRoomInfoListByDate(LocalDate startDate) {
+        return getDateRoomInfoList(getMonthDateRooms(startDate));
     }
 
     private List<DateRoom> getMonthDateRooms(LocalDate firstMonthDate) {
@@ -201,7 +216,10 @@ public class DateRoomService extends Thread {
     public void resetDateRoomPriceType_month(LocalDate startDate) {
         LocalDate endDate = startDate.plusMonths(1);
         List<DateRoom> dateRoomList = dateRoomRepository.findAllByDateBetween(startDate, endDate);
-        dateRoomList.forEach(dateRoom->dateRoom.resetDefaultPriceType(holidayRepository));
+        dateRoomList.forEach(dateRoom->{
+            dateRoom.resetDefaultPriceType(holidayRepository);
+            updateCache(dateRoom);
+        });
         dateRoomRepository.saveAll(dateRoomList);
     }
 
@@ -229,6 +247,7 @@ public class DateRoomService extends Thread {
         for (DateRoom dateRoom:dateRoomList) {
             if (priceType == 0 && price>0) dateRoom.changePrice(price);
             else dateRoom.changePriceType(priceType);
+            updateCache(dateRoom);
         }
         return GeneralResponseDto.builder().success(true).build();
     }
@@ -252,6 +271,7 @@ public class DateRoomService extends Thread {
                         dateRoom.setStateBooked();
                         break;
                 }
+                updateCache(dateRoom);
             } catch (RoomReservationException roomReservationException) {
                 return GeneralResponseDto.builder().success(false).message("해당 날짜의 예약 상태를 변경할 수 없습니다.").build();
             }
@@ -275,6 +295,81 @@ public class DateRoomService extends Thread {
             }
         });
         return dateRoomInfoByDateDtos;
+    }
+
+    public DateRoom2MonthDto cachedDateRoomInfo() {
+        LocalDate now = LocalDate.now();
+        int year = now.getYear();
+        int month = now.getMonthValue();
+        LocalDate next = now.plusMonths(1);
+        List<DateRoomInfoByDateDto> thisMonth = getOrSetCachedDateRoomInfoList(year, month);
+        List<DateRoomInfoByDateDto> nextMonth = getOrSetCachedDateRoomInfoList(next.getYear(), next.getMonthValue());
+        return new DateRoom2MonthDto(thisMonth, nextMonth);
+    }
+
+    public List<DateRoomInfoByDateDto> getOrSetCachedDateRoomInfoList(int year, int month) {
+        HashOperations<String, String, DateRoomInfoDto> hashOperations = redisTemplate.opsForHash();
+        List<DateRoomInfoByDateDto> dateRoomInfoByDateDtos = new ArrayList<>();
+        // 여유 방 데이터
+        String key1 = year + "-" + month + ":1";
+        Map<String, DateRoomInfoDto> entries1 = hashOperations.entries(key1);
+        if (entries1.size()==0) {
+            log.info("CACHE MISS (여유 방 데이터)");
+            return setCachedDateRoomInfoList(year, month);
+        }
+
+        // 여행 방 데이터
+        String key2 = year + "-" + month + ":2";
+        Map<String, DateRoomInfoDto> entries2 = hashOperations.entries(key2);
+        if (entries2.size()==0) {
+            log.info("CACHE MISS (여행 방 데이터)");
+            return setCachedDateRoomInfoList(year, month);
+        }
+
+        LocalDate startDate = LocalDate.of(year, month, 1);
+        LocalDate endDate = startDate.plusMonths(1).minusDays(1);
+        for (LocalDate date = startDate; date.isBefore(endDate); date = date.plusDays(1)) {
+            String dateStr = date.toString();
+            DateRoomInfoByDateDto dateRoomInfoByDateDto = new DateRoomInfoByDateDto(date, entries1.get(dateStr));
+            if (entries2.containsKey(dateStr)) dateRoomInfoByDateDto.addDateRoomInfo(entries2.get(dateStr));
+            dateRoomInfoByDateDtos.add(dateRoomInfoByDateDto);
+        }
+
+        return dateRoomInfoByDateDtos;
+    }
+
+    private List<DateRoomInfoByDateDto> setCachedDateRoomInfoList(int year, int month) {
+        HashOperations<String, String, DateRoomInfoDto> hashOperations = redisTemplate.opsForHash();
+        LocalDate startDate = LocalDate.of(year, month, 1);
+        List<DateRoomInfoByDateDto> dateRoomInfoByDateDtos = getDateRoomInfoListByDate(startDate);
+        String key1 = year + "-" + month + ":1";
+        String key2 = year + "-" + month + ":2";
+        log.info("key1: {} year: {} month: {}", key1, year, month);
+        log.info("key2: {} year: {} month: {}", key2, year, month);
+
+        dateRoomInfoByDateDtos.forEach(dto -> {
+            String dateStr = dto.getDate().toString();
+            dto.getRooms().forEach(dateRoomInfoDto -> {
+                if (dateRoomInfoDto.getRoomName().equals("여유")) {
+                    hashOperations.put(key1, dateStr, dateRoomInfoDto);
+                }
+                else {
+                    hashOperations.put(key2, dateStr, dateRoomInfoDto);
+                }
+            });
+        });
+
+        return dateRoomInfoByDateDtos;
+    }
+
+    @Async
+    public void updateCache(DateRoom dateRoom) {
+        HashOperations<String, String, DateRoomInfoDto> hashOperations = redisTemplate.opsForHash();
+        String key = dateRoom.getDate().getYear() + "-" + dateRoom.getDate().getMonthValue() + ":" + dateRoom.getRoom().getId();
+        String hashKey = dateRoom.getDate().toString();
+        // 해당 캐시 데이터가 있으면 업데이트, 없으면 Skip
+        if (hashOperations.hasKey(key, hashKey))
+        hashOperations.put(key, hashKey, new DateRoomInfoDto(dateRoom));
     }
 
 }
