@@ -91,7 +91,6 @@ public class CalendarService {
     public void readICSFile_Booking_B() { syncIcalendarFile(BOOKING_FILE_PATH_B, getGuestBookingFactory(), getPaymentBooking(), 2);}
     public void getICSFile_Booking_B() { getIcsFileFromPlatform(BOOKING_FILE_URL_B, BOOKING_FILE_PATH_B); }
 
-    @Transactional
     @Async
     public void syncInICSFile_Reservation(long roomId) {
         log.info("syncInICSFile_Reservation - Reservation Room ID : {}", roomId);
@@ -141,20 +140,22 @@ public class CalendarService {
     @Transactional
     private void syncIcalendarFile(String path, GuestFactory guestFactory, Payment payment, long roomId) {
         Calendar calendar = readIcalendarFile(path);
-        List<VEvent> events = calendar.getComponents(Component.VEVENT);
-        log.info("EVENT COUNT : {}", events.size());
-        setReservationStateSync(guestFactory.getGuestClassName(), roomId); // 동기화 대상 예약 상태 변경
-        for (VEvent event : events) {
-            String uid = event.getUid().getValue();
-            log.info("CALENDAR EVENT UID : {}", uid);
-            String platform = getPlatformName(uid);
-            if (!platform.equals("yeoyeo")) {
-                Reservation reservation = findExistingReservation(uid, roomId, guestFactory.getGuestClassName());
-                if (reservation == null) registerReservation(event, guestFactory.createGuest(event.getDescription(), event.getSummary()), payment, roomId);
-                else updateReservation(event, reservation);
+        if (calendar != null) {
+            List<VEvent> events = calendar.getComponents(Component.VEVENT);
+            log.info("EVENT COUNT : {}", events.size());
+            setReservationStateSync(guestFactory.getGuestClassName(), roomId); // 동기화 대상 예약 상태 변경
+            for (VEvent event : events) {
+                String uid = event.getUid().getValue();
+                log.info("CALENDAR EVENT UID : {}", uid);
+                String platform = getPlatformName(uid);
+                if (!platform.equals("yeoyeo")) {
+                    Reservation reservation = findExistingReservation(uid, roomId, guestFactory.getGuestClassName());
+                    if (reservation == null) registerReservation(event, guestFactory.createGuest(event.getDescription(), event.getSummary()), payment, roomId);
+                    else updateReservation(event, reservation);
+                }
             }
+            cancelReservationStateSync(); // 동기화 되지 않은 예약 취소
         }
-        cancelReservationStateSync(); // 동기화 되지 않은 예약 취소
     }
 
     private Calendar readIcalendarFile(String path) {
@@ -208,7 +209,7 @@ public class CalendarService {
 
     @Transactional
     private void setReservationStateSync(String guestClassName, long roomId) {
-        List<Reservation> reservationList = reservationRepository.findAllByReservationState(1);
+        List<Reservation> reservationList = reservationRepository.findAllByReservationStateAndReservedFromNot(1,"GuestHome");
         LocalDate now = LocalDate.now();
         for (Reservation reservation : reservationList) {
             try {
@@ -352,21 +353,12 @@ public class CalendarService {
     private void getIcsFileFromPlatform(String downloadUrl, String downloadPath) {
         log.info("get ICS File From Platform : {}", downloadUrl);
         if (downloadUrl == null || downloadUrl.length() == 0) return;
-
-//        Flux<DataBuffer> dataBufferFlux = WebClient("application/json").get()
-//                .uri(downloadUrl)
-//                .accept(MediaType.APPLICATION_OCTET_STREAM)
-//                .retrieve()
-//                .bodyToFlux(DataBuffer.class);
-//
-//        Path path = Paths.get(downloadPath);
-//        DataBufferUtils.write(dataBufferFlux, path, StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING).block();
-
         try {
             FileUtils.copyURLToFile(new URL(downloadUrl), new File(downloadPath));
             log.info("ICS File Download Complete From : {}", downloadUrl);
         } catch (IOException e) {
-            log.error("ICS File Download Error : new URL(downloadUrl)", e);
+            log.error("ICS File Download Error", e);
+            messageService.sendAdminMsg("동기화 오류 알림 - ICS 파일 다운로드 중 오류 발생");
         }
     }
 
