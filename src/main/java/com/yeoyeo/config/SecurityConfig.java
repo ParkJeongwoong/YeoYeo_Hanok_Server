@@ -63,7 +63,9 @@ public class SecurityConfig {
 
         http.csrf(AbstractHttpConfigurer::disable) // csrf 보안 설정 비활성화
                 .cors(httpSecurityCorsConfigurer -> httpSecurityCorsConfigurer.configurationSource(corsConfigurationSource()))
-//                .headers().frameOptions().sameOrigin() // 개발 중 h2-console 사용을 위한 설정
+//                .headers(headers -> headers
+//                    .frameOptions(frameOptions -> frameOptions.sameOrigin())
+//                ) // 개발 중 h2-console 사용을 위한 설정
 //                .and()
 
                 .authorizeHttpRequests(requests->requests // 보호된 리소스 URI에 접근할 수 있는 권한 설정
@@ -111,7 +113,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    public ApiAuthenticationFilter apiAuthenticationFilter(RememberMeServices rememberMeServices, AuthenticationManager authenticationManager) throws Exception {
+    public ApiAuthenticationFilter apiAuthenticationFilter(RememberMeServices rememberMeServices, AuthenticationManager authenticationManager) {
         ApiAuthenticationFilter apiAuthenticationFilter = new ApiAuthenticationFilter(authenticationManager);
         apiAuthenticationFilter.setRememberMeServices(rememberMeServices); // rememberMeServices 설정
         apiAuthenticationFilter.setAuthenticationSuccessHandler(loginSuccessHandler); // 로그인 성공 시 실행될 handler bean
@@ -120,7 +122,7 @@ public class SecurityConfig {
         return apiAuthenticationFilter;
     }
 
-    public RememberMeAuthenticationFilter customAuthFilter(RememberMeServices rememberMeServices, AuthenticationManager authenticationManager) throws Exception {
+    public RememberMeAuthenticationFilter customAuthFilter(RememberMeServices rememberMeServices, AuthenticationManager authenticationManager) {
         return new CustomAuthFilter(authenticationManager, rememberMeServices);
     }
 
