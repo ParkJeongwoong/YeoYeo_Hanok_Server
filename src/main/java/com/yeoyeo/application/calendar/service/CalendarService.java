@@ -209,7 +209,7 @@ public class CalendarService {
 
     @Transactional
     private void setReservationStateSync(String guestClassName, long roomId) {
-        List<Reservation> reservationList = reservationRepository.findAllByReservationStateAndReservedFromNot(1,"GuestHome");
+        List<Reservation> reservationList = reservationRepository.findAllByReservationState(1);
         LocalDate now = LocalDate.now();
         for (Reservation reservation : reservationList) {
             try {
@@ -272,7 +272,13 @@ public class CalendarService {
                     Guest collidedGuest = checkUidChangeIssue(dateRoomList, guest.getName()); // UID 가 바뀌어서 기존 Guest 정보가 삭제되는 경우를 방지
                     log.info("UID 변경 검증 결과 : {}", collidedGuest != null);
                     if (collidedGuest != null) guest = collidedGuest; // UID가 바뀌었어도 예약 출처와 정보가 일치한다면 동일한 게스트로 간주
-                    collidedReservationCancel(dateRoomList);
+                    boolean refundResult = collidedReservationCancel(dateRoomList);
+                    if (refundResult) {
+                        log.info("동기화 과정 중 중복된 예약 취소 완료. 재시도 시작");
+                    } else {
+                        log.info("동기화 과정 환불 과정 중 중복된 예약 취소 실패. 재시도 중지");
+                        messageService.sendAdminMsg("동기화 예약 환불 실패 오류 발생");
+                    }
                 }
             } else break;
             if (i == 2) messageService.sendAdminMsg("동기화 오류 알림 - 중복된 예약을 취소하던 중 오류 발생");
