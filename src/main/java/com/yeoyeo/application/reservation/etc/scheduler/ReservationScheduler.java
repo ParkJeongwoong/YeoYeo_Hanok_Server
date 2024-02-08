@@ -2,6 +2,7 @@ package com.yeoyeo.application.reservation.etc.scheduler;
 
 import com.yeoyeo.application.admin.repository.AdminManageInfoRepository;
 import com.yeoyeo.application.admin.service.AdminManageService;
+import com.yeoyeo.application.common.etc.Scheduler;
 import com.yeoyeo.application.message.dto.SendMessageResponseDto;
 import com.yeoyeo.application.message.service.MessageService;
 import com.yeoyeo.application.reservation.dto.SendAdminCheckInMsgDto;
@@ -24,7 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @RequiredArgsConstructor
 @Component
-public class ReservationScheduler {
+public class ReservationScheduler extends Scheduler {
 
     private final MessageService messageService;
     private final AdminManageService adminManageService;
@@ -39,7 +40,7 @@ public class ReservationScheduler {
 
     @Transactional
     @Scheduled(cron = "0 1 0 * * *") // 매일 0시 1분 0초 동작
-    public void dailyReservationCompletion() {
+    public synchronized void dailyReservationCompletion() {
         log.info("[SCHEDULE - Daily Past Reservation Completion]");
         LocalDate today = LocalDate.now();
         log.info("{} 예약 완료 처리 시작", today);
@@ -59,7 +60,7 @@ public class ReservationScheduler {
 
     @Transactional
     @Scheduled(cron = "0 1 3 * * *") // 매일 3시 1분 0초 동작
-    public void dailyReservationClearing() {
+    public synchronized void dailyReservationClearing() {
         log.info("[SCHEDULE - Daily Unpaid Reservation Clearing]");
         LocalDateTime before24hour = LocalDateTime.now().minusDays(1);
         log.info("{} 시점 기준 미결제 예약 삭제 처리 시작(24시간 전)", before24hour);
@@ -78,13 +79,13 @@ public class ReservationScheduler {
 
     @Transactional
     @Scheduled(cron = "0 0 5 * * *") // 매일 5시 0분 0초 동작
-    public void dailyAdminManageInfoCreate() {
+    public synchronized void dailyAdminManageInfoCreate() {
         log.info("[SCHEDULE = Daily AdminManageInfo Creation]");
         adminManageService.createAdminManageInfoList();
     }
 
     @Scheduled(cron = "0 0 10 * * *") // 매일 10시 0분 0초 동작
-    public void noticeMessage_BeforeCheckIn() {
+    public synchronized void noticeMessage_BeforeCheckIn() {
         log.info("[SCHEDULE - Sending Notice Message - Before Check-in]");
         LocalDate today = LocalDate.now();
         log.info("{} 체크인 고객 문자 발송", today);
@@ -114,7 +115,7 @@ public class ReservationScheduler {
     }
 
     @Scheduled(cron = "0 20 15 * * *") // 매일 15시 20분 0초 동작
-    public void noticeMessage_AfterCheckIn() {
+    public synchronized void noticeMessage_AfterCheckIn() {
         log.info("[SCHEDULE - Sending Notice Message - After Check-in]");
         LocalDate today = LocalDate.now();
         log.info("{} 체크인 후 안내 문자 발송", today);
@@ -138,7 +139,7 @@ public class ReservationScheduler {
 
     @Transactional
     @Scheduled(cron = "10 0 20 * * *") // 매일 20시 0분 10초 동작
-    public void dailyAdminCheckInNotice() {
+    public synchronized void dailyAdminCheckInNotice() {
         log.info("[SCHEDULE - Daily Admin Check-in info Notice]");
         LocalDate tomorrow = LocalDate.now().plusDays(1);
         log.info("대상 날짜 : {}", tomorrow);
@@ -150,7 +151,7 @@ public class ReservationScheduler {
 
     @Transactional
     @Scheduled(cron = "10 30 20 * * *") // 매일 20시 30분 10초 동작
-    public void noticeBefore7days() {
+    public synchronized void noticeBefore7days() {
         log.info("[SCHEDULE - Notice Before 7 Days of Check-in]");
         LocalDate after7days = LocalDate.now().plusDays(7);
         log.info("대상 날짜 : {}", after7days);
@@ -166,7 +167,7 @@ public class ReservationScheduler {
 
     @Transactional
     @Scheduled(cron = "0 30 23 * * *") // 매일 23시 30분 0초 동작
-    public void dailyAdminManageInfoDeactivate() {
+    public synchronized void dailyAdminManageInfoDeactivate() {
         log.info("[SCHEDULE - Daily AdminManageInfo Deactivate]");
         LocalDate before2days = LocalDate.now().minusDays(2);
         log.info("체크아웃 대상 날짜 : {}", before2days);

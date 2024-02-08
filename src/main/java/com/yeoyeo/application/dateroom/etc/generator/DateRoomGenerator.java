@@ -1,5 +1,6 @@
 package com.yeoyeo.application.dateroom.etc.generator;
 
+import com.yeoyeo.application.common.etc.Scheduler;
 import com.yeoyeo.application.dateroom.service.DateRoomService;
 import com.yeoyeo.application.room.service.RoomService;
 import jakarta.annotation.PostConstruct;
@@ -13,7 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @RequiredArgsConstructor
 @Component
-public class DateRoomGenerator {
+public class DateRoomGenerator extends Scheduler {
 
     private final RoomService roomService;
     private final DateRoomService dateRoomService;
@@ -28,7 +29,7 @@ public class DateRoomGenerator {
 
     @Transactional
     @Scheduled(cron = "3 0 0 * * *") // 매일 0시 0분 3초 동작
-    public void dailyRoomReservableJob() {
+    public synchronized void dailyRoomReservableJob() {
         log.info("[SCHEDULE - Daily Room Reservable Job]");
         LocalDate date = LocalDate.now().plusDays(180);
         log.info("180일 후 날짜 : {}", date);
@@ -37,7 +38,7 @@ public class DateRoomGenerator {
 
     @Transactional
     @Scheduled(cron = "10 0 0 * * *") // 매일 0시 0분 10초 동작
-    public void dailyRoomCreation() {
+    public synchronized void dailyRoomCreation() {
         log.info("[SCHEDULE - Daily Room Creation]");
         LocalDate date = LocalDate.now().plusDays(270);
         log.info("270일 후 날짜 : {}", date);
@@ -54,7 +55,7 @@ public class DateRoomGenerator {
 
     @Transactional
     @Scheduled(cron = "0 0 3 * * 1")
-    public void weeklyDefaultPriceTypeReset() { // 매주 월요일 새벽 3시에 동작
+    public synchronized void weeklyDefaultPriceTypeReset() { // 매주 월요일 새벽 3시에 동작
         log.info("[SCHEDULE - Weekly Default Price-type Reset Job]");
         LocalDate today = LocalDate.now();
         dateRoomService.fetchHolidayData(today.getYear(), today.getMonthValue());
@@ -63,7 +64,7 @@ public class DateRoomGenerator {
 
     @Transactional
     @Scheduled(cron = "0 30 5 * * *") // 매일 5시 30븐 0초 동작
-    public void dailyRoomUnReservableJob() {
+    public synchronized void dailyRoomUnReservableJob() {
         log.info("[SCHEDULE - Daily Room UnReservable Job]");
         dateRoomService.setDateRoomUnReservableByDay(LocalDate.now());
     }
