@@ -5,7 +5,7 @@ import lombok.Getter;
 
 @Getter
 public class GeneralResponseDto {
-    private final Boolean success;
+    private final boolean success;
     private final long resultId;
     private final String message;
 

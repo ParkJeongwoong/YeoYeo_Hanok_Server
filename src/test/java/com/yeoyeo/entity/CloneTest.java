@@ -15,14 +15,14 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @ExtendWith(SpringExtension.class)
 @SpringBootTest
-public class CloneTest {
+class CloneTest {
 
 	@Autowired
 	private GuestRepository guestRepository;
 
 	@Test
 	@Transactional
-	public void test_guest_clone() {
+	void test_guest_clone() {
 		// Given
 		GuestAirbnbFactory guestAirbnbFactory = new GuestAirbnbFactory();
 		Guest guest = guestAirbnbFactory.createGuest();

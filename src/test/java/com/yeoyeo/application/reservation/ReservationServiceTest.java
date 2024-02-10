@@ -1,5 +1,7 @@
 package com.yeoyeo.application.reservation;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.yeoyeo.application.dateroom.repository.DateRoomRepository;
 import com.yeoyeo.application.payment.repository.PaymentRepository;
 import com.yeoyeo.application.reservation.dto.MakeReservationDto.MakeReservationAirbnbDto;
@@ -12,14 +14,6 @@ import com.yeoyeo.domain.Guest.GuestAirbnb;
 import com.yeoyeo.domain.Guest.GuestHome;
 import com.yeoyeo.domain.Payment;
 import com.yeoyeo.domain.Reservation;
-import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.*;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -29,14 +23,23 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @TestInstance(TestInstance.Lifecycle.PER_CLASS) // BeforeAll 어노테이션을 non-static으로 사용하기 위한 어노테이션
 @ExtendWith(SpringExtension.class)
 @SpringBootTest
-public class ReservationServiceTest {
+class ReservationServiceTest {
 
     @Autowired
     ReservationRepository reservationRepository;
@@ -115,7 +118,7 @@ public class ReservationServiceTest {
 
     @Test
     @Transactional
-    public void test_createReservation() {
+    void test_createReservation() {
         log.info("createReservation 테스트 시작");
         // Given
         log.info("createReservation 테스트 준비");
@@ -165,7 +168,7 @@ public class ReservationServiceTest {
 
     @Test
     @Transactional
-    public void test_createReservation_concurrency() {
+    void test_createReservation_concurrency() {
         log.info("createReservation 동시성 테스트 시작");
         // Given
         log.info("createReservation 동시성 테스트 준비");
@@ -235,7 +238,7 @@ public class ReservationServiceTest {
     }
 
     @Test
-    public void test_async() throws InterruptedException {
+    void test_async() throws InterruptedException {
         ExecutorService service = Executors.newFixedThreadPool(3);
 
         log.info("STEP 0 - Thread {}개 / {}", ((ThreadPoolExecutor) service).getPoolSize(), LocalDateTime.now().toLocalTime());

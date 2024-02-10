@@ -1,5 +1,7 @@
 package com.yeoyeo.application.payment;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.yeoyeo.application.dateroom.etc.exception.RoomReservationException;
 import com.yeoyeo.application.dateroom.repository.DateRoomRepository;
 import com.yeoyeo.application.payment.repository.PaymentRepository;
@@ -11,6 +13,13 @@ import com.yeoyeo.domain.DateRoom;
 import com.yeoyeo.domain.Guest.GuestHome;
 import com.yeoyeo.domain.Payment;
 import com.yeoyeo.domain.Reservation;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,20 +30,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
-import static org.assertj.core.api.Assertions.assertThat;
-
 @Slf4j
 @ExtendWith(SpringExtension.class)
 @SpringBootTest
-public class PaymentServiceTest {
+class PaymentServiceTest {
 
     @Autowired
     DateRoomRepository dateRoomRepository;
@@ -74,7 +73,7 @@ public class PaymentServiceTest {
 
     @Test
     @Transactional
-    public void test_paymentDateRoomSetting_concurrency() throws InterruptedException {
+    void test_paymentDateRoomSetting_concurrency() throws InterruptedException {
 
         log.info("paymentDateRoomSetting 동시성 테스트 시작");
         // Given

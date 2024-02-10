@@ -1,8 +1,10 @@
 package com.yeoyeo.application.common.method;
 
+import com.yeoyeo.application.common.exception.SchedulingException;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -53,19 +55,20 @@ public class CommonMethod {
         return redisTemplate.delete(key);
     }
 
-    public void startScheduling(String schedulingName) throws RuntimeException {
+    public void startScheduling(String schedulingName) throws SchedulingException {
         String serverName = getServerProfile();
         ValueOperations<String, String> valueOperations = redisTemplate.opsForValue();
-        if (!valueOperations.setIfAbsent(schedulingName, serverName, 1, TimeUnit.HOURS)) {
-            throw new RuntimeException("Scheduling is already started");
+        if (Boolean.FALSE.equals(valueOperations.setIfAbsent(schedulingName, serverName, 1, TimeUnit.HOURS))) {
+            throw new SchedulingException("Scheduling is already started");
         }
     }
 
-    public void endScheduling(String schedulingName) throws RuntimeException {
+    public void endScheduling(String schedulingName) throws SchedulingException {
         String serverName = getServerProfile();
         ValueOperations<String, String> valueOperations = redisTemplate.opsForValue();
-        if (valueOperations.get(schedulingName) == null || !valueOperations.get(schedulingName).equals(serverName)) {
-            throw new RuntimeException("Scheduling is not started or not started by this server");
+        if (valueOperations.get(schedulingName) == null ||
+            !Objects.equals(valueOperations.get(schedulingName), serverName)) {
+            throw new SchedulingException("Scheduling is not started or not started by this server");
         } else {
             delCache(schedulingName);
         }

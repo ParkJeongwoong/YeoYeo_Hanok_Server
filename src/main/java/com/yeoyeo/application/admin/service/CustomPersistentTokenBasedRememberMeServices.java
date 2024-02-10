@@ -20,7 +20,7 @@ public class CustomPersistentTokenBasedRememberMeServices extends PersistentToke
 	public void customLoginSuccess(HttpServletRequest request, HttpServletResponse response, Authentication successfulAuthentication) {
 		log.info("isAuthenticated : {}, getDetails {}", successfulAuthentication.isAuthenticated(), successfulAuthentication.getDetails());
 		log.info("key : {}", getKey());
-		if (successfulAuthentication.isAuthenticated() && (Boolean) successfulAuthentication.getDetails()) {
+		if (successfulAuthentication.isAuthenticated() && Boolean.TRUE.equals(successfulAuthentication.getDetails())) {
 			super.onLoginSuccess(request, response, successfulAuthentication);
 		}
 	}

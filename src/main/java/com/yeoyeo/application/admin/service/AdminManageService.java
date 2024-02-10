@@ -11,17 +11,16 @@ import com.yeoyeo.domain.Admin.AdminManageInfo;
 import com.yeoyeo.domain.DateRoom;
 import com.yeoyeo.domain.Reservation;
 import com.yeoyeo.domain.Room;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -44,11 +43,10 @@ public class AdminManageService {
                 .map(AdminManageInfo::makeAdminManageInfoResponseDto).collect(Collectors.toList());
     }
 
-    @Transactional
     private AdminManageInfo getUniqueAdminManageInfo(LocalDate checkIn, long roomId) {
         List<AdminManageInfo> adminManageInfoList = adminManageInfoRepository.findAllByCheckinAndActivated(checkIn, true)
                 .stream().filter(adminManageInfo -> adminManageInfo.getRoom().getId() == roomId).collect(Collectors.toList());
-        if (adminManageInfoList.size() == 0) return null;
+        if (adminManageInfoList.isEmpty()) return null;
         else if (adminManageInfoList.size() > 1) {
             log.info("해당 날짜에 AdminManageInfo 가 여러 개 존재합니다.");
             log.info("AdminManageInfoList 사이즈 : {}", adminManageInfoList.size());

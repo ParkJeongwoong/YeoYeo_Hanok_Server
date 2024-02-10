@@ -28,6 +28,7 @@ import java.net.URL;
 import java.text.ParseException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -50,7 +51,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
 
 @Slf4j
@@ -137,7 +137,6 @@ public class CalendarService {
         }
     }
 
-    @Transactional
     private void syncIcalendarFile(String path, GuestFactory guestFactory, Payment payment, long roomId) {
         Calendar calendar = readIcalendarFile(path);
         if (calendar != null) {
@@ -159,8 +158,7 @@ public class CalendarService {
     }
 
     private Calendar readIcalendarFile(String path) {
-        try {
-            FileInputStream fileInputStream =new FileInputStream(path);
+        try (FileInputStream fileInputStream = new FileInputStream(path)) {
             CalendarBuilder builder = new CalendarBuilder();
             return builder.build(fileInputStream);
         } catch (FileNotFoundException e) {
@@ -171,7 +169,6 @@ public class CalendarService {
         return null;
     }
 
-    @Transactional
     private void writeFullIcalendarFile(long roomId) {
         try {
             List<Reservation> reservationList = reservationRepository.findAllByReservationState(1);
@@ -189,7 +186,6 @@ public class CalendarService {
         }
     }
 
-    @Transactional
     private void writeIcalendarFile(long roomId) {
         try {
             List<Reservation> reservationList = reservationRepository.findAllByReservationStateAndReservedFrom(1, "GuestHome");
@@ -207,7 +203,6 @@ public class CalendarService {
         }
     }
 
-    @Transactional
     private void setReservationStateSync(String guestClassName, long roomId) {
         List<Reservation> reservationList = reservationRepository.findAllByReservationState(1);
         LocalDate now = LocalDate.now();
@@ -222,7 +217,6 @@ public class CalendarService {
         }
     }
 
-    @Transactional
     private void cancelReservationStateSync() {
         log.info("동기화 되지 않은 예약 취소작업");
         reservationRepository.flush();
@@ -251,7 +245,6 @@ public class CalendarService {
         return null;
     }
 
-    @Transactional
     private void registerReservation(VEvent event, Guest guest, Payment payment, long roomId) {
         log.info("Reservation Sync - Register : {} / roomId : {} / uid : {}", guest.getName(), roomId, event.getUid().getValue());
         for (int i=0;i<3;i++) {
@@ -260,7 +253,7 @@ public class CalendarService {
             log.info("Reservation between : {} ~ {}", startDate, endDate);
             if (checkExceedingAvailableDate(startDate, endDate)) return;
             List<DateRoom> dateRoomList = getDateRoomList(startDate, endDate, roomId);
-            if (dateRoomList != null) {
+            if (dateRoomList != null && dateRoomList.size() > 0) {
                 try {
                     MakeReservationDto makeReservationDto = guest.createMakeReservationDto(dateRoomList, event.getDescription(), event.getSummary());
                     Reservation reservation = reservationService.createReservation(makeReservationDto);
@@ -285,7 +278,6 @@ public class CalendarService {
         }
     }
 
-    @Transactional
     private void updateReservation(VEvent event, Reservation reservation) {
         log.info("Reservation Sync - Update : {} {}~{} / {}", reservation.getRoom().getName(),reservation.getFirstDate(), reservation.getLastDateRoom().getDate(), reservation.getUniqueId());
         String eventStart = event.getStartDate().getValue();
@@ -322,7 +314,6 @@ public class CalendarService {
         return null;
     }
 
-    @Transactional
     private boolean collidedReservationCancel(List<DateRoom> dateRoomList) {
         for (DateRoom dateRoom : dateRoomList) {
             List<Reservation> reservationList = dateRoom.getMapDateRoomReservations().stream().map(MapDateRoomReservation::getReservation).collect(Collectors.toList());
@@ -333,7 +324,7 @@ public class CalendarService {
                     if (uid == null || getPlatformName(uid).equals("yeoyeo")) {
                         log.info("홈페이지 예약 취소");
                         GeneralResponseDto response = paymentService.refundBySystem(collidedReservation);
-                        if (!response.getSuccess()) return false;
+                        if (!response.isSuccess()) return false;
                     } else {
                         log.info("플랫폼 예약 취소");
                         try {
@@ -393,7 +384,7 @@ public class CalendarService {
         LocalDate startDate = getLocalDateFromString(start);
         LocalDate endDate = getLocalDateFromString(end).minusDays(1);
         LocalDate now = LocalDate.now();
-        if (endDate.isBefore(now)) return null;
+        if (endDate.isBefore(now)) return new ArrayList<>();
         return dateRoomRepository.findAllByDateBetweenAndRoom_Id(startDate, endDate, roomId);
     }
 

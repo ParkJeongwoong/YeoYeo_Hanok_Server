@@ -28,7 +28,7 @@ public class SchedulerAopTest {
     }
 
     @Test
-    public void dailyReservationCompletionFailTest() {
+    void dailyReservationCompletionFailTest() {
         log.info("SchedulerAopTest.dailyReservationCompletionFailTest");
         commonMethod.setCache("dailyReservationCompletion", "testing");
 
@@ -47,7 +47,7 @@ public class SchedulerAopTest {
     }
 
     @Test
-    public void dailyReservationCompletionTest() {
+    void dailyReservationCompletionTest() {
         log.info("SchedulerAopTest.dailyReservationCompletionTest");
         reservationScheduler.dailyReservationCompletion();
     }

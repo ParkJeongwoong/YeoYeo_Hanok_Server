@@ -117,6 +117,8 @@ public class DateRoom {
             case 4:
                 this.price = this.room.getPriceWeekendSpecial();
                 break;
+            default:
+                break;
         }
     }
 

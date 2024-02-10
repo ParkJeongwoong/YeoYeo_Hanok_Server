@@ -96,7 +96,6 @@ public class Reservation extends BaseTimeEntity {
     }
 
     public void setStateCanceled() throws ReservationException {
-        System.out.println(reservationState);
         if (this.reservationState == 1 || this.reservationState == 0 || this.reservationState == 5) {
             this.reservationState = -1;
         } else {
@@ -133,12 +132,12 @@ public class Reservation extends BaseTimeEntity {
     }
 
     public DateRoom getFirstDateRoom() {
-        if (this.mapDateRoomReservations.size()==0) return null;
+        if (this.mapDateRoomReservations.isEmpty()) return null;
         return getDateRoomList().stream().sorted(Comparator.comparing(DateRoom::getDate)).collect(Collectors.toList()).get(0);
     }
 
     public DateRoom getLastDateRoom() {
-        if (this.mapDateRoomReservations.size()==0) return null;
+        if (this.mapDateRoomReservations.isEmpty()) return null;
         return getDateRoomList().stream().sorted(Comparator.comparing(DateRoom::getDate)).collect(Collectors.toList()).get(this.mapDateRoomReservations.size()-1);
     }
 

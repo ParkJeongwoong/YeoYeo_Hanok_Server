@@ -1,6 +1,7 @@
 package com.yeoyeo.application.dateroom.service;
 
 import com.yeoyeo.application.common.dto.GeneralResponseDto;
+import com.yeoyeo.application.common.exception.NoResponseException;
 import com.yeoyeo.application.common.service.WebClientService;
 import com.yeoyeo.application.dateroom.dto.ChangeDateRoomListPriceRequestDto;
 import com.yeoyeo.application.dateroom.dto.ChangeDateRoomListStatusRequestDto;
@@ -41,7 +42,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @RequiredArgsConstructor
 @Service
-public class DateRoomService extends Thread {
+public class DateRoomService {
 
     private final RoomRepository roomRepository;
     private final DateRoomRepository dateRoomRepository;
@@ -88,9 +89,9 @@ public class DateRoomService extends Thread {
         JSONParser parser = new JSONParser();
 
         JSONObject response = webClientService.get("application/json;charset=UTF-8", url, MediaType.TEXT_XML);
-        if (response == null) { throw new RuntimeException("Return 데이터 문제"); }
+        if (response == null) { throw new NoResponseException("Return 데이터 문제"); }
         try {
-            response = (JSONObject) parser.parse(response.toString().replaceAll("\"","\\\""));
+            response = (JSONObject) parser.parse(response.toString().replace("\"","\\\""));
             JSONObject res = (JSONObject) response.get("response");
             JSONObject body = (JSONObject) res.get("body");
             String totalCount = String.valueOf(body.get("totalCount"));
@@ -243,7 +244,7 @@ public class DateRoomService extends Thread {
         int price = requestDto.getPrice();
         int priceType = requestDto.getPriceType();
         List<DateRoom> dateRoomList = dateRoomRepository.findAllById(dateRoomIdList);
-        if (dateRoomList.size()==0) return GeneralResponseDto.builder().success(false).message("유효한 dateroomId가 아닙니다.").build();
+        if (dateRoomList.isEmpty()) return GeneralResponseDto.builder().success(false).message("유효한 dateroomId가 아닙니다.").build();
         for (DateRoom dateRoom:dateRoomList) {
             if (priceType == 0 && price>0) dateRoom.changePrice(price);
             else dateRoom.changePriceType(priceType);
@@ -258,7 +259,7 @@ public class DateRoomService extends Thread {
         log.info("CHANGING DATEROOM STATUS {}", dateRoomIdList.toString());
         long roomReservationState = requestDto.getRoomReservationState();
         List<DateRoom> dateRoomList = dateRoomRepository.findAllById(dateRoomIdList);
-        if (dateRoomList.size()==0) return GeneralResponseDto.builder().success(false).message("유효한 dateroomId가 아닙니다.").build();
+        if (dateRoomList.isEmpty()) return GeneralResponseDto.builder().success(false).message("유효한 dateroomId가 아닙니다.").build();
         for (DateRoom dateRoom:dateRoomList) {
             try {
                 switch ((int) roomReservationState) {
@@ -269,6 +270,8 @@ public class DateRoomService extends Thread {
                         break;
                     case 1:
                         dateRoom.setStateBooked();
+                        break;
+                    default:
                         break;
                 }
                 updateCache(dateRoom);
@@ -282,7 +285,7 @@ public class DateRoomService extends Thread {
     private List<DateRoomInfoByDateDto> getDateRoomInfoList(List<DateRoom> dateRoomList) {
         List<DateRoomInfoByDateDto> dateRoomInfoByDateDtos = new ArrayList<>();
         dateRoomList.forEach(dateRoom -> {
-            if (dateRoomInfoByDateDtos.size()==0) {
+            if (dateRoomInfoByDateDtos.isEmpty()) {
                 DateRoomInfoByDateDto newDto = new DateRoomInfoByDateDto(dateRoom.getDate(), new DateRoomInfoDto(dateRoom));
                 dateRoomInfoByDateDtos.add(newDto);
             } else {
@@ -313,7 +316,7 @@ public class DateRoomService extends Thread {
         // 여유 방 데이터
         String key1 = year + "-" + month + ":1";
         Map<String, DateRoomInfoDto> entries1 = hashOperations.entries(key1);
-        if (entries1.size()==0) {
+        if (entries1.isEmpty()) {
             log.info("CACHE MISS (여유 방 데이터)");
             return setCachedDateRoomInfoList(year, month);
         }
@@ -321,7 +324,7 @@ public class DateRoomService extends Thread {
         // 여행 방 데이터
         String key2 = year + "-" + month + ":2";
         Map<String, DateRoomInfoDto> entries2 = hashOperations.entries(key2);
-        if (entries2.size()==0) {
+        if (entries2.isEmpty()) {
             log.info("CACHE MISS (여행 방 데이터)");
             return setCachedDateRoomInfoList(year, month);
         }
@@ -368,8 +371,9 @@ public class DateRoomService extends Thread {
         String key = dateRoom.getDate().getYear() + "-" + dateRoom.getDate().getMonthValue() + ":" + dateRoom.getRoom().getId();
         String hashKey = dateRoom.getDate().toString();
         // 해당 캐시 데이터가 있으면 업데이트, 없으면 Skip
-        if (hashOperations.hasKey(key, hashKey))
-        hashOperations.put(key, hashKey, new DateRoomInfoDto(dateRoom));
+        if (Boolean.TRUE.equals(hashOperations.hasKey(key, hashKey))) {
+            hashOperations.put(key, hashKey, new DateRoomInfoDto(dateRoom));
+        }
     }
 
 }

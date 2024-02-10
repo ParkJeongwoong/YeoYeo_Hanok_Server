@@ -24,7 +24,7 @@ public class GuestController {
     @PostMapping("/certificate")
     public ResponseEntity<GeneralResponseDto> checkCertification(ImpCertRequestDto requestDto) {
         GeneralResponseDto responseDto = guestService.checkCertification(requestDto);
-        if (!responseDto.getSuccess()) return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseDto);
+        if (!responseDto.isSuccess()) return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseDto);
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 

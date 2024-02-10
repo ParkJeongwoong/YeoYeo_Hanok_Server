@@ -29,7 +29,7 @@ public class PaymentController {
     @PostMapping("/pay")
     public ResponseEntity<GeneralResponseDto> payment(@RequestBody PaymentRequestDto requestDto) {
         GeneralResponseDto responseDto = paymentService.pay(requestDto);
-        if (!responseDto.getSuccess()) return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseDto);
+        if (!responseDto.isSuccess()) return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseDto);
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
@@ -37,7 +37,7 @@ public class PaymentController {
     @PostMapping("/confirm")
     public ResponseEntity<GeneralResponseDto> confirm(@RequestBody ImpConfirmDto confirmDto) {
         GeneralResponseDto responseDto = paymentService.confirm(confirmDto);
-        if (!responseDto.getSuccess()) return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseDto);
+        if (!responseDto.isSuccess()) return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseDto);
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
@@ -46,7 +46,7 @@ public class PaymentController {
     @DeleteMapping("/refund")
     public ResponseEntity<GeneralResponseDto> refund(@RequestBody RefundClientRequestDto requestDto) {
         GeneralResponseDto responseDto = paymentService.refund(requestDto);
-        if (!responseDto.getSuccess()) return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseDto);
+        if (!responseDto.isSuccess()) return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseDto);
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
@@ -54,12 +54,8 @@ public class PaymentController {
     @PostMapping("/webhook")
     public ResponseEntity<GeneralResponseDto> webhook(@RequestBody ImpWebHookDto webHookDto) {
         GeneralResponseDto responseDto = paymentService.webhook(webHookDto);
-        if (!responseDto.getSuccess()) return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseDto);
+        if (!responseDto.isSuccess()) return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseDto);
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
-
-//    @ApiOperation(value = "WebHook", notes = "(서버전용) 배포 전 기다리고 있는 예약 정보가 있는지 확인")
-//    @GetMapping("/webhook")
-//    public ResponseEntity<Integer> checkWebhook() { return ResponseEntity.status(HttpStatus.OK).body(webhookService.checkWebhook()); }
 
 }

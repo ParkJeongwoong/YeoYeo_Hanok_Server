@@ -1,5 +1,7 @@
 package com.yeoyeo.application.dateroom;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.yeoyeo.application.dateroom.dto.DateRoomInfoByDateDto;
 import com.yeoyeo.application.dateroom.dto.DateRoomInfoDto;
 import com.yeoyeo.application.dateroom.repository.DateRoomRepository;
@@ -8,6 +10,10 @@ import com.yeoyeo.application.dateroom.service.DateRoomService;
 import com.yeoyeo.application.room.repository.RoomRepository;
 import com.yeoyeo.domain.DateRoom;
 import com.yeoyeo.domain.Room;
+import java.time.LocalDate;
+import java.util.Comparator;
+import java.util.List;
+import java.util.NoSuchElementException;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -18,18 +24,11 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
-import java.util.Comparator;
-import java.util.List;
-import java.util.NoSuchElementException;
-
-import static org.assertj.core.api.Assertions.assertThat;
-
 @Slf4j
 @TestInstance(TestInstance.Lifecycle.PER_CLASS) // BeforeAll 어노테이션을 non-static으로 사용하기 위한 어노테이션
 @ExtendWith(SpringExtension.class)
 @SpringBootTest
-public class DateRoomServiceTest {
+class DateRoomServiceTest {
 
     @Autowired
     DateRoomRepository dateRoomRepository;
@@ -56,7 +55,7 @@ public class DateRoomServiceTest {
 
     @Test
     @Transactional // DateRoom - Room의 관계가 ManyToOne, FetchType.LAZY이기 때문에 could not initialize proxy - no Session 에러 발생
-    public void test_makeDateRoom() throws Exception {
+    void test_makeDateRoom() throws Exception {
         // Given
         LocalDate testDate = LocalDate.now().plusYears(1);
 
@@ -73,7 +72,7 @@ public class DateRoomServiceTest {
 
     @Test
     @Transactional // DateRoom - Room의 관계가 ManyToOne, FetchType.LAZY이기 때문에 could not initialize proxy - no Session 에러 발생
-    public void test_showAllDateRooms() throws Exception {
+    void test_showAllDateRooms() throws Exception {
         // Given
         LocalDate testDate = LocalDate.now().plusYears(2);
         Room room1 = roomRepository.findById(roomId1).orElseThrow(()->new Exception("존재하지 않는 방입니다."));

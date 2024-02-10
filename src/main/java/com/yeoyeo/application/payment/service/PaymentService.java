@@ -3,6 +3,8 @@ package com.yeoyeo.application.payment.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yeoyeo.application.common.dto.GeneralResponseDto;
+import com.yeoyeo.application.common.exception.NoResponseException;
+import com.yeoyeo.application.common.exception.WrongResponseException;
 import com.yeoyeo.application.common.service.WebClientService;
 import com.yeoyeo.application.message.service.MessageService;
 import com.yeoyeo.application.payment.dto.ImpConfirmDto;
@@ -64,7 +66,7 @@ public class PaymentService {
         } catch (PaymentException paymentException) {
             log.error("결제 오류가 발생했습니다. 환불 작업이 진행됩니다.", paymentException);
             String imp_uid = (String) paymentData.get("imp_uid");
-            long payedAmount = (long) (Integer) paymentData.get("amount");
+            long payedAmount = (Long) paymentData.get("amount");
             accessToken = getToken();
             try {
                 Map<String, Object> refundData = sendRefundRequest(paymentException.getMessage(), payedAmount, (int) payedAmount, imp_uid, accessToken);
@@ -225,7 +227,8 @@ public class PaymentService {
                     .block();
 
             if (response == null) {
-                throw new RuntimeException("IAMPORT Return 데이터 문제");
+                log.info("response is null");
+                throw new NoResponseException("IAMPORT Return 데이터 문제");
             } else if (!response.get("code").equals(0)) {
                 log.info("code : {}", response.get("code"));
                 log.info(String.valueOf(response));
@@ -235,7 +238,8 @@ public class PaymentService {
                 return mapper.convertValue(response.get("response"), Map.class);
             }
         } catch (JsonProcessingException e) {
-            throw new RuntimeException("requestDto JSON 변환 에러");
+            log.error("환불 요청 JSON 변환 에러", e);
+            throw new PaymentException("requestDto JSON 변환 에러");
         }
     }
 
@@ -256,9 +260,10 @@ public class PaymentService {
                                                 .block();
 
             if (response == null) {
-                throw new RuntimeException("IAMPORT Return 데이터 문제");
+                log.info("response is null");
+                throw new NoResponseException("IAMPORT Return 데이터 문제");
             } else if(response.getResponse().get("access_token") == null) {
-                throw new RuntimeException("IAMPORT Return 데이터 문제 (access_token 부재)");
+                throw new WrongResponseException("IAMPORT Return 데이터 문제 (access_token 부재)");
             } else {
                 log.info("RESPONSE TOKEN : {}", response.getResponse().get("access_token"));
                 return response.getResponse().get("access_token");
@@ -280,9 +285,10 @@ public class PaymentService {
                 .block();
 
         if (response == null) {
-            throw new RuntimeException("IAMPORT Return 데이터 문제");
+            log.info("response is null");
+            throw new NoResponseException("IAMPORT Return 데이터 문제");
         } else if(response.get("response") == null) {
-            throw new RuntimeException("IAMPORT Return 데이터 문제. (response 부재)");
+            throw new WrongResponseException("IAMPORT Return 데이터 문제. (response 부재)");
         } else {
             log.info("PAYMENT DATA : {}", response.get("response"));
             return mapper.convertValue(response.get("response"), Map.class);
@@ -292,7 +298,7 @@ public class PaymentService {
     private void validatePayment(Reservation reservation, Map<String, Object> paymentData) throws PaymentException, ReservationException {
         String status = (String) paymentData.get("status");
         String merchant_uid = (String) paymentData.get("merchant_uid");
-        long payedAmount = (long) (Integer) paymentData.get("amount");
+        long payedAmount = (Long) paymentData.get("amount");
 
         log.info("status : {}", status);
         log.info("amount : {}", payedAmount);
@@ -312,7 +318,7 @@ public class PaymentService {
     private void validatePaymentData(Payment payment, Map<String, Object> paymentData) throws ReservationException {
         String status = (String) paymentData.get("status");
         String imp_uid = (String) paymentData.get("imp_uid");
-        long payedAmount = (long) (Integer) paymentData.get("amount");
+        long payedAmount = (Long) paymentData.get("amount");
 
         log.info("status : {}", status);
         log.info("amount : {}", payedAmount);
@@ -334,7 +340,6 @@ public class PaymentService {
         }
     }
 
-    @Transactional
     private void completeReservation(Reservation reservation, Payment payment) throws PaymentException {
         try {
             log.info("결제가 완료되었습니다.");
@@ -367,7 +372,6 @@ public class PaymentService {
         if (requestedAmount > cancelableAmount) throw new PaymentException("요청된 금액이 환불가능액을 초과합니다.");
     }
 
-    @Transactional
     private void completeRefund(Reservation reservation) throws PaymentException {
         try {
             reservationService.cancel(reservation);
@@ -395,9 +399,8 @@ public class PaymentService {
             case 3: return (long) (paidPrice*0.3);
             case 2: return (long) (paidPrice*0.2);
             case 1: return (long) (paidPrice*0.1);
-            case 0: return 0;
+            default: return 0;
         }
-        return 0;
     }
 
 }

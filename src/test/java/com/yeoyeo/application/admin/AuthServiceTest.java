@@ -19,7 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS) // BeforeAll 어노테이션을 non-static으로 사용하기 위한 어노테이션
 @ExtendWith(SpringExtension.class)
 @SpringBootTest
-public class AuthServiceTest {
+class AuthServiceTest {
 
 	@Autowired
 	private AuthService authService;
@@ -29,7 +29,7 @@ public class AuthServiceTest {
 
 	@Test
 	@Transactional
-	public void test_signup() {
+	void test_signup() {
 		// given
 		String id = "test";
 		String password = "test";

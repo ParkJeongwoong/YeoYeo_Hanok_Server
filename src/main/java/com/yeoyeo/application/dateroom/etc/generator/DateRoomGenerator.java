@@ -21,7 +21,7 @@ public class DateRoomGenerator extends Scheduler {
 
     @Transactional
     @PostConstruct
-    private void init() {
+    public void init() {
         roomService.makeRoom(); // 초기 방 생성 완료
         dateRoomService.make9MonthsDateRoom();
         dailyRoomUnReservableJob();

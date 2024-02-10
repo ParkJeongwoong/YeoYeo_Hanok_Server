@@ -5,10 +5,9 @@ import com.yeoyeo.application.reservation.dto.MakeReservationDto.MakeReservation
 import com.yeoyeo.application.reservation.etc.exception.ReservationException;
 import com.yeoyeo.domain.DateRoom;
 import com.yeoyeo.domain.Guest.Guest;
+import java.util.List;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.util.List;
 
 @Getter
 @NoArgsConstructor
@@ -31,7 +30,7 @@ public class MakeReservationRequestDto {
     }
 
     public MakeReservationDto getMakeReservationDto(DateRoomRepository dateRoomRepository) throws ReservationException {
-        if (this.dateRoomIdList.size()==0) throw new ReservationException("예약한 날짜 존재하지 않습니다.");
+        if (this.dateRoomIdList.isEmpty()) throw new ReservationException("예약한 날짜 존재하지 않습니다.");
         List<DateRoom> dateRoomList = dateRoomRepository.findAllById(this.dateRoomIdList);
         Guest guest = new Guest(this.name, this.phoneNumber, this.email, this.guestCount, this.request);
         return new MakeReservationDto(dateRoomList, guest, 1);

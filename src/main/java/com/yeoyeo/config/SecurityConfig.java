@@ -2,9 +2,9 @@ package com.yeoyeo.config;
 
 import com.yeoyeo.adapter.filter.ApiAuthenticationFilter;
 import com.yeoyeo.adapter.filter.CustomAuthFilter;
+import com.yeoyeo.adapter.handler.CustomLogoutSuccessHandler;
 import com.yeoyeo.adapter.handler.LoginFailHandler;
 import com.yeoyeo.adapter.handler.LoginSuccessHandler;
-import com.yeoyeo.adapter.handler.LogoutSuccessHandler;
 import com.yeoyeo.adapter.handler.WebAccessDeniedHandler;
 import com.yeoyeo.adapter.handler.WebAuthenticationEntryPoint;
 import com.yeoyeo.adapter.provider.CustomAuthenticationProvider;
@@ -12,7 +12,8 @@ import com.yeoyeo.application.admin.service.CustomPersistentTokenBasedRememberMe
 import com.yeoyeo.application.admin.service.CustomUserDetailsService;
 import java.util.Arrays;
 import javax.sql.DataSource;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -31,23 +32,27 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+@RequiredArgsConstructor
 @EnableWebSecurity
 @Configuration
 public class SecurityConfig {
 
-    private final static String REMEMBER_ME_KEY = "yeoyeoAdmin";
+    private static final String REMEMBER_ME_KEY = "yeoyeoAdmin";
+
+    @Value("${server.url}")
+    String SERVER_URL;
 
     // 권한이 없는 사용자 접근에 대한 handler
-    @Autowired private WebAccessDeniedHandler webAccessDeniedHandler;
+    private final WebAccessDeniedHandler webAccessDeniedHandler;
     // 인증되지 않은 사용자 접근에 대한 handler
-    @Autowired private WebAuthenticationEntryPoint webAuthenticationEntryPoint;
-    @Autowired private LoginSuccessHandler loginSuccessHandler;
-    @Autowired private LoginFailHandler loginFailHandler;
-    @Autowired private LogoutSuccessHandler logoutSuccessHandler;
+    private final WebAuthenticationEntryPoint webAuthenticationEntryPoint;
+    private final LoginSuccessHandler loginSuccessHandler;
+    private final LoginFailHandler loginFailHandler;
+    private final CustomLogoutSuccessHandler customLogoutSuccessHandler;
 
-    @Autowired private DataSource dataSource;
+    private final DataSource dataSource;
 
-    @Autowired private CustomUserDetailsService customUserDetailsService;
+    private final CustomUserDetailsService customUserDetailsService;
 
     @Bean
     public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
@@ -94,7 +99,7 @@ public class SecurityConfig {
 
                 .logout(logout->logout // 로그아웃 설정
                         .logoutUrl("/admin/logout")
-                        .logoutSuccessHandler(logoutSuccessHandler)
+                        .logoutSuccessHandler(customLogoutSuccessHandler)
                         .deleteCookies("SESSION")
                 )
 
@@ -129,7 +134,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(Arrays.asList("http://localhost:8080", "http://localhost:3005", "http://3.35.98.5:8080/",
+        configuration.setAllowedOriginPatterns(Arrays.asList("http://localhost:8080", "http://localhost:3005", SERVER_URL,
                 "https://api.yeoyeo.co.kr", "https://admin.yeoyeo.co.kr", "https://api.yeoyeo.kr", "https://admin.yeoyeo.kr",
                 "https://yeoyeo.co.kr", "https://www.yeoyeo.co.kr", "https://yeoyeo.kr", "https://www.yeoyeo.kr"));
         configuration.addAllowedMethod("*");

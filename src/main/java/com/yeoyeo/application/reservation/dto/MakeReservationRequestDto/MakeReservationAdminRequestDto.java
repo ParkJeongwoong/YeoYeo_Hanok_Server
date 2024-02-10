@@ -21,7 +21,7 @@ public class MakeReservationAdminRequestDto extends MakeReservationHomeRequestDt
 
     @Override
     public MakeReservationHomeDto getMakeReservationDto(DateRoomRepository dateRoomRepository) throws ReservationException {
-        if (this.dateRoomIdList.size()==0) throw new ReservationException("예약한 날짜 존재하지 않습니다.");
+        if (this.dateRoomIdList.isEmpty()) throw new ReservationException("예약한 날짜 존재하지 않습니다.");
         List<DateRoom> dateRoomList = dateRoomRepository.findAllById(this.dateRoomIdList);
         GuestHome guest = GuestHome.builder()
                 .name("관리자 생성 예약")

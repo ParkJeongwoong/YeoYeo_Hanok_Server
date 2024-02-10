@@ -69,7 +69,7 @@ public class AdminController {
     @PutMapping("/room/{roomId}")
     public ResponseEntity<GeneralResponseDto> changeRoomDefaultPrice(@PathVariable long roomId, @RequestBody ChangeRoomDefaultPriceRequestDto requestDto) {
         GeneralResponseDto responseDto = roomService.changeRoomDefaultPrice(roomId, requestDto);
-        if (!responseDto.getSuccess()) return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseDto);
+        if (!responseDto.isSuccess()) return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseDto);
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
@@ -78,7 +78,7 @@ public class AdminController {
     @PutMapping("/dateroom/list/price")
     public ResponseEntity<GeneralResponseDto> changeDateRoomListPrice(@RequestBody ChangeDateRoomListPriceRequestDto requestDto) {
         GeneralResponseDto responseDto = dateRoomService.changeDateRoomListPrice(requestDto);
-        if (!responseDto.getSuccess()) return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseDto);
+        if (!responseDto.isSuccess()) return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseDto);
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
@@ -86,7 +86,7 @@ public class AdminController {
     @PutMapping("/dateroom/list/status")
     public ResponseEntity<GeneralResponseDto> changeDateRoomListStatus(@RequestBody ChangeDateRoomListStatusRequestDto requestDto) {
         GeneralResponseDto responseDto = dateRoomService.changeDateRoomListStatus(requestDto);
-        if (!responseDto.getSuccess()) return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseDto);
+        if (!responseDto.isSuccess()) return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseDto);
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
@@ -123,7 +123,7 @@ public class AdminController {
     @DeleteMapping("/reservation/{reservationId}")
     public ResponseEntity<GeneralResponseDto> cancelReservation(@PathVariable("reservationId") long reservationId) {
         GeneralResponseDto responseDto = reservationService.cancel(reservationId);
-        if (!responseDto.getSuccess()) return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseDto);
+        if (!responseDto.isSuccess()) return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseDto);
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
@@ -132,7 +132,7 @@ public class AdminController {
     @DeleteMapping("/payment/{reservationId}")
     public ResponseEntity<GeneralResponseDto> refundPayment(@PathVariable("reservationId") long reservationId) {
         GeneralResponseDto responseDto = paymentService.refundByAdmin(reservationId);
-        if (!responseDto.getSuccess()) return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseDto);
+        if (!responseDto.isSuccess()) return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseDto);
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 

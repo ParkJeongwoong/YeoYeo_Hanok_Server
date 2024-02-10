@@ -34,7 +34,7 @@ public class ReservationScheduler extends Scheduler {
 
     @Transactional
     @PostConstruct
-    private void init() {
+    public void init() {
         dailyReservationCompletion();
     }
 

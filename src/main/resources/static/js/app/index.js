@@ -1,5 +1,3 @@
-//const SERVER_URL = "http://localhost:8080"
-//const SERVER_URL = "http://3.35.98.5:8080"
 const SERVER_URL = "https://api.yeoyeo.co.kr"
 
 // 고객 입력정보
@@ -75,13 +73,10 @@ function requestPay() {
                 }).done(function (data) {
                     alert("서버 응답 성공!")
                     // 가맹점 서버 결제 API 성공시 로직
-                    switch(data.status) {
-                        case "vbankIssued":
-                          // 가상계좌 발급 시 로직
-                          break;
-                        case "success":
-                          // 결제 성공 시 로직
-                          break;
+                    if (data.status.equals("success")) {
+                        alert("결제 성공");
+                    } else if (data.status.equals("vbankIssued")) {
+                        alert("가상계좌 발급 성공");
                     }
                 }).fail(function(error) { // 환불 실패시 로직
                           alert("서버 결제 중 실패");
