@@ -91,7 +91,7 @@ public class DateRoomService {
         JSONObject response = webClientService.get("application/json;charset=UTF-8", url, MediaType.TEXT_XML);
         if (response == null) { throw new NoResponseException("Return 데이터 문제"); }
         try {
-            response = (JSONObject) parser.parse(response.toString().replace("\"","\\\""));
+            response = (JSONObject) parser.parse(response.toString());
             JSONObject res = (JSONObject) response.get("response");
             JSONObject body = (JSONObject) res.get("body");
             String totalCount = String.valueOf(body.get("totalCount"));
