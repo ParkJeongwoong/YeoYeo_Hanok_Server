@@ -52,6 +52,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
 
 @Slf4j
@@ -93,6 +94,7 @@ public class CalendarService {
     public void getICSFile_Booking_B() { getIcsFileFromPlatform(BOOKING_FILE_URL_B, BOOKING_FILE_PATH_B); }
 
     @Async
+    @Transactional
     @SingleJob(scheduleName = "regularSync_Airbnb")
     public void syncInICSFile_Reservation(long roomId) {
         log.info("syncInICSFile_Reservation - Reservation Room ID : {}", roomId);
@@ -104,23 +106,28 @@ public class CalendarService {
         }
         else log.error("syncInICSFile_Reservation - Reservation Room ID is WRONG : given {}", roomId);
     }
+    @Transactional
     @SingleJob(scheduleName = "regularSync_Airbnb")
     public void syncInICSFile_Airbnb_A() {
         getIcsFileFromPlatform(AIRBNB_FILE_URL_A, AIRBNB_FILE_PATH_A);
         syncIcalendarFile(AIRBNB_FILE_PATH_A, getGuestAirbnbFactory(), getPaymentAirbnb(), 1);
     }
+    @Transactional
     @SingleJob(scheduleName = "regularSync_Airbnb")
     public void syncInICSFile_Airbnb_B() {
         getIcsFileFromPlatform(AIRBNB_FILE_URL_B, AIRBNB_FILE_PATH_B);
         syncIcalendarFile(AIRBNB_FILE_PATH_B, getGuestAirbnbFactory(), getPaymentAirbnb(), 2);
     }
 
+    @Transactional
     @SingleJob(scheduleName = "regularSync_Airbnb")
     public void syncInICSFile_Booking_B() {
         getIcsFileFromPlatform(BOOKING_FILE_URL_B, BOOKING_FILE_PATH_B);
         syncIcalendarFile(BOOKING_FILE_PATH_B, getGuestBookingFactory(), getPaymentBooking(), 2);
     }
+    @Transactional
     public void writeFullICSFile(long roomId) { writeFullIcalendarFile(roomId); }
+    @Transactional
     public void writeICSFile(long roomId) { writeIcalendarFile(roomId); }
     public void sendICalendarData(HttpServletResponse response, long roomId) {
         try {
