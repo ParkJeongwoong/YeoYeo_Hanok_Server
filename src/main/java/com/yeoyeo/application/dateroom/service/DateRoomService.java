@@ -330,7 +330,7 @@ public class DateRoomService {
         }
 
         LocalDate startDate = LocalDate.of(year, month, 1);
-        LocalDate endDate = startDate.plusMonths(1).minusDays(1);
+        LocalDate endDate = startDate.plusMonths(1);
         for (LocalDate date = startDate; date.isBefore(endDate); date = date.plusDays(1)) {
             String dateStr = date.toString();
             DateRoomInfoByDateDto dateRoomInfoByDateDto = new DateRoomInfoByDateDto(date, entries1.get(dateStr));
