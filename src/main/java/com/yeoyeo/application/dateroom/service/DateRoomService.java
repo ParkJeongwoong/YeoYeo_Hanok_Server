@@ -366,6 +366,7 @@ public class DateRoomService {
     }
 
     @Async
+    @Transactional
     public void updateCache(DateRoom dateRoom) {
         HashOperations<String, String, DateRoomInfoDto> hashOperations = redisTemplate.opsForHash();
         String key = getDateRoomCacheKey(dateRoom.getDate().getYear(), dateRoom.getDate().getMonthValue(), dateRoom.getRoom().getId());

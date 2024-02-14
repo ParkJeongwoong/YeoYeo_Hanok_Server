@@ -21,9 +21,7 @@ import javax.crypto.spec.SecretKeySpec;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -173,8 +171,6 @@ public class MessageService {
     }
 
     // LMS
-    @Transactional
-    @Async
     public void sendNoticeMsgToConfirmedReservations(long roomId) {
         log.info("[동기화 후 확정 예약 건에 대한 안내 문자 전송]");
         List<Reservation> reservations = reservationRepository.findAllByReservationState(1)
@@ -387,7 +383,6 @@ public class MessageService {
         return sendMessage("LMS", subject, content, getNumberOnly(HOST));
     }
 
-    @Async
     private SendMessageResponseDto sendMessage(String type, String subject, String content, String to) {
         String uri = "/sms/v2/services/"+smsKey+"/messages";
         String url = NCLOUD_SMS_URL+uri;
@@ -398,7 +393,6 @@ public class MessageService {
 //        return null;
     }
 
-    @Async
     private SendMessageResponseDto sendMultipleMessage(String type, String subject, String content, List<String> phoneNumberList) {
         String uri = "/sms/v2/services/"+smsKey+"/messages";
         String url = NCLOUD_SMS_URL+uri;
