@@ -1,5 +1,6 @@
 package com.yeoyeo.application.calendar.service;
 
+import com.yeoyeo.aop.annotation.SingleJob;
 import com.yeoyeo.application.common.dto.GeneralResponseDto;
 import com.yeoyeo.application.dateroom.repository.DateRoomRepository;
 import com.yeoyeo.application.message.service.MessageService;
@@ -92,6 +93,7 @@ public class CalendarService {
     public void getICSFile_Booking_B() { getIcsFileFromPlatform(BOOKING_FILE_URL_B, BOOKING_FILE_PATH_B); }
 
     @Async
+    @SingleJob(scheduleName = "regularSync_Airbnb")
     public void syncInICSFile_Reservation(long roomId) {
         log.info("syncInICSFile_Reservation - Reservation Room ID : {}", roomId);
         if (roomId == 1) {
@@ -102,15 +104,18 @@ public class CalendarService {
         }
         else log.error("syncInICSFile_Reservation - Reservation Room ID is WRONG : given {}", roomId);
     }
+    @SingleJob(scheduleName = "regularSync_Airbnb")
     public void syncInICSFile_Airbnb_A() {
         getIcsFileFromPlatform(AIRBNB_FILE_URL_A, AIRBNB_FILE_PATH_A);
         syncIcalendarFile(AIRBNB_FILE_PATH_A, getGuestAirbnbFactory(), getPaymentAirbnb(), 1);
     }
+    @SingleJob(scheduleName = "regularSync_Airbnb")
     public void syncInICSFile_Airbnb_B() {
         getIcsFileFromPlatform(AIRBNB_FILE_URL_B, AIRBNB_FILE_PATH_B);
         syncIcalendarFile(AIRBNB_FILE_PATH_B, getGuestAirbnbFactory(), getPaymentAirbnb(), 2);
     }
 
+    @SingleJob(scheduleName = "regularSync_Airbnb")
     public void syncInICSFile_Booking_B() {
         getIcsFileFromPlatform(BOOKING_FILE_URL_B, BOOKING_FILE_PATH_B);
         syncIcalendarFile(BOOKING_FILE_PATH_B, getGuestBookingFactory(), getPaymentBooking(), 2);

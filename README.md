@@ -17,6 +17,16 @@
 - docker run -d -p 6379:6379 -e TZ=Asia/Seoul -v /home/ec2-user/app/redis/data:/data -v /home/ec2-user/app/redis/conf/redis.conf:/usr/local/conf/redis.conf --name redis redis
 - docker exec -it redis /bin/bash (redis 컨테이너 접속)
 
+[SonarQube]
+- WSL2에서
+  - docker-compose up -d
+- ./gradlew sonar \
+  -Dsonar.projectKey=yeoyeo \
+  -Dsonar.host.url=http://localhost:39270 \
+  -Dsonar.login=[SonarQube Access Token]
+- 접속
+  - http://localhost:39270/dashboard?id=yeoyeo
+
 [동기화 테스트]
 
 1. yeoyeo가 맞으면 무시 v

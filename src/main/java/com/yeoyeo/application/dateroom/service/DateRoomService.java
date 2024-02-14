@@ -314,7 +314,7 @@ public class DateRoomService {
         HashOperations<String, String, DateRoomInfoDto> hashOperations = redisTemplate.opsForHash();
         List<DateRoomInfoByDateDto> dateRoomInfoByDateDtos = new ArrayList<>();
         // 여유 방 데이터
-        String key1 = year + "-" + month + ":1";
+        String key1 = getDateRoomCacheKey(year, month, 1);
         Map<String, DateRoomInfoDto> entries1 = hashOperations.entries(key1);
         if (entries1.isEmpty()) {
             log.info("CACHE MISS (여유 방 데이터)");
@@ -322,7 +322,7 @@ public class DateRoomService {
         }
 
         // 여행 방 데이터
-        String key2 = year + "-" + month + ":2";
+        String key2 = getDateRoomCacheKey(year, month, 2);
         Map<String, DateRoomInfoDto> entries2 = hashOperations.entries(key2);
         if (entries2.isEmpty()) {
             log.info("CACHE MISS (여행 방 데이터)");
@@ -345,8 +345,8 @@ public class DateRoomService {
         HashOperations<String, String, DateRoomInfoDto> hashOperations = redisTemplate.opsForHash();
         LocalDate startDate = LocalDate.of(year, month, 1);
         List<DateRoomInfoByDateDto> dateRoomInfoByDateDtos = getDateRoomInfoListByDate(startDate);
-        String key1 = year + "-" + month + ":1";
-        String key2 = year + "-" + month + ":2";
+        String key1 = getDateRoomCacheKey(year, month, 1);
+        String key2 = getDateRoomCacheKey(year, month, 2);
         log.info("key1: {} year: {} month: {}", key1, year, month);
         log.info("key2: {} year: {} month: {}", key2, year, month);
 
@@ -368,12 +368,16 @@ public class DateRoomService {
     @Async
     public void updateCache(DateRoom dateRoom) {
         HashOperations<String, String, DateRoomInfoDto> hashOperations = redisTemplate.opsForHash();
-        String key = dateRoom.getDate().getYear() + "-" + dateRoom.getDate().getMonthValue() + ":" + dateRoom.getRoom().getId();
+        String key = getDateRoomCacheKey(dateRoom.getDate().getYear(), dateRoom.getDate().getMonthValue(), dateRoom.getRoom().getId());
         String hashKey = dateRoom.getDate().toString();
         // 해당 캐시 데이터가 있으면 업데이트, 없으면 Skip
         if (Boolean.TRUE.equals(hashOperations.hasKey(key, hashKey))) {
             hashOperations.put(key, hashKey, new DateRoomInfoDto(dateRoom));
         }
+    }
+
+    private String getDateRoomCacheKey(int year, int month, long roomId) {
+        return year + "-" + month + ":" + roomId;
     }
 
 }

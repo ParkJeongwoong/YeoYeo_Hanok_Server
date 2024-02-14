@@ -1,22 +1,23 @@
 package com.yeoyeo.aop.aspect;
 
 import com.yeoyeo.application.common.method.CommonMethod;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Aspect
+@RequiredArgsConstructor
 @Component
 public class SchedulingAspect {
 
-    @Autowired
-    private CommonMethod commonMethod;
+    private final CommonMethod commonMethod;
 
     @Pointcut("execution(* com.yeoyeo.application..*Scheduler.*(..))")
     private void schedulerPointcut() {}
@@ -28,7 +29,15 @@ public class SchedulingAspect {
     @Transactional
     @Around("schedulerPointcut() || generatorPointcut() || singleJobPointcut()")
     public void schedulerLogging(ProceedingJoinPoint joinPoint) throws Throwable {
-        String scheduleName = joinPoint.getSignature().getName();
+        String scheduleName;
+        MethodSignature methodSignature = (MethodSignature) joinPoint.getSignature();
+        if (methodSignature.getMethod().getAnnotation(com.yeoyeo.aop.annotation.SingleJob.class) != null
+            && !methodSignature.getMethod().getAnnotation(com.yeoyeo.aop.annotation.SingleJob.class).scheduleName().isEmpty()) {
+            scheduleName = methodSignature.getMethod().getAnnotation(com.yeoyeo.aop.annotation.SingleJob.class).scheduleName();
+        }
+        else {
+            scheduleName = methodSignature.getName();
+        }
         try {
             log.info("=== Server Profile : {} / Scheduler : {} ===", commonMethod.getServerProfile(), scheduleName);
             commonMethod.startScheduling(scheduleName);
@@ -38,7 +47,6 @@ public class SchedulingAspect {
         } catch (Exception exception) {
             log.error("-- Scheduler : {} [ERROR] (1) --", scheduleName);
             log.error("-- Scheduler : {} [ERROR] (2) --", exception.getMessage());
-            log.error("-- Scheduler : {} [ERROR] (3) --", exception);
         } finally {
             log.info("=== Scheduler : {} [END] ===", scheduleName);
         }
