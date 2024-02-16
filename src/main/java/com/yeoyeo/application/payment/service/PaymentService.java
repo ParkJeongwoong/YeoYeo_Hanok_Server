@@ -26,6 +26,7 @@ import java.time.Period;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.json.simple.JSONObject;
@@ -59,9 +60,12 @@ public class PaymentService {
     public GeneralResponseDto pay(PaymentRequestDto requestDto) {
         String accessToken = getToken();
         Map<String, Object> paymentData = getPaymentData(requestDto.getImp_uid(), accessToken);
+        log.info("RESERVATION ID : {}", requestDto.getMerchant_uid());
         Reservation reservation = reservationRepository.findById(requestDto.getMerchant_uid()).orElseThrow(NoSuchElementException::new);
         try {
+            log.info("PAYMENT PROCESS START");
             paymentProcess(reservation, paymentData);
+            log.info("PAYMENT PROCESS END");
             return GeneralResponseDto.builder().success(true).message("예약이 확정되었습니다.").build();
         } catch (PaymentException paymentException) {
             log.error("결제 오류가 발생했습니다. 환불 작업이 진행됩니다.", paymentException);
@@ -196,13 +200,18 @@ public class PaymentService {
 
     private void paymentProcess(Reservation reservation, Map<String, Object> paymentData) throws PaymentException, ReservationException {
         if (reservation.getPayment() == null) {
+            log.info("NOT NULL");
             Payment payment = createPayment(paymentData, reservation);
+            log.info("CREATED");
             validatePayment(reservation, paymentData);
+            log.info("VALIDATED");
             completeReservation(reservation, payment);
             messageService.sendReservationMsg(reservation);
         } else {
+            log.info("NULL");
             Payment payment = reservation.getPayment();
             validatePaymentData(payment, paymentData);
+            log.info("VALIDATED");
         }
     }
 
@@ -235,7 +244,13 @@ public class PaymentService {
                 throw new PaymentException((String) response.get("message"));
             } else {
                 log.info("REFUND DATA : {}", response.get("response"));
-                return mapper.convertValue(response.get("response"), Map.class);
+                try {
+                    Object responseObj = Objects.requireNonNull(response.get("response"));
+                    return mapper.convertValue(responseObj, Map.class);
+                } catch (NullPointerException e) {
+                    log.error("환불 요청 응답 데이터 문제", e);
+                    throw new NoResponseException("환불 요청 응답 데이터 문제");
+                }
             }
         } catch (JsonProcessingException e) {
             log.error("환불 요청 JSON 변환 에러", e);
@@ -296,9 +311,18 @@ public class PaymentService {
     }
 
     private void validatePayment(Reservation reservation, Map<String, Object> paymentData) throws PaymentException, ReservationException {
+        if (paymentData.isEmpty()) {
+            log.info("paymentData is empty");
+        }
+        else {
+            log.info("paymentData is not empty");
+        }
         String status = (String) paymentData.get("status");
+        log.info("STATUS : {}", status);
         String merchant_uid = (String) paymentData.get("merchant_uid");
-        long payedAmount = (Long) paymentData.get("amount");
+        log.info("MERCHANT_UID : {}", merchant_uid);
+        long payedAmount = Objects.requireNonNullElse((Integer) paymentData.get("amount"), -1L).longValue(); // JSONObject는 숫자를 Integer로 변환함 (반드시 Object를 먼저 Integer로 변환 후 long으로 변환해야 함)
+        log.info("AMOUNT : {}", payedAmount);
 
         log.info("status : {}", status);
         log.info("amount : {}", payedAmount);
