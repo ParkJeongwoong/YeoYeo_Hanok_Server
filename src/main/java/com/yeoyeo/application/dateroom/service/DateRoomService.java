@@ -366,14 +366,22 @@ public class DateRoomService {
     }
 
     @Async
-    @Transactional
     public void updateCache(DateRoom dateRoom) {
-        HashOperations<String, String, DateRoomInfoDto> hashOperations = redisTemplate.opsForHash();
-        String key = getDateRoomCacheKey(dateRoom.getDate().getYear(), dateRoom.getDate().getMonthValue(), dateRoom.getRoom().getId());
-        String hashKey = dateRoom.getDate().toString();
-        // 해당 캐시 데이터가 있으면 업데이트, 없으면 Skip
-        if (Boolean.TRUE.equals(hashOperations.hasKey(key, hashKey))) {
-            hashOperations.put(key, hashKey, new DateRoomInfoDto(dateRoom));
+        try {
+            HashOperations<String, String, DateRoomInfoDto> hashOperations = redisTemplate.opsForHash();
+            String key = getDateRoomCacheKey(dateRoom.getDate().getYear(), dateRoom.getDate().getMonthValue(), dateRoom.getRoom().getId());
+            String hashKey = dateRoom.getDate().toString();
+            // 해당 캐시 데이터가 있으면 업데이트, 없으면 Skip
+            log.info("캐시 업데이트 시도: {} {}", key, hashKey);
+            if (Boolean.TRUE.equals(hashOperations.hasKey(key, hashKey))) {
+                hashOperations.put(key, hashKey, new DateRoomInfoDto(dateRoom));
+                log.info("캐시 업데이트: {} {}", key, hashKey);
+            }
+            else {
+                log.info("캐시 업데이트 Skip: {} {}", key, hashKey);
+            }
+        } catch (Exception e) {
+            log.error("캐시 업데이트 실패: {}", e.getMessage());
         }
     }
 
