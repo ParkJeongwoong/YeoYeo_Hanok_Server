@@ -31,6 +31,7 @@ public class MessageService {
     static final String NCLOUD_SMS_URL = "https://sens.apigw.ntruss.com";
     static final List<String> ADMIN_LIST = Arrays.asList("01020339091", "01089599091", "01026669091", "01020199091");
     static final String HOST = "01089599091";
+    static final String DEV = "01020339091";
 
     @Value("${sms.ncloud.key}")
     String smsKey;
@@ -337,7 +338,10 @@ public class MessageService {
     public SendMessageResponseDto sendAdminCheckInMsg(SendAdminCheckInMsgDto msgDto) {
         String subject = "[한옥스테이 여여] 체크인 알림";
         List<AdminManageInfo> guestInfoList = msgDto.getGuestInfos().stream().filter(guestInfo -> !checkAdminName(guestInfo.getName())).collect(Collectors.toList());
-        if (guestInfoList.isEmpty()) return null;
+        if (guestInfoList.isEmpty()) {
+            log.info("체크인 정보가 없습니다.");
+            return null;
+        }
         LocalDate checkInDate = guestInfoList.get(0).getCheckin();
         String roomA_guestName; // 여유
         String roomA_guestPhone;
@@ -383,6 +387,12 @@ public class MessageService {
         return sendMessage("LMS", subject, content, getNumberOnly(HOST));
     }
 
+    public void sendDevMsg(String msg) {
+        String subject = "[한옥스테이 여여] 개발자 문자";
+        String content = msg;
+        sendMessage("LMS", subject, content, getNumberOnly(DEV));
+    }
+
     private SendMessageResponseDto sendMessage(String type, String subject, String content, String to) {
         String uri = "/sms/v2/services/"+smsKey+"/messages";
         String url = NCLOUD_SMS_URL+uri;
@@ -390,7 +400,6 @@ public class MessageService {
         String signature = getSignature("POST", uri, timestamp);
 
         return webClientService.sendMessage(type, url, subject, content, getNumberOnly(to), timestamp, accessKey, signature);
-//        return null;
     }
 
     private SendMessageResponseDto sendMultipleMessage(String type, String subject, String content, List<String> phoneNumberList) {
@@ -400,7 +409,6 @@ public class MessageService {
         String signature = getSignature("POST", uri, timestamp);
 
         return webClientService.sendMultipleMessage(type, url, subject, content, phoneNumberList.stream().map(this::getNumberOnly).collect(Collectors.toList()), timestamp, accessKey, signature);
-//        return null;
     }
 
     private String getSignature(String method, String uri, String timestamp) {
