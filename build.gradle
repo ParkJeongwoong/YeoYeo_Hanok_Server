@@ -71,5 +71,9 @@ dependencies {
 
     // AOP
     implementation('org.springframework.boot:spring-boot-starter-aop')
+
+    // Retry
+    implementation('org.springframework.retry:spring-retry')
+    implementation('org.springframework:spring-aspects')
 }
 targetCompatibility = JavaVersion.VERSION_17

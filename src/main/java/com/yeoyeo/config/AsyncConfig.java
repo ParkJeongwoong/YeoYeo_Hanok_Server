@@ -1,6 +1,6 @@
 package com.yeoyeo.config;
 
-import com.yeoyeo.application.common.exception.CustomAsyncExceptionHandler;
+import com.yeoyeo.application.common.async.CustomAsyncExceptionHandler;
 import com.yeoyeo.application.message.service.MessageService;
 import java.util.concurrent.Executor;
 import lombok.RequiredArgsConstructor;

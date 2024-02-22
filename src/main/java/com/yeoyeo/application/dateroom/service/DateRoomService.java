@@ -1,6 +1,7 @@
 package com.yeoyeo.application.dateroom.service;
 
 import com.yeoyeo.application.common.dto.GeneralResponseDto;
+import com.yeoyeo.application.common.exception.AsyncApiException;
 import com.yeoyeo.application.common.exception.NoResponseException;
 import com.yeoyeo.application.common.service.WebClientService;
 import com.yeoyeo.application.dateroom.dto.ChangeDateRoomListPriceRequestDto;
@@ -13,6 +14,7 @@ import com.yeoyeo.application.dateroom.dto.DateRoomPriceInfoDto;
 import com.yeoyeo.application.dateroom.etc.exception.RoomReservationException;
 import com.yeoyeo.application.dateroom.repository.DateRoomRepository;
 import com.yeoyeo.application.dateroom.repository.HolidayRepository;
+import com.yeoyeo.application.message.service.MessageService;
 import com.yeoyeo.application.room.repository.RoomRepository;
 import com.yeoyeo.domain.DateRoom;
 import com.yeoyeo.domain.Holiday;
@@ -35,6 +37,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.MediaType;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Recover;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -48,6 +53,7 @@ public class DateRoomService {
     private final DateRoomRepository dateRoomRepository;
     private final HolidayRepository holidayRepository;
 
+    private final MessageService messageService;
     private final WebClientService webClientService;
     private final RedisTemplate<String, Object> redisTemplate;
     @Value("${data.holiday.key}")
@@ -365,6 +371,7 @@ public class DateRoomService {
         return dateRoomInfoByDateDtos;
     }
 
+    @Retryable(retryFor = {AsyncApiException.class}, maxAttempts = 5, backoff = @Backoff(random = true, delay = 1000, maxDelay = 3000))
     @Async
     public void updateCache(DateRoom dateRoom) {
         try {
@@ -381,8 +388,14 @@ public class DateRoomService {
                 log.info("캐시 업데이트 Skip: {} {}", key, hashKey);
             }
         } catch (Exception e) {
-            log.error("캐시 업데이트 실패: {}", e.getMessage());
+            log.error("Dateroom {} - 캐시 업데이트 실패: {}", dateRoom.getId(), e.getMessage());
+            throw new AsyncApiException("캐시 업데이트 비동기 작업 실패 : Dateroom ID " + dateRoom.getId(), e);
         }
+    }
+    @Recover
+    public void recover(AsyncApiException e) {
+        log.error("캐시 업데이트 비동기 작업 실패 후 Recover: {}", e.getMessage());
+        messageService.sendDevMsg("캐시 업데이트 비동기 작업 실패: " + e.getMessage());
     }
 
     private String getDateRoomCacheKey(int year, int month, long roomId) {

@@ -1,4 +1,4 @@
-package com.yeoyeo.application.common.exception;
+package com.yeoyeo.application.common.async;
 
 import com.yeoyeo.application.message.service.MessageService;
 import java.lang.reflect.Method;

@@ -2,6 +2,7 @@ package com.yeoyeo.application.calendar.service;
 
 import com.yeoyeo.aop.annotation.SingleJob;
 import com.yeoyeo.application.common.dto.GeneralResponseDto;
+import com.yeoyeo.application.common.exception.ExternalApiException;
 import com.yeoyeo.application.dateroom.repository.DateRoomRepository;
 import com.yeoyeo.application.message.service.MessageService;
 import com.yeoyeo.application.payment.service.PaymentService;
@@ -50,6 +51,9 @@ import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Recover;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -359,6 +363,7 @@ public class CalendarService {
         return outputStream.toByteArray();
     }
 
+    @Retryable(retryFor = {ExternalApiException.class}, backoff = @Backoff(random = true, delay = 1000, maxDelay = 3000))
     private void getIcsFileFromPlatform(String downloadUrl, String downloadPath) {
         log.info("get ICS File From Platform : {}", downloadUrl);
         if (downloadUrl == null || downloadUrl.length() == 0) return;
@@ -367,8 +372,13 @@ public class CalendarService {
             log.info("ICS File Download Complete From : {}", downloadUrl);
         } catch (IOException e) {
             log.error("ICS File Download Error", e);
-            messageService.sendAdminMsg("동기화 오류 알림 - ICS 파일 다운로드 중 오류 발생");
+            throw new ExternalApiException("ICS 파일 다운로드 중 오류 발생 - 파일 경로 : " + downloadPath, e);
         }
+    }
+    @Recover
+    void recover(ExternalApiException e) {
+        log.error("ICS 파일 다운로드 중 오류 발생 후 Recover");
+        messageService.sendAdminMsg(e.getMessage());
     }
 
     private void createIcsFile(Calendar calendar, long roomId) throws IOException {
