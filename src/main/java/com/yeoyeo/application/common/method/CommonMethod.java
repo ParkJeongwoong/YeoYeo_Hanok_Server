@@ -9,6 +9,7 @@ import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.env.Environment;
+import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Component;
@@ -33,17 +34,17 @@ public class CommonMethod {
         }
     }
 
-    public void setCache(String key, String value) {
+    public void setCache(String key, String value) throws RedisConnectionFailureException {
         ValueOperations<String, String> valueOperations = redisTemplate.opsForValue();
         valueOperations.set(key, value);
     }
 
-    public void setCache(String key, String value, int expireMinutes) {
+    public void setCache(String key, String value, int expireMinutes) throws RedisConnectionFailureException {
         ValueOperations<String, String> valueOperations = redisTemplate.opsForValue();
         valueOperations.set(key, value, expireMinutes, TimeUnit.MINUTES);
     }
 
-    public String getCache(String key) {
+    public String getCache(String key) throws RedisConnectionFailureException {
         ValueOperations<String, String> valueOperations = redisTemplate.opsForValue();
         return valueOperations.get(key);
     }
@@ -51,11 +52,11 @@ public class CommonMethod {
     // Todo : Cache Hit or Miss 추가
     // Key와 repository를 받아서 cache hit or miss를 확인하고, hit이면 repository를 호출하지 않고, miss이면 repository를 호출하고 cache에 저장한다.
 
-    public boolean delCache(String key) {
-        return redisTemplate.delete(key);
+    public boolean delCache(String key) throws RedisConnectionFailureException {
+        return Boolean.TRUE.equals(redisTemplate.delete(key));
     }
 
-    public void startScheduling(String schedulingName) throws SchedulingException {
+    public void startScheduling(String schedulingName) throws SchedulingException, RedisConnectionFailureException {
         String serverName = getServerProfile();
         ValueOperations<String, String> valueOperations = redisTemplate.opsForValue();
         if (Boolean.FALSE.equals(valueOperations.setIfAbsent(schedulingName, serverName, 1, TimeUnit.HOURS))) {

@@ -3,6 +3,7 @@ package com.yeoyeo.application.message.service;
 import com.yeoyeo.application.common.method.CommonMethod;
 import com.yeoyeo.application.common.service.WebClientService;
 import com.yeoyeo.application.message.dto.SendMessageResponseDto;
+import com.yeoyeo.application.reservation.dto.AuthKeyResponseDto;
 import com.yeoyeo.application.reservation.dto.SendAdminCheckInMsgDto;
 import com.yeoyeo.application.reservation.repository.ReservationRepository;
 import com.yeoyeo.domain.Admin.AdminManageInfo;
@@ -21,6 +22,7 @@ import javax.crypto.spec.SecretKeySpec;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -39,6 +41,8 @@ public class MessageService {
     String accessKey;
     @Value("${sms.ncloud.secretKey}")
     String secretKey;
+    @Value("${sms.redis.fallbackKey}")
+    String fallbackKey;
 
     String changeLine = System.lineSeparator();
     String changeTwoLine = changeLine + changeLine;
@@ -52,19 +56,20 @@ public class MessageService {
     private final ReservationRepository reservationRepository;
 
     // SMS
-    public SendMessageResponseDto sendAuthenticationKeyMsg(String to) {
+    public AuthKeyResponseDto sendAuthenticationKeyMsg(String to) {
         String authKey = getAuthKey();
         String subject = "[한옥스테이 여여] 휴대폰 인증 문자입니다.";
         String content = "[한옥스테이 여여 문자 인증]" + changeTwoLine +
                 String.format("인증번호 : %s", authKey) +
                 System.lineSeparator() +
                 "인증번호를 입력해 주세요.";
-        registerAuthKey(to, authKey);
-        return sendMessage("SMS", subject, content, to);
+        String token = registerAuthKey(to, authKey);
+        SendMessageResponseDto response = sendMessage("SMS", subject, content, to);
+        return new AuthKeyResponseDto(response.getStatusCode(), token);
     }
 
-    public Boolean validateAuthenticationKey(String phoneNumber, String authKey) {
-        return checkAuthKey(phoneNumber, authKey);
+    public Boolean validateAuthenticationKey(String phoneNumber, String authKey, String authToken) {
+        return checkAuthKey(phoneNumber, authKey, authToken);
     }
 
     // LMS
@@ -446,17 +451,45 @@ public class MessageService {
         return String.format("%06d", random.nextInt(1000000));
     }
 
-    private void registerAuthKey(String phoneNumber, String authKey) {
-        commonMethod.setCache(phoneNumber, authKey, 3);
+    private String registerAuthKey(String phoneNumber, String authKey) {
+        try {
+            commonMethod.setCache(phoneNumber, authKey, 3);
+            return null;
+        } catch (RedisConnectionFailureException e) {
+            String token = encodeToken(phoneNumber, authKey);
+            log.info("Redis 연결 실패로 토큰 생성 : {}", token);
+            sendDevMsg("Redis 연결 실패로 토큰 생성 : " + phoneNumber);
+            return token;
+        }
     }
 
-    private boolean checkAuthKey(String phoneNumber, String authKey) {
+    private boolean checkAuthKey(String phoneNumber, String authKey, String authToken) {
+        if (authToken != null) {
+            return authToken.equals(encodeToken(phoneNumber, authKey));
+        }
         String redisAuthKey = commonMethod.getCache(phoneNumber);
         if (redisAuthKey == null) return false;
         if (redisAuthKey.equals(authKey)) {
             return commonMethod.delCache(phoneNumber);
         }
         return false;
+    }
+
+    private String encodeToken(String phoneNumber, String authKey) {
+        // Use SHA-256
+        String algorithm = "HmacSHA256";
+        String message = authKey;
+        String secretKey = this.fallbackKey + phoneNumber;
+        try {
+            Mac mac = Mac.getInstance(algorithm);
+            SecretKeySpec secretKeySpec = new SecretKeySpec(secretKey.getBytes(StandardCharsets.UTF_8), algorithm);
+            mac.init(secretKeySpec);
+            byte[] hash = mac.doFinal(message.getBytes(StandardCharsets.UTF_8));
+            return Base64.getEncoder().encodeToString(hash);
+        } catch (NoSuchAlgorithmException | InvalidKeyException e) {
+            log.error("Failed to create token", e);
+            return null;
+        }
     }
 
     private String getNumberOnly(String string) {

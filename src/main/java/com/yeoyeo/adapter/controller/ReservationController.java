@@ -3,8 +3,8 @@ package com.yeoyeo.adapter.controller;
 import com.yeoyeo.application.calendar.service.CalendarService;
 import com.yeoyeo.application.common.dto.GeneralResponseDto;
 import com.yeoyeo.application.dateroom.repository.DateRoomRepository;
-import com.yeoyeo.application.message.dto.SendMessageResponseDto;
 import com.yeoyeo.application.message.service.MessageService;
+import com.yeoyeo.application.reservation.dto.AuthKeyResponseDto;
 import com.yeoyeo.application.reservation.dto.MakeReservationDto.MakeReservationHomeDto;
 import com.yeoyeo.application.reservation.dto.MakeReservationRequestDto.MakeReservationHomeRequestDto;
 import com.yeoyeo.application.reservation.dto.ReservationDetailInfoDto;
@@ -13,11 +13,14 @@ import com.yeoyeo.application.reservation.service.ReservationService;
 import com.yeoyeo.domain.Reservation;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.Cookie;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -66,16 +69,26 @@ public class ReservationController {
 
     @Operation(summary = "본인 인증 문자 발송", description = "[문자 수신] 본인 인증 문자 발송")
     @GetMapping("/sms/authKey/{phoneNumber}")
-    public ResponseEntity<SendMessageResponseDto> sendAuthKey(@PathVariable("phoneNumber") String phoneNumber) {
-        SendMessageResponseDto responseDto = messageService.sendAuthenticationKeyMsg(phoneNumber);
-        if (!responseDto.getStatusCode().equals("202")) ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseDto);
-        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    public ResponseEntity<GeneralResponseDto> sendAuthKey(@PathVariable("phoneNumber") String phoneNumber) {
+        AuthKeyResponseDto responseDto = messageService.sendAuthenticationKeyMsg(phoneNumber);
+        if (!responseDto.getMessageStatusCode().equals("202")) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(GeneralResponseDto.builder().success(false).message("본인 인증 문자 발송 실패").build());
+        }
+        if (responseDto.getToken() != null) { // Redis 연결 실패로 토큰을 이용한 인증키 저장
+            Cookie cookie = new Cookie("authToken", responseDto.getToken());
+            cookie.setPath("/reserve/validation/authKey");
+            cookie.setMaxAge(60 * 3);
+            return ResponseEntity.status(HttpStatus.OK)
+                .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                .body(GeneralResponseDto.builder().success(true).message("본인 인증 문자 발송 완료").build());
+        }
+        return ResponseEntity.status(HttpStatus.OK).body(GeneralResponseDto.builder().success(true).message("본인 인증 문자 발송 완료").build());
     }
 
     @Operation(summary = "본인 인증 문자 입력", description = "[문자 수신] 본인 인증 문자 입력")
     @GetMapping("/validation/authKey/{phoneNumber}/{authKey}")
-    public ResponseEntity<Boolean> validateAuthKey(@PathVariable("phoneNumber") String phoneNumber, @PathVariable("authKey") String authKey) {
-        return ResponseEntity.status(HttpStatus.OK).body(messageService.validateAuthenticationKey(phoneNumber, authKey));
+    public ResponseEntity<Boolean> validateAuthKey(@PathVariable("phoneNumber") String phoneNumber, @PathVariable("authKey") String authKey, @CookieValue(value = "authToken", required = false) String authToken) {
+        return ResponseEntity.status(HttpStatus.OK).body(messageService.validateAuthenticationKey(phoneNumber, authKey, authToken));
     }
 
 }

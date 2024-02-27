@@ -34,6 +34,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.MediaType;
@@ -68,8 +69,13 @@ public class DateRoomService {
         LocalDate now = LocalDate.now();
         int cachedYear = now.getYear();
         int cachedMonth = now.getMonthValue();
-        if (year == cachedYear && month == cachedMonth) {
-            return cachedDateRoomInfo();
+        try {
+            if (year == cachedYear && month == cachedMonth) {
+                return cachedDateRoomInfo();
+            }
+        } catch (RedisConnectionFailureException e) {
+            log.error("Redis connection failed", e);
+            messageService.sendDevMsg("Redis connection failed");
         }
         LocalDate thisMonthStartDate = LocalDate.of(year, month, 1);
         LocalDate nextMonthStartDate = thisMonthStartDate.plusMonths(1);
@@ -306,7 +312,7 @@ public class DateRoomService {
         return dateRoomInfoByDateDtos;
     }
 
-    public DateRoom2MonthDto cachedDateRoomInfo() {
+    public DateRoom2MonthDto cachedDateRoomInfo() throws RedisConnectionFailureException  {
         LocalDate now = LocalDate.now();
         int year = now.getYear();
         int month = now.getMonthValue();
@@ -316,7 +322,7 @@ public class DateRoomService {
         return new DateRoom2MonthDto(thisMonth, nextMonth);
     }
 
-    public List<DateRoomInfoByDateDto> getOrSetCachedDateRoomInfoList(int year, int month) {
+    public List<DateRoomInfoByDateDto> getOrSetCachedDateRoomInfoList(int year, int month) throws RedisConnectionFailureException {
         HashOperations<String, String, DateRoomInfoDto> hashOperations = redisTemplate.opsForHash();
         List<DateRoomInfoByDateDto> dateRoomInfoByDateDtos = new ArrayList<>();
         // 여유 방 데이터
@@ -347,7 +353,7 @@ public class DateRoomService {
         return dateRoomInfoByDateDtos;
     }
 
-    private List<DateRoomInfoByDateDto> setCachedDateRoomInfoList(int year, int month) {
+    private List<DateRoomInfoByDateDto> setCachedDateRoomInfoList(int year, int month) throws RedisConnectionFailureException {
         HashOperations<String, String, DateRoomInfoDto> hashOperations = redisTemplate.opsForHash();
         LocalDate startDate = LocalDate.of(year, month, 1);
         List<DateRoomInfoByDateDto> dateRoomInfoByDateDtos = getDateRoomInfoListByDate(startDate);
@@ -376,17 +382,21 @@ public class DateRoomService {
     public void updateCache(DateRoom dateRoom) {
         try {
             HashOperations<String, String, DateRoomInfoDto> hashOperations = redisTemplate.opsForHash();
-            String key = getDateRoomCacheKey(dateRoom.getDate().getYear(), dateRoom.getDate().getMonthValue(), dateRoom.getRoom().getId());
+            String key = getDateRoomCacheKey(dateRoom.getDate().getYear(),
+                dateRoom.getDate().getMonthValue(), dateRoom.getRoom().getId());
             String hashKey = dateRoom.getDate().toString();
             // 해당 캐시 데이터가 있으면 업데이트, 없으면 Skip
             log.info("캐시 업데이트 시도: {} {}", key, hashKey);
             if (Boolean.TRUE.equals(hashOperations.hasKey(key, hashKey))) {
                 hashOperations.put(key, hashKey, new DateRoomInfoDto(dateRoom));
                 log.info("캐시 업데이트: {} {}", key, hashKey);
-            }
-            else {
+            } else {
                 log.info("캐시 업데이트 Skip: {} {}", key, hashKey);
             }
+        } catch (RedisConnectionFailureException e) {
+            log.error("Redis 연결 실패: {}", e.getMessage());
+            messageService.sendDevMsg("DateRoom 캐시 업데이트 중 Redis 연결 실패: " + e.getMessage());
+            throw new AsyncApiException("캐시 업데이트 비동기 작업 실패 : Dateroom ID " + dateRoom.getId(), e);
         } catch (Exception e) {
             log.error("Dateroom {} - 캐시 업데이트 실패: {}", dateRoom.getId(), e.getMessage());
             throw new AsyncApiException("캐시 업데이트 비동기 작업 실패 : Dateroom ID " + dateRoom.getId(), e);
