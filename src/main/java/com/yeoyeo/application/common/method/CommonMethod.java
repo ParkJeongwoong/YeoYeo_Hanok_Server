@@ -2,10 +2,16 @@ package com.yeoyeo.application.common.method;
 
 import com.yeoyeo.application.common.exception.SchedulingException;
 import jakarta.servlet.http.HttpServletRequest;
+import java.nio.charset.StandardCharsets;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.env.Environment;
@@ -83,6 +89,21 @@ public class CommonMethod {
                 .filter(realProfiles::contains)
                 .findAny()
                 .orElse(defaultProfile);
+    }
+
+    public String encodeToken(String key, String value) {
+        // Use SHA-256
+        String algorithm = "HmacSHA256";
+        try {
+            Mac mac = Mac.getInstance(algorithm);
+            SecretKeySpec secretKeySpec = new SecretKeySpec(key.getBytes(StandardCharsets.UTF_8), algorithm);
+            mac.init(secretKeySpec);
+            byte[] hash = mac.doFinal(value.getBytes(StandardCharsets.UTF_8));
+            return Base64.getEncoder().encodeToString(hash);
+        } catch (NoSuchAlgorithmException | InvalidKeyException e) {
+            log.error("Failed to create token", e);
+            return null;
+        }
     }
 
 }

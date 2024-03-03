@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yeoyeo.application.message.dto.SendMessageRequestDto;
 import com.yeoyeo.application.message.dto.SendMessageResponseDto;
+import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.json.simple.JSONObject;
 import org.springframework.core.ParameterizedTypeReference;
@@ -13,8 +14,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.util.DefaultUriBuilderFactory;
-
-import java.util.List;
 
 @Slf4j
 @Service
@@ -73,6 +72,30 @@ public class WebClientService {
                 .retrieve()
                 .bodyToMono(JSONObject.class)
                 .block();
+    }
+
+    public JSONObject post(String contentType, String url, Object bodyValue) {
+        return WebClient(contentType, url).post()
+            .bodyValue(bodyValue)
+            .retrieve()
+            .bodyToMono(JSONObject.class)
+            .block();
+    }
+
+    public JSONObject post(String contentType, String url, Object bodyValue, String headerName, String headerValue) {
+        if (bodyValue == null) {
+            return WebClient(contentType, url).post()
+                .header(headerName, headerValue)
+                .retrieve()
+                .bodyToMono(JSONObject.class)
+                .block();
+        }
+        return WebClient(contentType, url).post()
+            .header(headerName, headerValue)
+            .bodyValue(bodyValue)
+            .retrieve()
+            .bodyToMono(JSONObject.class)
+            .block();
     }
 
     public SendMessageResponseDto sendMessage(String type, String url, String subject, String content, String to, String timestamp, String accessKey, String signature) {

@@ -100,7 +100,7 @@ public class CalendarService {
     @Async
     @Transactional
     @SingleJob(scheduleName = "regularSync_Airbnb")
-    public void syncInICSFile_Reservation(long roomId) {
+    public synchronized void syncInICSFile_Reservation(long roomId) {
         log.info("syncInICSFile_Reservation - Reservation Room ID : {}", roomId);
         if (roomId == 1) {
             syncInICSFile_Airbnb_A();
@@ -112,20 +112,20 @@ public class CalendarService {
     }
     @Transactional
     @SingleJob(scheduleName = "regularSync_Airbnb")
-    public void syncInICSFile_Airbnb_A() {
+    public synchronized void syncInICSFile_Airbnb_A() {
         getIcsFileFromPlatform(AIRBNB_FILE_URL_A, AIRBNB_FILE_PATH_A);
         syncIcalendarFile(AIRBNB_FILE_PATH_A, getGuestAirbnbFactory(), getPaymentAirbnb(), 1);
     }
     @Transactional
     @SingleJob(scheduleName = "regularSync_Airbnb")
-    public void syncInICSFile_Airbnb_B() {
+    public synchronized void syncInICSFile_Airbnb_B() {
         getIcsFileFromPlatform(AIRBNB_FILE_URL_B, AIRBNB_FILE_PATH_B);
         syncIcalendarFile(AIRBNB_FILE_PATH_B, getGuestAirbnbFactory(), getPaymentAirbnb(), 2);
     }
 
     @Transactional
     @SingleJob(scheduleName = "regularSync_Airbnb")
-    public void syncInICSFile_Booking_B() {
+    public synchronized void syncInICSFile_Booking_B() {
         getIcsFileFromPlatform(BOOKING_FILE_URL_B, BOOKING_FILE_PATH_B);
         syncIcalendarFile(BOOKING_FILE_PATH_B, getGuestBookingFactory(), getPaymentBooking(), 2);
     }

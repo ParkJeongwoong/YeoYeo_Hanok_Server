@@ -456,7 +456,7 @@ public class MessageService {
             commonMethod.setCache(phoneNumber, authKey, 3);
             return null;
         } catch (RedisConnectionFailureException e) {
-            String token = encodeToken(phoneNumber, authKey);
+            String token = commonMethod.encodeToken(this.fallbackKey+phoneNumber, authKey);
             log.info("Redis 연결 실패로 토큰 생성 : {}", token);
             sendDevMsg("Redis 연결 실패로 토큰 생성 : " + phoneNumber);
             return token;
@@ -465,7 +465,7 @@ public class MessageService {
 
     private boolean checkAuthKey(String phoneNumber, String authKey, String authToken) {
         if (authToken != null) {
-            return authToken.equals(encodeToken(phoneNumber, authKey));
+            return authToken.equals(commonMethod.encodeToken(this.fallbackKey+phoneNumber, authKey));
         }
         String redisAuthKey = commonMethod.getCache(phoneNumber);
         if (redisAuthKey == null) return false;
@@ -473,23 +473,6 @@ public class MessageService {
             return commonMethod.delCache(phoneNumber);
         }
         return false;
-    }
-
-    private String encodeToken(String phoneNumber, String authKey) {
-        // Use SHA-256
-        String algorithm = "HmacSHA256";
-        String message = authKey;
-        String secretKey = this.fallbackKey + phoneNumber;
-        try {
-            Mac mac = Mac.getInstance(algorithm);
-            SecretKeySpec secretKeySpec = new SecretKeySpec(secretKey.getBytes(StandardCharsets.UTF_8), algorithm);
-            mac.init(secretKeySpec);
-            byte[] hash = mac.doFinal(message.getBytes(StandardCharsets.UTF_8));
-            return Base64.getEncoder().encodeToString(hash);
-        } catch (NoSuchAlgorithmException | InvalidKeyException e) {
-            log.error("Failed to create token", e);
-            return null;
-        }
     }
 
     private String getNumberOnly(String string) {

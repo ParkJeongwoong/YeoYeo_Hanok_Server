@@ -89,6 +89,7 @@ public class PaymentService {
         }
     }
 
+    @Transactional
     public GeneralResponseDto webhook(ImpWebHookDto webHookDto) {
         PaymentRequestDto requestDto = webHookDto.getPaymentRequestDto();
         String accessToken = getToken();
@@ -200,7 +201,7 @@ public class PaymentService {
 
     private void paymentProcess(Reservation reservation, Map<String, Object> paymentData) throws PaymentException, ReservationException {
         if (reservation.getPayment() == null) {
-            log.info("NOT NULL");
+            log.info("NULL");
             Payment payment = createPayment(paymentData, reservation);
             log.info("CREATED");
             validatePayment(reservation, paymentData);
@@ -208,7 +209,7 @@ public class PaymentService {
             completeReservation(reservation, payment);
             messageService.sendReservationMsg(reservation);
         } else {
-            log.info("NULL");
+            log.info("NOT NULL");
             Payment payment = reservation.getPayment();
             validatePaymentData(payment, paymentData);
             log.info("VALIDATED");

@@ -8,6 +8,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.scheduling.SchedulingException;
 import org.springframework.stereotype.Component;
 
 @Slf4j
@@ -65,6 +66,20 @@ public class ScheduleManage {
 		} catch (Exception e) {
 			log.error("Redo Scheduling Error : {}", e.getMessage());
 		}
+	}
+
+	public void runSchedule(String schedule) throws SchedulingException {
+		SCHEDULE_NAMES.forEach((serviceName, scheduleNameList) -> {
+			for (String scheduleName : scheduleNameList) {
+				if (schedule.equals(scheduleName)) {
+					log.info("Schedule Found - {}", schedule);
+					runSchedule(serviceName, scheduleName);
+					return;
+				}
+			}
+		});
+		log.error("Schedule NOT FOUND = {}", schedule);
+		throw new SchedulingException("Schedule NOT FOUND");
 	}
 
 }
