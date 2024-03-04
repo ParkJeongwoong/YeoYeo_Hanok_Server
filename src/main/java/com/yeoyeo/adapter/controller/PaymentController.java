@@ -28,7 +28,7 @@ public class PaymentController {
     @Operation(summary = "결제", description = "아임포트 결제 모듈로 결제 완료 후 결제정보+예약정보 전달")
     @PostMapping("/pay")
     public ResponseEntity<GeneralResponseDto> payment(@RequestBody PaymentRequestDto requestDto) {
-        GeneralResponseDto responseDto = paymentService.pay(requestDto);
+        GeneralResponseDto responseDto = paymentService.pay_lock(requestDto);
         if (!responseDto.isSuccess()) return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseDto);
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
@@ -53,7 +53,7 @@ public class PaymentController {
     @Operation(summary = "WebHook", description = "(서버전용) 아임포트 서버와 결제 정보 동기화 용도")
     @PostMapping("/webhook")
     public ResponseEntity<GeneralResponseDto> webhook(@RequestBody ImpWebHookDto webHookDto) {
-        GeneralResponseDto responseDto = paymentService.webhook(webHookDto);
+        GeneralResponseDto responseDto = paymentService.webhook_lock(webHookDto);
         if (!responseDto.isSuccess()) return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseDto);
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }

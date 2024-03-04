@@ -27,9 +27,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.json.simple.JSONObject;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
@@ -55,9 +58,50 @@ public class PaymentService {
     private final WebClientService webClientService;
     private final ReservationService reservationService;
     private final MessageService messageService;
+    private final RedissonClient redissonClient;
 
     @Transactional
-    public GeneralResponseDto pay(PaymentRequestDto requestDto) {
+    public GeneralResponseDto pay_lock(PaymentRequestDto requestDto) {
+        GeneralResponseDto responseDto;
+        // Redisson Lock
+        RLock lock = redissonClient.getLock("reservation:" + requestDto.getMerchant_uid());
+        try {
+            boolean isLocked = lock.tryLock(5, 3, TimeUnit.SECONDS);
+            if (isLocked) {
+                log.info("CLIENT - Locking Success");
+                responseDto = pay(requestDto);
+            } else {
+                log.info("CLIENT - Locking Fail");
+                    int count = 0;
+                    while (!isLocked) {
+                        if (count > 5) {
+                            log.error("CLIENT - Locking Fail - TimeOut");
+                            throw new InterruptedException("CLIENT - Locking Fail - TimeOut");
+                        }
+                    Thread.sleep(1000);
+                    isLocked = lock.tryLock(5, 3, TimeUnit.SECONDS);
+                    count++;
+                }
+                Reservation reservation = reservationRepository.findById(requestDto.getMerchant_uid()).orElseThrow(NoSuchElementException::new);
+                if (reservation.getReservationState() == 1) {
+                    log.info("Webhook에 의한 결제 완료");
+                    responseDto = GeneralResponseDto.builder().success(true).message("예약이 확정되었습니다.").build();
+                } else {
+                    log.info("결제 진행");
+                    responseDto = pay(requestDto);
+                }
+            }
+        } catch (InterruptedException e) {
+            log.error("CLIENT - Locking Error", e);
+            log.info("결제 진행");
+            responseDto = pay(requestDto);
+        } finally {
+            lock.unlock();
+        }
+        return responseDto;
+    }
+
+    private GeneralResponseDto pay(PaymentRequestDto requestDto) {
         String accessToken = getToken();
         Map<String, Object> paymentData = getPaymentData(requestDto.getImp_uid(), accessToken);
         log.info("RESERVATION ID : {}", requestDto.getMerchant_uid());
@@ -90,7 +134,47 @@ public class PaymentService {
     }
 
     @Transactional
-    public GeneralResponseDto webhook(ImpWebHookDto webHookDto) {
+    public GeneralResponseDto webhook_lock(ImpWebHookDto webHookDto) {
+        GeneralResponseDto responseDto;
+        // Redisson Lock
+        RLock lock = redissonClient.getLock("reservation:" + webHookDto.getPaymentRequestDto().getMerchant_uid());
+        try {
+            boolean isLocked = lock.tryLock(5, 3, TimeUnit.SECONDS);
+            if (isLocked) {
+                log.info("WEBHOOK - Locking Success");
+                responseDto = webhook(webHookDto);
+            } else {
+                log.info("WEBHOOK - Locking Fail");
+                int count = 0;
+                while (!isLocked) {
+                    if (count > 5) {
+                        log.error("CLIENT - Locking Fail - TimeOut");
+                        throw new InterruptedException("CLIENT - Locking Fail - TimeOut");
+                    }
+                    Thread.sleep(1000);
+                    isLocked = lock.tryLock(5, 3, TimeUnit.SECONDS);
+                    count++;
+                }
+                Reservation reservation = reservationRepository.findById(webHookDto.getPaymentRequestDto().getMerchant_uid()).orElseThrow(NoSuchElementException::new);
+                if (reservation.getReservationState() == 1) {
+                    log.info("Client에 의한 결제 완료");
+                    responseDto = GeneralResponseDto.builder().success(true).message("예약이 확정되었습니다.").build();
+                } else {
+                    log.info("결제 진행");
+                    responseDto = webhook(webHookDto);
+                }
+            }
+        } catch (InterruptedException e) {
+            log.error("WEBHOOK - Locking Error", e);
+            log.info("결제 진행");
+            responseDto = webhook(webHookDto);
+        } finally {
+            lock.unlock();
+        }
+        return responseDto;
+    }
+
+    private GeneralResponseDto webhook(ImpWebHookDto webHookDto) {
         PaymentRequestDto requestDto = webHookDto.getPaymentRequestDto();
         String accessToken = getToken();
         Map<String, Object> paymentData = getPaymentData(requestDto.getImp_uid(), accessToken);
@@ -174,6 +258,7 @@ public class PaymentService {
         }
     }
 
+    // 하룻동안 유효한 방 변경 제한
     @Transactional
     public GeneralResponseDto refundBySystem(Reservation reservation) {
         log.info("관리자 전액 환불 및 예약 취소 - 예약번호 : {}", reservation.getId());
