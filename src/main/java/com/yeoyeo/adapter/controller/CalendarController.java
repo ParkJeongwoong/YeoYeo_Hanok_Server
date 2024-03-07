@@ -39,15 +39,15 @@ public class CalendarController {
 
     @Operation(summary = "예약정보 에어비앤비 수신 (여유)", description = "(예약정보 동기화) [여유] 에어비앤비 데이터 수신")
     @PutMapping("/manual/airbnb/a")
-    public void syncAirbnbA() { calendarService.syncInICSFile_Airbnb_A(); }
+    public void syncAirbnbA() { calendarService.syncInICSFile_Airbnb_A_sync(); }
 
     @Operation(summary = "예약정보 에어비앤비 수신 (여행)", description = "(예약정보 동기화) [여행] 에어비앤비 데이터 수신")
     @PutMapping("/manual/airbnb/b")
-    public void syncAirbnbB() { calendarService.syncInICSFile_Airbnb_B(); }
+    public void syncAirbnbB() { calendarService.syncInICSFile_Airbnb_B_sync(); }
 
     @Operation(summary = "예약정보 부킹닷컴 수신 (여행)", description = "(예약정보 동기화) [여행] 부킹닷컴 데이터 수신")
     @PutMapping("/manual/booking/b")
-    public void syncBookingB() { calendarService.syncInICSFile_Booking_B(); }
+    public void syncBookingB() { calendarService.syncInICSFile_Booking_B_sync(); }
 
     @Operation(summary = "ICS 파일 읽기(에어비앤비, 여유)", description = "[여유] 수신된 에어비앤비 ICS 파일 읽기")
     @PostMapping("/manual/airbnb/a")

@@ -97,7 +97,7 @@ public class CalendarService {
     public void readICSFile_Booking_B() { syncIcalendarFile(BOOKING_FILE_PATH_B, getGuestBookingFactory(), getPaymentBooking(), 2);}
     public void getICSFile_Booking_B() { getIcsFileFromPlatform(BOOKING_FILE_URL_B, BOOKING_FILE_PATH_B); }
 
-    @Async
+    @Async("syncScheduleExecutor")
     @Transactional
     @SingleJob(scheduleName = "regularSync_Airbnb")
     public synchronized void syncInICSFile_Reservation(long roomId) {
@@ -112,19 +112,40 @@ public class CalendarService {
     }
     @Transactional
     @SingleJob(scheduleName = "regularSync_Airbnb")
+    public synchronized void syncInICSFile_All() {
+        syncInICSFile_Airbnb_A();
+        syncInICSFile_Airbnb_B();
+        syncInICSFile_Booking_B();
+    }
+
+    @Transactional
+    @SingleJob(scheduleName = "regularSync_Airbnb")
+    public synchronized void syncInICSFile_Airbnb_A_sync() {
+        syncInICSFile_Airbnb_A();
+    }
+    @Transactional
+    @SingleJob(scheduleName = "regularSync_Airbnb")
+    public synchronized void syncInICSFile_Airbnb_B_sync() {
+        syncInICSFile_Airbnb_B();
+    }
+    @Transactional
+    @SingleJob(scheduleName = "regularSync_Airbnb")
+    public synchronized void syncInICSFile_Booking_B_sync() {
+        syncInICSFile_Booking_B();
+    }
+
+    @Transactional
     public synchronized void syncInICSFile_Airbnb_A() {
         getIcsFileFromPlatform(AIRBNB_FILE_URL_A, AIRBNB_FILE_PATH_A);
         syncIcalendarFile(AIRBNB_FILE_PATH_A, getGuestAirbnbFactory(), getPaymentAirbnb(), 1);
     }
     @Transactional
-    @SingleJob(scheduleName = "regularSync_Airbnb")
     public synchronized void syncInICSFile_Airbnb_B() {
         getIcsFileFromPlatform(AIRBNB_FILE_URL_B, AIRBNB_FILE_PATH_B);
         syncIcalendarFile(AIRBNB_FILE_PATH_B, getGuestAirbnbFactory(), getPaymentAirbnb(), 2);
     }
 
     @Transactional
-    @SingleJob(scheduleName = "regularSync_Airbnb")
     public synchronized void syncInICSFile_Booking_B() {
         getIcsFileFromPlatform(BOOKING_FILE_URL_B, BOOKING_FILE_PATH_B);
         syncIcalendarFile(BOOKING_FILE_PATH_B, getGuestBookingFactory(), getPaymentBooking(), 2);

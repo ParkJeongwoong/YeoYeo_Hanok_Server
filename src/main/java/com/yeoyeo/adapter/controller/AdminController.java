@@ -164,9 +164,7 @@ public class AdminController {
 
     @PostMapping("/manage/info/list")
     public void createAdminManageInfoList() {
-        calendarService.syncInICSFile_Airbnb_A();
-        calendarService.syncInICSFile_Airbnb_B();
-        calendarService.syncInICSFile_Booking_B();
+        calendarService.syncInICSFile_All();
         adminManageService.createAdminManageInfoList();
     }
 
