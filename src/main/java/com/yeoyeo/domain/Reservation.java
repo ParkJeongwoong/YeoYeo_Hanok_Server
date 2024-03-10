@@ -1,5 +1,6 @@
 package com.yeoyeo.domain;
 
+import com.yeoyeo.application.dateroom.etc.exception.RoomReservationException;
 import com.yeoyeo.application.reservation.etc.exception.ReservationException;
 import com.yeoyeo.domain.Guest.Guest;
 import jakarta.persistence.Cacheable;
@@ -19,7 +20,9 @@ import java.util.stream.Collectors;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @NoArgsConstructor
 @Getter
 @Entity
@@ -40,7 +43,7 @@ public class Reservation extends BaseTimeEntity {
     private String reservedFrom;
 
     @Column(nullable = false)
-    private long reservationState; // 0 : 미결제, 1 : 숙박 예정, 2 : 숙박 완료 , -1 : 예약 취소, -2 : 환불 완료, 5 : 동기화 중
+    private long reservationState; // 0 : 미결제, 1 : 숙박 예정, 2 : 숙박 완료 , -1 : 예약 취소, -2 : 환불 완료, 5 : 동기화 중, 3 : 예약 변경 대기
 
     @Column
     private String uniqueId;
@@ -95,8 +98,59 @@ public class Reservation extends BaseTimeEntity {
         }
     }
 
+    public void setStateChangeWait() throws ReservationException {
+        if (this.reservationState == 1) {
+            List<DateRoom> dateRoomList = getDateRoomList();
+            try {
+                for (DateRoom dateRoom : dateRoomList) {
+                    dateRoom.setStateWaiting();
+                }
+                this.reservationState = 3;
+            } catch (RoomReservationException e) {
+                log.error("예약 변경 대기 중 에러 발생", e);
+                throw new ReservationException("예약 변경 대기 중 에러 발생");
+            }
+        } else {
+            throw new ReservationException("변경 대기 중 에러 발생");
+        }
+    }
+
+    public void acceptOffer() throws ReservationException {
+        if (this.reservationState == 3) {
+            List<DateRoom> dateRoomList = getDateRoomList();
+            try {
+                for (DateRoom dateRoom : dateRoomList) {
+                    dateRoom.setStateBooked();
+                }
+                this.reservationState = 1;
+            } catch (RoomReservationException e) {
+                log.error("예약 변경 대기 중 에러 발생", e);
+                throw new ReservationException("예약 변경 대기 중 에러 발생");
+            }
+        } else {
+            throw new ReservationException("변경 대기 중 에러 발생");
+        }
+    }
+
+    public void rejectOffer() throws ReservationException {
+        if (this.reservationState == 3) {
+            List<DateRoom> dateRoomList = getDateRoomList();
+            try {
+                for (DateRoom dateRoom : dateRoomList) {
+                    dateRoom.setStateBooked();
+                }
+                this.reservationState = 1;
+            } catch (RoomReservationException e) {
+                log.error("예약 변경 대기 중 에러 발생", e);
+                throw new ReservationException("예약 변경 대기 중 에러 발생");
+            }
+        } else {
+            throw new ReservationException("변경 대기 중 에러 발생");
+        }
+    }
+
     public void setStateCanceled() throws ReservationException {
-        if (this.reservationState == 1 || this.reservationState == 0 || this.reservationState == 5) {
+        if (this.reservationState == 1 || this.reservationState == 0 || this.reservationState == 5 || this.reservationState == 3) {
             this.reservationState = -1;
         } else {
             throw new ReservationException("완료된 예약이 아닙니다.");
@@ -104,7 +158,7 @@ public class Reservation extends BaseTimeEntity {
     }
 
     public void setStateRefund() throws ReservationException {
-        if (this.reservationState == 1 || this.reservationState == 0 || this.reservationState == 5) {
+        if (this.reservationState == 1 || this.reservationState == 0 || this.reservationState == 5 || this.reservationState == 3) {
             this.reservationState = -2;
         } else {
             throw new ReservationException("환불 가능한 예약이 아닙니다.");

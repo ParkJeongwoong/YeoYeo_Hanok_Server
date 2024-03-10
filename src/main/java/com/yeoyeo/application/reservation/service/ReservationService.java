@@ -16,7 +16,9 @@ import com.yeoyeo.domain.Guest.Guest;
 import com.yeoyeo.domain.Payment;
 import com.yeoyeo.domain.Reservation;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -35,6 +37,8 @@ public class ReservationService {
     private final ReservationRepository reservationRepository;
     private final DateRoomService dateRoomService;
     private final MessageService messageService;
+
+    Map<Long, String> changeOfferMap = new HashMap<>();
 
     public List<ReservationInfoDto> showReservations(int type) {
         // 현재 가상계좌 결제를 사용하지 않아 미결제 상태 0이 없음
@@ -157,6 +161,44 @@ public class ReservationService {
     private void checkPhoneNumber(Reservation reservation) throws ReservationException {
         String phoneNumber = reservation.getGuest().getPhoneNumber();
         if (phoneNumber == null || phoneNumber.length() == 0) throw new ReservationException("휴대폰 번호가 없는 예약입니다. (홈페이지 예약이 아님)");
+    }
+
+    public void setThreadName(Long reservationId, String threadName) {
+        this.changeOfferMap.put(reservationId, threadName);
+    }
+
+    public String getThreadName(Long reservationId) {
+        return this.changeOfferMap.get(reservationId);
+    }
+
+    public void removeThreadName(Long reservationId) {
+        this.changeOfferMap.remove(reservationId);
+    }
+
+    @Transactional
+    public void acceptOffer(long reservationId) throws ReservationException {
+        Reservation reservation = reservationRepository.findById(reservationId).orElseThrow(NoSuchElementException::new);
+        reservation.acceptOffer();
+        reservationRepository.save(reservation);
+        interruptOfferThread(reservationId);
+    }
+
+    @Transactional
+    public void rejectOffer(long reservationId) throws ReservationException {
+        Reservation reservation = reservationRepository.findById(reservationId).orElseThrow(NoSuchElementException::new);
+        reservation.rejectOffer();
+        reservationRepository.save(reservation);
+        interruptOfferThread(reservationId);
+    }
+
+    private void interruptOfferThread(long reservationId) {
+        String threadName = getThreadName(reservationId);
+        if (threadName != null) {
+            Thread.getAllStackTraces().keySet().stream()
+                .filter(t -> t.getName().equals(threadName))
+                .findFirst().ifPresent(Thread::interrupt);
+            removeThreadName(reservationId);
+        }
     }
 
 }

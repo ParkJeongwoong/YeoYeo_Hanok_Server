@@ -378,7 +378,7 @@ public class DateRoomService {
     }
 
     @Retryable(retryFor = {AsyncApiException.class}, maxAttempts = 5, backoff = @Backoff(random = true, delay = 1000, maxDelay = 3000))
-    @Async
+    @Async("redisExecutor")
     public void updateCache(DateRoom dateRoom) {
         try {
             HashOperations<String, String, DateRoomInfoDto> hashOperations = redisTemplate.opsForHash();

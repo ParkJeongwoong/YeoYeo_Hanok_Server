@@ -360,7 +360,8 @@ public class CalendarService {
                     log.info("{} 날짜의 {} 방 예약 취소 - 예약번호 : {} / {}", dateRoom.getDate(), dateRoom.getRoom().getName(), collidedReservation.getId(), uid);
                     if (uid == null || getPlatformName(uid).equals("yeoyeo")) {
                         log.info("홈페이지 예약 취소");
-                        GeneralResponseDto response = paymentService.refundBySystem(collidedReservation);
+//                        GeneralResponseDto response = paymentService.refundBySystem(collidedReservation);
+                        GeneralResponseDto response = paymentService.collideRefund(collidedReservation);
                         if (!response.isSuccess()) return false;
                     } else {
                         log.info("플랫폼 예약 취소");

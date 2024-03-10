@@ -91,4 +91,28 @@ public class ReservationController {
         return ResponseEntity.status(HttpStatus.OK).body(messageService.validateAuthenticationKey(phoneNumber, authKey, authToken));
     }
 
+    @Operation(summary = "예약 변경 수락", description = "예약 충돌로 인한 방 변경 수락")
+//    @PutMapping("/offer/{reservationId}/accept")
+    @GetMapping("/offer/{reservationId}/accept") // Todo : Offer Page 만든 후 Put으로 변경
+    public ResponseEntity<GeneralResponseDto> acceptOffer(@PathVariable("reservationId") long reservationId) {
+        try {
+            reservationService.acceptOffer(reservationId);
+            return ResponseEntity.status(HttpStatus.OK).body(GeneralResponseDto.builder().success(true).message("예약 변경 수락 완료").build());
+        } catch (ReservationException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(GeneralResponseDto.builder().success(false).message(e.getMessage()).build());
+        }
+    }
+
+    @Operation(summary = "예약 변경 거절", description = "예약 충돌로 인한 방 변경 거절")
+//    @PutMapping("/offer/{reservationId}/reject")
+    @GetMapping("/offer/{reservationId}/reject") // Todo : Offer Page 만든 후 Put으로 변경
+    public ResponseEntity<GeneralResponseDto> rejectOffer(@PathVariable("reservationId") long reservationId) {
+        try {
+            reservationService.rejectOffer(reservationId);
+            return ResponseEntity.status(HttpStatus.OK).body(GeneralResponseDto.builder().success(true).message("예약 변경 거절 완료").build());
+        } catch (ReservationException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(GeneralResponseDto.builder().success(false).message(e.getMessage()).build());
+        }
+    }
+
 }
