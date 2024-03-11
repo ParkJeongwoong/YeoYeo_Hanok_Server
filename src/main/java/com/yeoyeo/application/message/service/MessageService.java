@@ -34,6 +34,8 @@ public class MessageService {
     static final List<String> ADMIN_LIST = Arrays.asList("01020339091", "01089599091", "01026669091", "01020199091");
     static final String HOST = "01089599091";
     static final String DEV = "01020339091";
+    static final String CHANGE_OFFER_URL = "https://yeoyeo.co.kr/offer/";
+    static final String TEMP_CHANGE_OFFER_URL = "https://api.yeoyeo.co.kr/reservation/offer/";
 
     @Value("${sms.ncloud.key}")
     String smsKey;
@@ -395,7 +397,49 @@ public class MessageService {
     public void sendDevMsg(String msg) {
         String subject = "[한옥스테이 여여] 개발자 문자";
         String content = msg;
-        sendMessage("LMS", subject, content, getNumberOnly(DEV));
+        sendMessage("SMS", subject, content, getNumberOnly(DEV));
+    }
+
+    public void sendChangeOfferMsg(Reservation reservation) {
+        if (checkAdminName(reservation.getGuest().getName())) {
+            return;
+        }
+        LocalDate startDate = reservation.getFirstDateRoom().getDate();
+        LocalDate endDate = reservation.getLastDateRoom().getDate().plusDays(1);
+        String startDate_string = startDate.getYear()+"년 "+startDate.getMonthValue()+"월"+startDate.getDayOfMonth()+"일";
+        String endDate_string = endDate.getYear()+"년 "+endDate.getMonthValue()+"월"+endDate.getDayOfMonth()+"일 ";
+        String room = "["+reservation.getRoom().getName()+"]";
+        String anotherRoom = reservation.getRoom().getName().equals("여유") ? "[여유]" : "[여행]";
+
+        String to = reservation.getGuest().getNumberOnlyPhoneNumber();
+        String subject = "[한옥스테이 여여] 예약 변경 제안";
+        String content = "[한옥스테이 여여 예약 변경 제안]" + changeTwoLine +
+            "안녕하세요, 한옥스테이 여여입니다." + changeTwoLine +
+            "먼저 죄송하다는 말씀을 드립니다." + changeLine +
+            "현재 숙소의 사정으로 인해 고객님의 "+startDate_string+" ~ "+endDate_string+" "+room+" 예약이 어려운 상황입니다." + changeLine +
+            "대신 동일한 일정으로 "+startDate_string+" ~ "+endDate_string+" "+anotherRoom+"방의 예약은 가능한 상황입니다." + changeLine +
+            "기존에 예약하신 방과 크기는 동일하고 구조만 조금 차이가 있는 또 다른 매력을 가진 방입니다." + changeLine +
+            "예약 변경을 원하신다면 다음의 링크를 통해 변경을 신청해 주세요." + changeLine +
+            "( " + TEMP_CHANGE_OFFER_URL + reservation.getId() + "/accept )" + changeLine +
+            "예약 변경을 원하지 않고 바로 전액 환불을 원하신다면 다음의 링크를 통해 눌러주시면 됩니다." + changeLine +
+            "( " + TEMP_CHANGE_OFFER_URL + reservation.getId() + "/reject )" + changeTwoLine +
+            "이 예약 변경 제안은 6시간 동안 유효하며 6시간 이후에는 자동으로 전액환불 됩니다." + changeTwoLine +
+            "기대하셨을 여행에 실망을 안겨드려 다시 한 번 죄송합니다." + changeLine +
+            "감사합니다.";
+
+        String subject4Admin = "[한옥스테이 여여] 플랫폼 간 예약 중복으로 인한 예약 취소 발생";
+        String content4Admin = "[한옥스테이 여여 관리자 알림 문자]" + changeTwoLine +
+            "예약 정보 동기화 중 플랫폼 간 예약 중복이 발견되어 예약 변경 제안이 발생되었습니다." + changeLine +
+            "예약 번호 : " + reservation.getId() + changeLine +
+            "예약자 : " + reservation.getGuest().getName() + changeLine +
+            "예약자 연락처 : " + reservation.getGuest().getPhoneNumber() + changeLine +
+            "예약 일자 : " + startDate_string + " ~ " + endDate_string + changeLine +
+            "예약 방 : " + room + changeLine;
+
+        sendMessage("LMS", subject, content, to);
+        sendMultipleMessage("LMS", subject4Admin, content4Admin, ADMIN_LIST);
+
+        sendMessage("LMS", subject, content, getNumberOnly(HOST));
     }
 
     private SendMessageResponseDto sendMessage(String type, String subject, String content, String to) {

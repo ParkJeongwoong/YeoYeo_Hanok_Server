@@ -12,6 +12,7 @@ import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.json.simple.JSONObject;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.stereotype.Component;
@@ -26,6 +27,7 @@ public class SchedulingAspect {
     WebClientService webClientService;
     private final CommonMethod commonMethod;
     private final MessageService messageService;
+    private final RedissonClient redissonClient;
 
     @Value("schedule.key")
     String SCHEDULE_KEY;

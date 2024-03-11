@@ -6,6 +6,7 @@ import com.yeoyeo.application.common.dto.GeneralResponseDto;
 import com.yeoyeo.application.common.exception.NoResponseException;
 import com.yeoyeo.application.common.exception.WrongResponseException;
 import com.yeoyeo.application.common.service.WebClientService;
+import com.yeoyeo.application.dateroom.repository.DateRoomRepository;
 import com.yeoyeo.application.message.service.MessageService;
 import com.yeoyeo.application.payment.dto.ImpConfirmDto;
 import com.yeoyeo.application.payment.dto.ImpTokenRequestDto;
@@ -35,6 +36,7 @@ import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.BodyInserters;
@@ -54,6 +56,7 @@ public class PaymentService {
     String imp_secret;
 
     private final ReservationRepository reservationRepository;
+    private final DateRoomRepository dateRoomRepository;
 
     private final WebClientService webClientService;
     private final ReservationService reservationService;
@@ -258,7 +261,14 @@ public class PaymentService {
         }
     }
 
-    // 하룻동안 유효한 방 변경 제한
+    public GeneralResponseDto collideRefund(Reservation reservation) {
+        if (isChangeable(reservation)) {
+            return offerChangeRoom(reservation);
+        } else {
+            return refundBySystem(reservation);
+        }
+    }
+
     @Transactional
     public GeneralResponseDto refundBySystem(Reservation reservation) {
         log.info("관리자 전액 환불 및 예약 취소 - 예약번호 : {}", reservation.getId());
@@ -281,6 +291,43 @@ public class PaymentService {
         } catch (PaymentException paymentException) {
             log.error("환불 과정 중 오류가 발생했습니다.", paymentException);
             return GeneralResponseDto.builder().success(false).message(paymentException.getMessage()).build();
+        }
+    }
+
+    @Transactional
+    public GeneralResponseDto offerChangeRoom(Reservation reservation) {
+        log.info("방 변경 제안 요청 - 예약번호 : {}", reservation.getId());
+        try {
+            reservation.setStateChangeWait();
+            reservationRepository.save(reservation);
+            expireOffer(reservation.getId()); // Async
+            messageService.sendChangeOfferMsg(reservation);
+            return GeneralResponseDto.builder().success(true).message("방 변경 제안이 완료되었습니다.").build();
+        } catch (ReservationException e) {
+            log.error("예약 상태 변경 실패", e);
+            return GeneralResponseDto.builder().success(false).message(e.getMessage()).build();
+        }
+    }
+
+    private boolean isChangeable(Reservation reservation) {
+        long roomId = reservation.getDateRoomList().get(0).getRoom().getId();
+        long anotherRoomId = roomId == 1 ? 2 : 1;
+        List<DateRoom> anotherDateRoomList = dateRoomRepository.findAllByDateBetweenAndRoom_Id(reservation.getFirstDate(), reservation.getLastDateRoom().getDate(), anotherRoomId);
+        return anotherDateRoomList.stream().allMatch(dateRoom -> dateRoom.getRoomReservationState() == 0);
+    }
+
+    @Async("offerExecutor")
+    public void expireOffer(Long reservationId) {
+        try {
+            reservationService.setThreadName(reservationId, Thread.currentThread().getName());
+            Thread.sleep(6 * 60 * 60 * 1000);
+        } catch (InterruptedException e) {
+            log.info("예약 변경 제안에 대한 응답 수신");
+        }
+        reservationService.removeThreadName(reservationId);
+        Reservation reservation = reservationRepository.findById(reservationId).orElseThrow(NoSuchElementException::new);
+        if (reservation.getReservationState() == 3) {
+            refundBySystem(reservation);
         }
     }
 
