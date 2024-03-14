@@ -2,7 +2,6 @@ package com.yeoyeo.domain;
 
 import com.yeoyeo.application.dateroom.etc.exception.RoomReservationException;
 import com.yeoyeo.application.dateroom.repository.HolidayRepository;
-import jakarta.persistence.Cacheable;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -25,7 +24,7 @@ import org.hibernate.annotations.OptimisticLocking;
 @Getter
 @NoArgsConstructor
 @Entity
-@Cacheable // 2차 캐시 활성화
+//@Cacheable // 2차 캐시 활성화
 @OptimisticLocking
 public class DateRoom {
     @Id
@@ -76,7 +75,7 @@ public class DateRoom {
     }
 
     public void setStateWaiting() throws RoomReservationException {
-        if (this.roomReservationState == 0) {
+        if (this.roomReservationState == 1) {
             this.roomReservationState = 2;
         } else {
             throw new RoomReservationException("예약 대기가 불가능한 날짜입니다.");

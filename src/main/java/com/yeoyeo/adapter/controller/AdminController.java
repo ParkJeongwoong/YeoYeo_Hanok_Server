@@ -184,4 +184,9 @@ public class AdminController {
     public SendMessageResponseDto testNoticeMsg(@RequestBody MessageTestRequestDto requestDto) {
         return messageService.sendNoticeMsg(requestDto.getNumberOnlyPhoneNumber());
     }
+
+    @GetMapping("/offer")
+    public List<Long> getReservationList() {
+        return reservationService.getReservationIdList();
+    }
 }

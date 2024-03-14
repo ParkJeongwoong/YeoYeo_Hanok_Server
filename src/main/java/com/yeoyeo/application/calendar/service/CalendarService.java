@@ -1,6 +1,7 @@
 package com.yeoyeo.application.calendar.service;
 
 import com.yeoyeo.aop.annotation.SingleJob;
+import com.yeoyeo.application.collision.service.CollisionHandleService;
 import com.yeoyeo.application.common.dto.GeneralResponseDto;
 import com.yeoyeo.application.common.exception.ExternalApiException;
 import com.yeoyeo.application.dateroom.repository.DateRoomRepository;
@@ -84,6 +85,7 @@ public class CalendarService {
 
     private final ReservationService reservationService;
     private final PaymentService paymentService;
+    private final CollisionHandleService collisionHandleService;
     private final MessageService messageService;
 
     private final DateRoomRepository dateRoomRepository;
@@ -136,17 +138,20 @@ public class CalendarService {
 
     @Transactional
     public synchronized void syncInICSFile_Airbnb_A() {
+        log.info("syncInICSFile_Airbnb_A - Start");
         getIcsFileFromPlatform(AIRBNB_FILE_URL_A, AIRBNB_FILE_PATH_A);
         syncIcalendarFile(AIRBNB_FILE_PATH_A, getGuestAirbnbFactory(), getPaymentAirbnb(), 1);
     }
     @Transactional
     public synchronized void syncInICSFile_Airbnb_B() {
+        log.info("syncInICSFile_Airbnb_B - Start");
         getIcsFileFromPlatform(AIRBNB_FILE_URL_B, AIRBNB_FILE_PATH_B);
         syncIcalendarFile(AIRBNB_FILE_PATH_B, getGuestAirbnbFactory(), getPaymentAirbnb(), 2);
     }
 
     @Transactional
     public synchronized void syncInICSFile_Booking_B() {
+        log.info("syncInICSFile_Booking_B - Start");
         getIcsFileFromPlatform(BOOKING_FILE_URL_B, BOOKING_FILE_PATH_B);
         syncIcalendarFile(BOOKING_FILE_PATH_B, getGuestBookingFactory(), getPaymentBooking(), 2);
     }
@@ -361,8 +366,8 @@ public class CalendarService {
                     if (uid == null || getPlatformName(uid).equals("yeoyeo")) {
                         log.info("홈페이지 예약 취소");
 //                        GeneralResponseDto response = paymentService.refundBySystem(collidedReservation);
-                        GeneralResponseDto response = paymentService.collideRefund(collidedReservation);
-                        if (!response.isSuccess()) return false;
+                        GeneralResponseDto response = collisionHandleService.collideRefund(collidedReservation);
+                        if (!response.isSuccess() || response.getResultId() == 2) return false;
                     } else {
                         log.info("플랫폼 예약 취소");
                         try {

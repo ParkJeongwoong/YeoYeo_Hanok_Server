@@ -75,9 +75,10 @@ public class MessageService {
     }
 
     // LMS
-    public SendMessageResponseDto sendReservationMsg(Reservation reservation) {
+    public void sendReservationMsg(Reservation reservation) {
         if (checkAdminName(reservation.getGuest().getName())) {
-            return null;
+            log.info("예약자 이름이 관리자 이름과 동일합니다. 예약 문자를 보내지 않습니다.");
+            return;
         }
         LocalDate startDate = reservation.getFirstDateRoom().getDate();
         LocalDate endDate = reservation.getLastDateRoom().getDate().plusDays(1);
@@ -87,7 +88,7 @@ public class MessageService {
         String to = reservation.getGuest().getNumberOnlyPhoneNumber();
         String subject = "[한옥스테이 여여] 예약 확정 안내 문자입니다.";
         String content = "[한옥스테이 여여 예약 확정 안내]" + changeTwoLine +
-                "안녕하세요, 한옥스테이 여여입니다.n" + changeLine +
+                "안녕하세요, 한옥스테이 여여입니다." + changeLine +
                 "고객님의 "+startDate_string+" ~ "+endDate_string+" ["+room+"] 예약이 확정되셨습니다." + changeLine +
                 "(예약번호 :"+reservation.getId()+")" + changeTwoLine +
                 "입실은 15시부터 이며 퇴실은 11시입니다." + changeTwoLine +
@@ -103,14 +104,18 @@ public class MessageService {
                 "고객명 : " + reservation.getGuest().getName() + " (" + reservation.getGuest().getGuestCount() + "명)" + changeLine +
                 "연락처 : " + reservation.getGuest().getPhoneNumber();
 
+        log.info("관리자에게 문자를 보냅니다. to : {}", ADMIN_LIST);
         sendMultipleMessage("LMS", subject4Admin, content4Admin, ADMIN_LIST);
-        return sendMessage("LMS", subject, content, to);
+        log.info("예약자에게 문자를 보냅니다. to : {}", to);
+        SendMessageResponseDto responseDto = sendMessage("LMS", subject, content, to);
+        log.info("예약 문자 전송 결과 : {} / {}", responseDto.getStatusCode(), responseDto.getStatusName());
     }
 
     // LMS
-    public SendMessageResponseDto sendCancelMsg(Reservation reservation) {
+    public void sendCancelMsg(Reservation reservation) {
         if (checkAdminName(reservation.getGuest().getName())) {
-            return null;
+            log.info("예약자 이름이 관리자 이름과 동일합니다. 예약 문자를 보내지 않습니다.");
+            return;
         }
         LocalDate startDate = reservation.getFirstDateRoom().getDate();
         LocalDate endDate = reservation.getLastDateRoom().getDate().plusDays(1);
@@ -133,22 +138,27 @@ public class MessageService {
                 "예약 날짜 : " + startDate_string+" ~ "+endDate_string+" "+room + changeLine +
                 "고객명 : " + reservation.getGuest().getName();
 
+        log.info("관리자에게 문자를 보냅니다. to : {}", ADMIN_LIST);
         sendMultipleMessage("LMS", subject4Admin, content4Admin, ADMIN_LIST);
-        return sendMessage("LMS", subject, content, to);
+        log.info("예약자에게 문자를 보냅니다. to : {}", to);
+        SendMessageResponseDto responseDto = sendMessage("LMS", subject, content, to);
+        log.info("취소 문자 전송 결과 : {} / {}", responseDto.getStatusCode(), responseDto.getStatusName());
     }
 
     // LMS
-    public SendMessageResponseDto sendAdminMsg(String message) {
+    public void sendAdminMsg(String message) {
         String subject = "[한옥스테이 여여] 관리자 알림 문자입니다.";
         String content = "[한옥스테이 여여 관리자 알림 문자]" + changeTwoLine +
                 "관리자 알림 문자입니다." + changeLine +
                 "내용 : " + message;
-        return sendMultipleMessage("LMS", subject, content, ADMIN_LIST);
+        SendMessageResponseDto responseDto = sendMultipleMessage("LMS", subject, content, ADMIN_LIST);
+        log.info("예약 문자 전송 결과 : {} / {}", responseDto.getStatusCode(), responseDto.getStatusName());
     }
 
     // LMS
     public void sendCollisionMsg(Reservation reservation) {
         if (checkAdminName(reservation.getGuest().getName())) {
+            log.info("예약자 이름이 관리자 이름과 동일합니다. 예약 문자를 보내지 않습니다.");
             return;
         }
         LocalDate startDate = reservation.getFirstDateRoom().getDate();
@@ -163,18 +173,22 @@ public class MessageService {
                 "먼저 죄송하다는 말씀을 드립니다." + changeLine +
                 "현재 홈페이지의 사정으로 인해 고객님의 "+startDate_string+" ~ "+endDate_string+" "+room+" 예약이 취소되셨습니다." + changeLine +
                 "(예약번호 :"+reservation.getId()+")" + changeTwoLine +
-                "한옥스테이 여여를 찾아 주신 것에 대한 고마움과 죄송한 마음을 담아 현재 연락처로 소정의 선물을 발송해 드리려고 합니다." + changeLine +
-                "기대하셨을 여행에 실망을 안겨드려 다시 한 번 죄송합니다." +
-                "결제하신 내역은 즉시 전액 환불될 예정이며 예약 취소에 대한 보상 역시 최대한 빠르게 전달해드리겠습니다." + changeTwoLine +
+//                "한옥스테이 여여를 찾아 주신 것에 대한 고마움과 죄송한 마음을 담아 현재 연락처로 소정의 선물을 발송해 드리려고 합니다." + changeLine +
+//                "기대하셨을 여행에 실망을 안겨드려 다시 한 번 죄송합니다." +
+//                "결제하신 내역은 즉시 전액 환불될 예정이며 예약 취소에 대한 보상 역시 최대한 빠르게 전달해드리겠습니다." + changeTwoLine +
+                "결제하신 내역은 즉시 카드사에 전액 환불 요청될 예정이며 환불 요청 후 입금에 시간이 걸릴 수 있습니다." + changeLine +
+                "기대하셨을 여행에 실망을 안겨드려 다시 한 번 죄송합니다." + changeLine +
                 "감사합니다.";
 
         String subject4Admin = "[한옥스테이 여여] 플랫폼 간 예약 중복으로 인한 예약 취소 발생";
         String content4Admin = "[한옥스테이 여여 관리자 알림 문자]" + changeTwoLine +
                 "예약 정보 동기화 중 플랫폼 간 예약 중복이 발견되어 예약 취소가 발생되었습니다." + changeLine +
-                "취소된 예약은 "+startDate_string+" ~ "+endDate_string+" "+room+"예약(예약번호 :"+reservation.getId()+")이며 "+reservation.getGuest().getName()+" 고객의 연락처는 "+reservation.getGuest().getPhoneNumber()+" 입니다." + changeTwoLine +
-                "빠른 보상 전달 부탁드립니다.";
+                "취소된 예약은 "+startDate_string+" ~ "+endDate_string+" "+room+"예약(예약번호 :"+reservation.getId()+")이며 "+reservation.getGuest().getName()+" 고객의 연락처는 "+reservation.getGuest().getPhoneNumber()+" 입니다.";
+//                "빠른 보상 전달 부탁드립니다.";
 
+        log.info("예약자에게 문자를 보냅니다. to : {}", to);
         sendMessage("LMS", subject, content, to);
+        log.info("관리자에게 문자를 보냅니다. to : {}", ADMIN_LIST);
         sendMultipleMessage("LMS", subject4Admin, content4Admin, ADMIN_LIST);
     }
 
@@ -184,6 +198,7 @@ public class MessageService {
         List<Reservation> reservations = reservationRepository.findAllByReservationState(1)
                 .stream().filter(reservation -> reservation.getManagementLevel() == 1 && reservation.getRoom().getId() == roomId && reservation.getGuest().getPhoneNumber() != null)
                 .collect(Collectors.toList());
+        log.info("문자 발송 대상 : {}건", reservations.size());
         reservations.forEach(reservation -> {
             log.info("SEND TO {} - {}", reservation.getId(), reservation.getGuest().getPhoneNumber());
             sendNoticeMsg(reservation.getGuest().getNumberOnlyPhoneNumber());
@@ -195,6 +210,7 @@ public class MessageService {
     // LMS
     public SendMessageResponseDto sendNoticeMsg(String numberOnlyPhoneNumber) {
         if (checkAdminPhone(numberOnlyPhoneNumber)) {
+            log.info("예약자 이름이 관리자 이름과 동일합니다. 예약 문자를 보내지 않습니다.");
             return null;
         }
         String subject = "[한옥스테이 여여] 숙박 안내문자";
@@ -225,12 +241,14 @@ public class MessageService {
                 "감사합니다." + changeTwoLine +
                 "(추가적인 문의가 있으시면 " + HOST + " 로 연락 부탁드립니다.)";
 
+        log.info("문자 발송 대상 : {}", numberOnlyPhoneNumber);
         return sendMessage("LMS", subject, content, numberOnlyPhoneNumber);
     }
 
     // LMS
     public SendMessageResponseDto sendNotice7DaysBeforeMsg(String numberOnlyPhoneNumber) {
         if (checkAdminPhone(numberOnlyPhoneNumber)) {
+            log.info("예약자 이름이 관리자 이름과 동일합니다. 예약 문자를 보내지 않습니다.");
             return null;
         }
         String subject = "[한옥스테이 여여] 숙박 안내문자";
@@ -260,12 +278,14 @@ public class MessageService {
             "감사합니다." + changeTwoLine +
             "(추가적인 문의가 있으시면 " + HOST + " 로 연락 부탁드립니다.)";
 
+        log.info("문자 발송 대상 : {}", numberOnlyPhoneNumber);
         return sendMessage("LMS", subject, content, numberOnlyPhoneNumber);
     }
 
     // LMS
     public SendMessageResponseDto sendCheckInMsg(String numberOnlyPhoneNumber, String room) {
         if (checkAdminPhone(numberOnlyPhoneNumber)) {
+            log.info("예약자 이름이 관리자 이름과 동일합니다. 예약 문자를 보내지 않습니다.");
             return null;
         }
         String subject = "[한옥스테이 여여] 체크인 안내문자";
@@ -323,13 +343,15 @@ public class MessageService {
                 "감사합니다!" + changeTwoLine +
                 "(추가적인 문의가 있으시면 " + HOST + " 로 연락 부탁드립니다.)";
 
+        log.info("문자 발송 대상 : {}", numberOnlyPhoneNumber);
         return sendMessage("LMS", subject, content, numberOnlyPhoneNumber);
     }
 
     // LMS
-    public SendMessageResponseDto sendAfterCheckInMsg(String numberOnlyPhoneNumber) {
+    public void sendAfterCheckInMsg(String numberOnlyPhoneNumber) {
         if (checkAdminPhone(numberOnlyPhoneNumber)) {
-            return null;
+            log.info("예약자 이름이 관리자 이름과 동일합니다. 예약 문자를 보내지 않습니다.");
+            return;
         }
         String subject = "[한옥스테이 여여] 안내문자";
         String content = "안녕하세요 :)" + changeLine +
@@ -338,16 +360,20 @@ public class MessageService {
                 "뒷뜰 바구니에 먼지털이와 물티슈를 넣어두었어요. 필요하실 때 사용하시길 바랍니다.^^" + changeLine +
                 "감사합니다.";
 
-        return sendMessage("LMS", subject, content, numberOnlyPhoneNumber);
+        log.info("문자 발송 대상 : {}", numberOnlyPhoneNumber);
+        SendMessageResponseDto responseDto = sendMessage("LMS", subject, content, numberOnlyPhoneNumber);
+        if (responseDto != null) {
+            log.info("문자 발송 결과 : {} / {}", responseDto.getStatusCode(), responseDto.getStatusName());
+        }
     }
 
     // LMS
-    public SendMessageResponseDto sendAdminCheckInMsg(SendAdminCheckInMsgDto msgDto) {
+    public void sendAdminCheckInMsg(SendAdminCheckInMsgDto msgDto) {
         String subject = "[한옥스테이 여여] 체크인 알림";
         List<AdminManageInfo> guestInfoList = msgDto.getGuestInfos().stream().filter(guestInfo -> !checkAdminName(guestInfo.getName())).collect(Collectors.toList());
         if (guestInfoList.isEmpty()) {
             log.info("체크인 정보가 없습니다.");
-            return null;
+            return;
         }
         LocalDate checkInDate = guestInfoList.get(0).getCheckin();
         String roomA_guestName; // 여유
@@ -391,17 +417,19 @@ public class MessageService {
         }
         String content = stringBuilder.toString();
 
-        return sendMessage("LMS", subject, content, getNumberOnly(HOST));
+        SendMessageResponseDto responseDto = sendMessage("LMS", subject, content, getNumberOnly(HOST));
+        if (responseDto != null) {
+            log.info("문자 발송 결과 : {} / {}", responseDto.getStatusCode(), responseDto.getStatusName());
+        }
     }
 
     public void sendDevMsg(String msg) {
-        String subject = "[한옥스테이 여여] 개발자 문자";
-        String content = msg;
-        sendMessage("SMS", subject, content, getNumberOnly(DEV));
+        sendMessage("SMS", "[한옥스테이 여여] 개발자 문자", msg, getNumberOnly(DEV));
     }
 
     public void sendChangeOfferMsg(Reservation reservation) {
         if (checkAdminName(reservation.getGuest().getName())) {
+            log.info("예약자 이름이 관리자 이름과 동일합니다. 예약 문자를 보내지 않습니다.");
             return;
         }
         LocalDate startDate = reservation.getFirstDateRoom().getDate();
@@ -409,7 +437,7 @@ public class MessageService {
         String startDate_string = startDate.getYear()+"년 "+startDate.getMonthValue()+"월"+startDate.getDayOfMonth()+"일";
         String endDate_string = endDate.getYear()+"년 "+endDate.getMonthValue()+"월"+endDate.getDayOfMonth()+"일 ";
         String room = "["+reservation.getRoom().getName()+"]";
-        String anotherRoom = reservation.getRoom().getName().equals("여유") ? "[여유]" : "[여행]";
+        String anotherRoom = reservation.getRoom().getName().equals("여유") ? "[여행]" : "[여유]";
 
         String to = reservation.getGuest().getNumberOnlyPhoneNumber();
         String subject = "[한옥스테이 여여] 예약 변경 제안";
@@ -436,10 +464,10 @@ public class MessageService {
             "예약 일자 : " + startDate_string + " ~ " + endDate_string + changeLine +
             "예약 방 : " + room + changeLine;
 
+        log.info("예약자에게 문자를 보냅니다. to : {}", to);
         sendMessage("LMS", subject, content, to);
+        log.info("관리자에게 문자를 보냅니다. to : {}", ADMIN_LIST);
         sendMultipleMessage("LMS", subject4Admin, content4Admin, ADMIN_LIST);
-
-        sendMessage("LMS", subject, content, getNumberOnly(HOST));
     }
 
     private SendMessageResponseDto sendMessage(String type, String subject, String content, String to) {

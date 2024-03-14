@@ -1,15 +1,14 @@
 package com.yeoyeo.application.dateroom.service;
 
 import com.yeoyeo.application.common.dto.GeneralResponseDto;
-import com.yeoyeo.application.common.exception.AsyncApiException;
 import com.yeoyeo.application.common.exception.NoResponseException;
 import com.yeoyeo.application.common.service.WebClientService;
 import com.yeoyeo.application.dateroom.dto.ChangeDateRoomListPriceRequestDto;
 import com.yeoyeo.application.dateroom.dto.ChangeDateRoomListStatusRequestDto;
 import com.yeoyeo.application.dateroom.dto.DateRoom2MonthDto;
+import com.yeoyeo.application.dateroom.dto.DateRoomCacheDto;
 import com.yeoyeo.application.dateroom.dto.DateRoomIdPriceInfoDto;
 import com.yeoyeo.application.dateroom.dto.DateRoomInfoByDateDto;
-import com.yeoyeo.application.dateroom.dto.DateRoomInfoDto;
 import com.yeoyeo.application.dateroom.dto.DateRoomPriceInfoDto;
 import com.yeoyeo.application.dateroom.etc.exception.RoomReservationException;
 import com.yeoyeo.application.dateroom.repository.DateRoomRepository;
@@ -23,9 +22,7 @@ import com.yeoyeo.domain.Reservation;
 import com.yeoyeo.domain.Room;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,13 +32,7 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.RedisConnectionFailureException;
-import org.springframework.data.redis.core.HashOperations;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.MediaType;
-import org.springframework.retry.annotation.Backoff;
-import org.springframework.retry.annotation.Recover;
-import org.springframework.retry.annotation.Retryable;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -56,13 +47,14 @@ public class DateRoomService {
 
     private final MessageService messageService;
     private final WebClientService webClientService;
-    private final RedisTemplate<String, Object> redisTemplate;
+    private final DateRoomCacheService dateRoomCacheService;
+    private final DateRoomInfoService dateRoomInfoService;
     @Value("${data.holiday.key}")
     String holidayKey;
 
     public List<DateRoomInfoByDateDto> showAllDateRooms() {
         List<DateRoom> dateRoomList =  dateRoomRepository.findAllByOrderByDateAscRoom_Id();
-        return getDateRoomInfoList(dateRoomList);
+        return dateRoomInfoService.getDateRoomInfoList(dateRoomList);
     }
 
     public DateRoom2MonthDto show2MonthsDateRooms(int year, int month) {
@@ -71,7 +63,7 @@ public class DateRoomService {
         int cachedMonth = now.getMonthValue();
         try {
             if (year == cachedYear && month == cachedMonth) {
-                return cachedDateRoomInfo();
+                return dateRoomCacheService.getCachedDateRoomInfo();
             }
         } catch (RedisConnectionFailureException e) {
             log.error("Redis connection failed", e);
@@ -79,18 +71,9 @@ public class DateRoomService {
         }
         LocalDate thisMonthStartDate = LocalDate.of(year, month, 1);
         LocalDate nextMonthStartDate = thisMonthStartDate.plusMonths(1);
-        List<DateRoomInfoByDateDto> thisMonth = getDateRoomInfoListByDate(thisMonthStartDate);
-        List<DateRoomInfoByDateDto> nextMonth = getDateRoomInfoListByDate(nextMonthStartDate);
+        List<DateRoomInfoByDateDto> thisMonth = dateRoomInfoService.getDateRoomInfoListByDate(thisMonthStartDate);
+        List<DateRoomInfoByDateDto> nextMonth = dateRoomInfoService.getDateRoomInfoListByDate(nextMonthStartDate);
         return new DateRoom2MonthDto(thisMonth, nextMonth);
-    }
-
-    private List<DateRoomInfoByDateDto> getDateRoomInfoListByDate(LocalDate startDate) {
-        return getDateRoomInfoList(getMonthDateRooms(startDate));
-    }
-
-    private List<DateRoom> getMonthDateRooms(LocalDate firstMonthDate) {
-        LocalDate lastMonthDate = firstMonthDate.plusMonths(1).minusDays(1);
-        return dateRoomRepository.findAllByDateBetweenOrderByDateAscRoom_Id(firstMonthDate, lastMonthDate);
     }
 
     // 공휴일은 추가만 됨
@@ -231,7 +214,7 @@ public class DateRoomService {
         List<DateRoom> dateRoomList = dateRoomRepository.findAllByDateBetween(startDate, endDate);
         dateRoomList.forEach(dateRoom->{
             dateRoom.resetDefaultPriceType(holidayRepository);
-            updateCache(dateRoom);
+            dateRoomCacheService.updateCache(new DateRoomCacheDto(dateRoom));
         });
         dateRoomRepository.saveAll(dateRoomList);
     }
@@ -260,7 +243,7 @@ public class DateRoomService {
         for (DateRoom dateRoom:dateRoomList) {
             if (priceType == 0 && price>0) dateRoom.changePrice(price);
             else dateRoom.changePriceType(priceType);
-            updateCache(dateRoom);
+            dateRoomCacheService.updateCache(new DateRoomCacheDto(dateRoom));
         }
         return GeneralResponseDto.builder().success(true).build();
     }
@@ -286,130 +269,12 @@ public class DateRoomService {
                     default:
                         break;
                 }
-                updateCache(dateRoom);
+                dateRoomCacheService.updateCache(new DateRoomCacheDto(dateRoom));
             } catch (RoomReservationException roomReservationException) {
                 return GeneralResponseDto.builder().success(false).message("해당 날짜의 예약 상태를 변경할 수 없습니다.").build();
             }
         }
         return GeneralResponseDto.builder().success(true).build();
-    }
-
-    private List<DateRoomInfoByDateDto> getDateRoomInfoList(List<DateRoom> dateRoomList) {
-        List<DateRoomInfoByDateDto> dateRoomInfoByDateDtos = new ArrayList<>();
-        dateRoomList.forEach(dateRoom -> {
-            if (dateRoomInfoByDateDtos.isEmpty()) {
-                DateRoomInfoByDateDto newDto = new DateRoomInfoByDateDto(dateRoom.getDate(), new DateRoomInfoDto(dateRoom));
-                dateRoomInfoByDateDtos.add(newDto);
-            } else {
-                DateRoomInfoByDateDto lastDto = dateRoomInfoByDateDtos.get(dateRoomInfoByDateDtos.size()-1);
-                if (lastDto.getDate().isEqual(dateRoom.getDate())) lastDto.addDateRoomInfo(new DateRoomInfoDto(dateRoom));
-                else {
-                    DateRoomInfoByDateDto newDto = new DateRoomInfoByDateDto(dateRoom.getDate(), new DateRoomInfoDto(dateRoom));
-                    dateRoomInfoByDateDtos.add(newDto);
-                }
-            }
-        });
-        return dateRoomInfoByDateDtos;
-    }
-
-    public DateRoom2MonthDto cachedDateRoomInfo() throws RedisConnectionFailureException  {
-        LocalDate now = LocalDate.now();
-        int year = now.getYear();
-        int month = now.getMonthValue();
-        LocalDate next = now.plusMonths(1);
-        List<DateRoomInfoByDateDto> thisMonth = getOrSetCachedDateRoomInfoList(year, month);
-        List<DateRoomInfoByDateDto> nextMonth = getOrSetCachedDateRoomInfoList(next.getYear(), next.getMonthValue());
-        return new DateRoom2MonthDto(thisMonth, nextMonth);
-    }
-
-    public List<DateRoomInfoByDateDto> getOrSetCachedDateRoomInfoList(int year, int month) throws RedisConnectionFailureException {
-        HashOperations<String, String, DateRoomInfoDto> hashOperations = redisTemplate.opsForHash();
-        List<DateRoomInfoByDateDto> dateRoomInfoByDateDtos = new ArrayList<>();
-        // 여유 방 데이터
-        String key1 = getDateRoomCacheKey(year, month, 1);
-        Map<String, DateRoomInfoDto> entries1 = hashOperations.entries(key1);
-        if (entries1.isEmpty()) {
-            log.info("CACHE MISS (여유 방 데이터)");
-            return setCachedDateRoomInfoList(year, month);
-        }
-
-        // 여행 방 데이터
-        String key2 = getDateRoomCacheKey(year, month, 2);
-        Map<String, DateRoomInfoDto> entries2 = hashOperations.entries(key2);
-        if (entries2.isEmpty()) {
-            log.info("CACHE MISS (여행 방 데이터)");
-            return setCachedDateRoomInfoList(year, month);
-        }
-
-        LocalDate startDate = LocalDate.of(year, month, 1);
-        LocalDate endDate = startDate.plusMonths(1);
-        for (LocalDate date = startDate; date.isBefore(endDate); date = date.plusDays(1)) {
-            String dateStr = date.toString();
-            DateRoomInfoByDateDto dateRoomInfoByDateDto = new DateRoomInfoByDateDto(date, entries1.get(dateStr));
-            if (entries2.containsKey(dateStr)) dateRoomInfoByDateDto.addDateRoomInfo(entries2.get(dateStr));
-            dateRoomInfoByDateDtos.add(dateRoomInfoByDateDto);
-        }
-
-        return dateRoomInfoByDateDtos;
-    }
-
-    private List<DateRoomInfoByDateDto> setCachedDateRoomInfoList(int year, int month) throws RedisConnectionFailureException {
-        HashOperations<String, String, DateRoomInfoDto> hashOperations = redisTemplate.opsForHash();
-        LocalDate startDate = LocalDate.of(year, month, 1);
-        List<DateRoomInfoByDateDto> dateRoomInfoByDateDtos = getDateRoomInfoListByDate(startDate);
-        String key1 = getDateRoomCacheKey(year, month, 1);
-        String key2 = getDateRoomCacheKey(year, month, 2);
-        log.info("key1: {} year: {} month: {}", key1, year, month);
-        log.info("key2: {} year: {} month: {}", key2, year, month);
-
-        dateRoomInfoByDateDtos.forEach(dto -> {
-            String dateStr = dto.getDate().toString();
-            dto.getRooms().forEach(dateRoomInfoDto -> {
-                if (dateRoomInfoDto.getRoomName().equals("여유")) {
-                    hashOperations.put(key1, dateStr, dateRoomInfoDto);
-                }
-                else {
-                    hashOperations.put(key2, dateStr, dateRoomInfoDto);
-                }
-            });
-        });
-
-        return dateRoomInfoByDateDtos;
-    }
-
-    @Retryable(retryFor = {AsyncApiException.class}, maxAttempts = 5, backoff = @Backoff(random = true, delay = 1000, maxDelay = 3000))
-    @Async("redisExecutor")
-    public void updateCache(DateRoom dateRoom) {
-        try {
-            HashOperations<String, String, DateRoomInfoDto> hashOperations = redisTemplate.opsForHash();
-            String key = getDateRoomCacheKey(dateRoom.getDate().getYear(),
-                dateRoom.getDate().getMonthValue(), dateRoom.getRoom().getId());
-            String hashKey = dateRoom.getDate().toString();
-            // 해당 캐시 데이터가 있으면 업데이트, 없으면 Skip
-            log.info("캐시 업데이트 시도: {} {}", key, hashKey);
-            if (Boolean.TRUE.equals(hashOperations.hasKey(key, hashKey))) {
-                hashOperations.put(key, hashKey, new DateRoomInfoDto(dateRoom));
-                log.info("캐시 업데이트: {} {}", key, hashKey);
-            } else {
-                log.info("캐시 업데이트 Skip: {} {}", key, hashKey);
-            }
-        } catch (RedisConnectionFailureException e) {
-            log.error("Redis 연결 실패: {}", e.getMessage());
-            messageService.sendDevMsg("DateRoom 캐시 업데이트 중 Redis 연결 실패: " + e.getMessage());
-            throw new AsyncApiException("캐시 업데이트 비동기 작업 실패 : Dateroom ID " + dateRoom.getId(), e);
-        } catch (Exception e) {
-            log.error("Dateroom {} - 캐시 업데이트 실패: {}", dateRoom.getId(), e.getMessage());
-            throw new AsyncApiException("캐시 업데이트 비동기 작업 실패 : Dateroom ID " + dateRoom.getId(), e);
-        }
-    }
-    @Recover
-    public void recover(AsyncApiException e) {
-        log.error("캐시 업데이트 비동기 작업 실패 후 Recover: {}", e.getMessage());
-        messageService.sendDevMsg("캐시 업데이트 비동기 작업 실패: " + e.getMessage());
-    }
-
-    private String getDateRoomCacheKey(int year, int month, long roomId) {
-        return year + "-" + month + ":" + roomId;
     }
 
 }

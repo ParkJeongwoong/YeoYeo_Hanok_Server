@@ -99,7 +99,7 @@ public class Reservation extends BaseTimeEntity {
     }
 
     public void setStateChangeWait() throws ReservationException {
-        if (this.reservationState == 1) {
+        if (this.reservationState == 1 || this.reservationState == 5) {
             List<DateRoom> dateRoomList = getDateRoomList();
             try {
                 for (DateRoom dateRoom : dateRoomList) {

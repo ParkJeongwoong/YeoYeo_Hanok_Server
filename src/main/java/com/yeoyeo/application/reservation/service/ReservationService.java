@@ -1,8 +1,10 @@
 package com.yeoyeo.application.reservation.service;
 
 import com.yeoyeo.application.common.dto.GeneralResponseDto;
+import com.yeoyeo.application.dateroom.dto.DateRoomCacheDto;
 import com.yeoyeo.application.dateroom.etc.exception.RoomReservationException;
 import com.yeoyeo.application.dateroom.repository.DateRoomRepository;
+import com.yeoyeo.application.dateroom.service.DateRoomCacheService;
 import com.yeoyeo.application.dateroom.service.DateRoomService;
 import com.yeoyeo.application.message.service.MessageService;
 import com.yeoyeo.application.reservation.dto.MakeReservationDto.MakeReservationDto;
@@ -15,6 +17,7 @@ import com.yeoyeo.domain.DateRoom;
 import com.yeoyeo.domain.Guest.Guest;
 import com.yeoyeo.domain.Payment;
 import com.yeoyeo.domain.Reservation;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -36,6 +39,7 @@ public class ReservationService {
     private final DateRoomRepository dateRoomRepository;
     private final ReservationRepository reservationRepository;
     private final DateRoomService dateRoomService;
+    private final DateRoomCacheService dateRoomCacheService;
     private final MessageService messageService;
 
     Map<Long, String> changeOfferMap = new HashMap<>();
@@ -94,7 +98,7 @@ public class ReservationService {
                 dateRoom.setStateBooked();
                 dateRoomRepository.save(dateRoom);
                 log.info("{} : {} {} 예약성공", reservation.getGuest().getName(), dateRoom.getDate(), dateRoom.getRoom().getId());
-                dateRoomService.updateCache(dateRoom);
+                dateRoomCacheService.updateCache(new DateRoomCacheDto(dateRoom));
             }
             reservation.setPayment(payment);
             reservationRepository.save(reservation);
@@ -119,7 +123,7 @@ public class ReservationService {
             reservation.setStateCanceled();
             for (DateRoom dateRoom:dateRoomList) {
                 dateRoom.resetState();
-                dateRoomService.updateCache(dateRoom);
+                dateRoomCacheService.updateCache(new DateRoomCacheDto(dateRoom));
             }
             reservationRepository.save(reservation);
             messageService.sendCancelMsg(reservation);
@@ -143,7 +147,7 @@ public class ReservationService {
             reservation.setStateRefund();
             for (DateRoom dateRoom:reservation.getDateRoomList()) {
                 dateRoom.resetState();
-                dateRoomService.updateCache(dateRoom);
+                dateRoomCacheService.updateCache(new DateRoomCacheDto(dateRoom));
             }
             reservationRepository.save(reservation);
             log.info("{} 고객님의 예약이 취소되었습니다.", reservation.getGuest().getName());
@@ -169,6 +173,10 @@ public class ReservationService {
 
     public String getThreadName(Long reservationId) {
         return this.changeOfferMap.get(reservationId);
+    }
+
+    public List<Long> getReservationIdList() {
+        return new ArrayList<>(this.changeOfferMap.keySet());
     }
 
     public void removeThreadName(Long reservationId) {

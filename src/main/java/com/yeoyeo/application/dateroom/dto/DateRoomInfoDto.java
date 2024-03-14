@@ -29,4 +29,14 @@ public class DateRoomInfoDto implements Serializable {
         this.reservationState = entity.getRoomReservationState();
         this.reservable = entity.isReservable();
     }
+
+    public DateRoomInfoDto(DateRoomCacheDto cacheDto) {
+        this.dateRoomId = cacheDto.getDateRoomId();
+        this.roomId = cacheDto.getRoomId();
+        this.roomName = cacheDto.getRoomName();
+        this.price = cacheDto.getPrice();
+        this.priceType = cacheDto.getPriceType();
+        this.reservationState = cacheDto.getReservationState();
+        this.reservable = cacheDto.isReservable();
+    }
 }
