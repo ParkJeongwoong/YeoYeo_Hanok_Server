@@ -1,6 +1,5 @@
 package com.yeoyeo.domain;
 
-import com.yeoyeo.application.dateroom.etc.exception.RoomReservationException;
 import com.yeoyeo.application.reservation.etc.exception.ReservationException;
 import com.yeoyeo.domain.Guest.Guest;
 import jakarta.persistence.Cacheable;
@@ -32,7 +31,7 @@ public class Reservation extends BaseTimeEntity {
     @Id
     private long id;
 
-    @OneToMany(mappedBy = "reservation", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "reservation", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private final List<MapDateRoomReservation> mapDateRoomReservations = new ArrayList<>();
 
     @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
@@ -83,7 +82,7 @@ public class Reservation extends BaseTimeEntity {
     }
 
     public void setStatePaid() throws ReservationException {
-        if (this.reservationState == 0) {
+        if (this.reservationState == 0 || this.reservationState == 3) {
             this.reservationState = 1;
         } else {
             throw new ReservationException("미결제 상태가 아닙니다.");
@@ -95,57 +94,6 @@ public class Reservation extends BaseTimeEntity {
             this.reservationState = 2;
         } else {
             throw new ReservationException("정상적인 예약이 아닙니다.");
-        }
-    }
-
-    public void setStateChangeWait() throws ReservationException {
-        if (this.reservationState == 1 || this.reservationState == 5) {
-            List<DateRoom> dateRoomList = getDateRoomList();
-            try {
-                for (DateRoom dateRoom : dateRoomList) {
-                    dateRoom.setStateWaiting();
-                }
-                this.reservationState = 3;
-            } catch (RoomReservationException e) {
-                log.error("예약 변경 대기 중 에러 발생", e);
-                throw new ReservationException("예약 변경 대기 중 에러 발생");
-            }
-        } else {
-            throw new ReservationException("변경 대기 중 에러 발생");
-        }
-    }
-
-    public void acceptOffer() throws ReservationException {
-        if (this.reservationState == 3) {
-            List<DateRoom> dateRoomList = getDateRoomList();
-            try {
-                for (DateRoom dateRoom : dateRoomList) {
-                    dateRoom.setStateBooked();
-                }
-                this.reservationState = 1;
-            } catch (RoomReservationException e) {
-                log.error("예약 변경 대기 중 에러 발생", e);
-                throw new ReservationException("예약 변경 대기 중 에러 발생");
-            }
-        } else {
-            throw new ReservationException("변경 대기 중 에러 발생");
-        }
-    }
-
-    public void rejectOffer() throws ReservationException {
-        if (this.reservationState == 3) {
-            List<DateRoom> dateRoomList = getDateRoomList();
-            try {
-                for (DateRoom dateRoom : dateRoomList) {
-                    dateRoom.setStateBooked();
-                }
-                this.reservationState = 1;
-            } catch (RoomReservationException e) {
-                log.error("예약 변경 대기 중 에러 발생", e);
-                throw new ReservationException("예약 변경 대기 중 에러 발생");
-            }
-        } else {
-            throw new ReservationException("변경 대기 중 에러 발생");
         }
     }
 
@@ -179,6 +127,19 @@ public class Reservation extends BaseTimeEntity {
         } else {
             throw new ReservationException("동기화 종료 중 에러 발생");
         }
+    }
+
+    public void setStateChangeWait() throws ReservationException {
+        if (this.reservationState == 1 || this.reservationState == 5) {
+            this.reservationState = 3;
+        } else {
+            throw new ReservationException("변경 대기 중 에러 발생");
+        }
+    }
+
+    public void changeDateRoomList(List<DateRoom> dateRoomList) {
+        this.mapDateRoomReservations.clear();
+        this.mapDateRoomReservations.addAll(dateRoomList.stream().map(dateRoom -> new MapDateRoomReservation(dateRoom, this)).collect(Collectors.toList()));
     }
 
     public void setManagementLevel(int managementLevel) {

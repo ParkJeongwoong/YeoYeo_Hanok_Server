@@ -89,7 +89,7 @@ public class MessageService {
         String subject = "[한옥스테이 여여] 예약 확정 안내 문자입니다.";
         String content = "[한옥스테이 여여 예약 확정 안내]" + changeTwoLine +
                 "안녕하세요, 한옥스테이 여여입니다." + changeLine +
-                "고객님의 "+startDate_string+" ~ "+endDate_string+" ["+room+"] 예약이 확정되셨습니다." + changeLine +
+                "고객님의 "+startDate_string+" ~ "+endDate_string+" "+room+" 예약이 확정되셨습니다." + changeLine +
                 "(예약번호 :"+reservation.getId()+")" + changeTwoLine +
                 "입실은 15시부터 이며 퇴실은 11시입니다." + changeTwoLine +
                 "한옥스테이 여여에서 여유롭고 행복한 시간 보내시길 바라겠습니다." + changeLine +

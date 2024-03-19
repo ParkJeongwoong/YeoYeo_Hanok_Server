@@ -5,7 +5,6 @@ import com.yeoyeo.application.dateroom.dto.DateRoomCacheDto;
 import com.yeoyeo.application.dateroom.etc.exception.RoomReservationException;
 import com.yeoyeo.application.dateroom.repository.DateRoomRepository;
 import com.yeoyeo.application.dateroom.service.DateRoomCacheService;
-import com.yeoyeo.application.dateroom.service.DateRoomService;
 import com.yeoyeo.application.message.service.MessageService;
 import com.yeoyeo.application.reservation.dto.MakeReservationDto.MakeReservationDto;
 import com.yeoyeo.application.reservation.dto.MakeReservationRequestDto.MakeReservationAdminRequestDto;
@@ -17,11 +16,8 @@ import com.yeoyeo.domain.DateRoom;
 import com.yeoyeo.domain.Guest.Guest;
 import com.yeoyeo.domain.Payment;
 import com.yeoyeo.domain.Reservation;
-import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -36,13 +32,11 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class ReservationService {
 
-    private final DateRoomRepository dateRoomRepository;
-    private final ReservationRepository reservationRepository;
-    private final DateRoomService dateRoomService;
     private final DateRoomCacheService dateRoomCacheService;
     private final MessageService messageService;
 
-    Map<Long, String> changeOfferMap = new HashMap<>();
+    private final DateRoomRepository dateRoomRepository;
+    private final ReservationRepository reservationRepository;
 
     public List<ReservationInfoDto> showReservations(int type) {
         // 현재 가상계좌 결제를 사용하지 않아 미결제 상태 0이 없음
@@ -90,17 +84,20 @@ public class ReservationService {
 
     @Transactional
     public void setReservationPaid(Reservation reservation, Payment payment) throws ReservationException {
-        List<String> dateRoomIdList = reservation.getDateRoomIdList();
+//        List<String> dateRoomIdList = reservation.getDateRoomIdList();
+        List<DateRoom> dateRoomList = reservation.getDateRoomList();
         try {
-            for (String dateRoomId:dateRoomIdList) {
-                DateRoom dateRoom = dateRoomRepository.findById(dateRoomId).orElseThrow(NoSuchElementException::new);
+//            for (String dateRoomId:dateRoomIdList) {
+//                DateRoom dateRoom = dateRoomRepository.findById(dateRoomId).orElseThrow(NoSuchElementException::new);
+            for (DateRoom dateRoom:dateRoomList) {
                 log.info("{} : {} {} 예약시도", reservation.getGuest().getName(), dateRoom.getDate(), dateRoom.getRoom().getId());
                 dateRoom.setStateBooked();
-                dateRoomRepository.save(dateRoom);
+//                dateRoomRepository.save(dateRoom);
                 log.info("{} : {} {} 예약성공", reservation.getGuest().getName(), dateRoom.getDate(), dateRoom.getRoom().getId());
                 dateRoomCacheService.updateCache(new DateRoomCacheDto(dateRoom));
             }
             reservation.setPayment(payment);
+            dateRoomRepository.saveAll(dateRoomList);
             reservationRepository.save(reservation);
             log.info("{} 고객 예약성공!!", reservation.getGuest().getName());
         } catch (RoomReservationException e) {
@@ -161,52 +158,39 @@ public class ReservationService {
         return reservationRepository.findById(reservationId).orElse(null);
     }
 
+    public void changeStateWait(Reservation reservation) throws ReservationException {
+        try {
+            for (DateRoom dateRoom:reservation.getDateRoomList()) {
+                dateRoom.resetState();
+                dateRoom.getMapDateRoomReservations().clear(); // Entity의 영속성 관계를 끊어줌 (실제 DB 작업은 Reservation 에서 이루어짐)
+                dateRoomCacheService.updateCache(new DateRoomCacheDto(dateRoom));
+            }
+            dateRoomRepository.saveAll(reservation.getDateRoomList());
+
+            List<DateRoom> otherDateRoomList = getAnotherRoomDateRoomList(reservation);
+            reservation.changeDateRoomList(otherDateRoomList);
+            reservation.setStateChangeWait();
+            for (DateRoom dateRoom:reservation.getDateRoomList()) {
+                dateRoom.setStateWaiting();
+                dateRoomCacheService.updateCache(new DateRoomCacheDto(dateRoom));
+            }
+            reservationRepository.save(reservation);
+        } catch (RoomReservationException e) {
+            log.error("예약 변경 대기 중 에러 발생", e);
+            throw new ReservationException("예약 변경 대기 중 에러 발생");
+        }
+    }
+
+    public List<DateRoom> getAnotherRoomDateRoomList(Reservation reservation) {
+        long roomId = reservation.getDateRoomList().get(0).getRoom().getId();
+        long anotherRoomId = roomId == 1 ? 2 : 1;
+        return dateRoomRepository.findAllByDateBetweenAndRoom_Id(reservation.getFirstDate(), reservation.getLastDateRoom().getDate(), anotherRoomId);
+    }
+
     // PhoneNumber가 없는 에어비앤비 예약 필터링
     private void checkPhoneNumber(Reservation reservation) throws ReservationException {
         String phoneNumber = reservation.getGuest().getPhoneNumber();
         if (phoneNumber == null || phoneNumber.length() == 0) throw new ReservationException("휴대폰 번호가 없는 예약입니다. (홈페이지 예약이 아님)");
-    }
-
-    public void setThreadName(Long reservationId, String threadName) {
-        this.changeOfferMap.put(reservationId, threadName);
-    }
-
-    public String getThreadName(Long reservationId) {
-        return this.changeOfferMap.get(reservationId);
-    }
-
-    public List<Long> getReservationIdList() {
-        return new ArrayList<>(this.changeOfferMap.keySet());
-    }
-
-    public void removeThreadName(Long reservationId) {
-        this.changeOfferMap.remove(reservationId);
-    }
-
-    @Transactional
-    public void acceptOffer(long reservationId) throws ReservationException {
-        Reservation reservation = reservationRepository.findById(reservationId).orElseThrow(NoSuchElementException::new);
-        reservation.acceptOffer();
-        reservationRepository.save(reservation);
-        interruptOfferThread(reservationId);
-    }
-
-    @Transactional
-    public void rejectOffer(long reservationId) throws ReservationException {
-        Reservation reservation = reservationRepository.findById(reservationId).orElseThrow(NoSuchElementException::new);
-        reservation.rejectOffer();
-        reservationRepository.save(reservation);
-        interruptOfferThread(reservationId);
-    }
-
-    private void interruptOfferThread(long reservationId) {
-        String threadName = getThreadName(reservationId);
-        if (threadName != null) {
-            Thread.getAllStackTraces().keySet().stream()
-                .filter(t -> t.getName().equals(threadName))
-                .findFirst().ifPresent(Thread::interrupt);
-            removeThreadName(reservationId);
-        }
     }
 
 }

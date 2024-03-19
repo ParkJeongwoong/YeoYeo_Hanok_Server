@@ -50,7 +50,7 @@ public class DateRoom {
     private boolean isReservable;
 
     @OneToMany(mappedBy = "dateRoom")
-    private final List<MapDateRoomReservation> mapDateRoomReservations = new ArrayList<>();
+    private final List<MapDateRoomReservation> mapDateRoomReservations = new ArrayList<>(); // Reservation 쪽에서 Cascade.ALL과 orphanRemoval = true로 관리
 
     @Version
     private int version;
@@ -75,7 +75,7 @@ public class DateRoom {
     }
 
     public void setStateWaiting() throws RoomReservationException {
-        if (this.roomReservationState == 1) {
+        if (this.roomReservationState == 0) {
             this.roomReservationState = 2;
         } else {
             throw new RoomReservationException("예약 대기가 불가능한 날짜입니다.");

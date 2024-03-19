@@ -94,10 +94,17 @@ public class PaymentService {
                 }
             }
         } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
             log.error("CLIENT - Locking Error", e);
             log.info("결제 진행");
             responseDto = pay(requestDto);
         } finally {
+            boolean interrupted = Thread.interrupted();
+            if (interrupted) {
+                log.info("CLIENT - Locking Release");
+            } else {
+                log.info("No Interrupted");
+            }
             lock.unlock();
         }
         return responseDto;
@@ -167,10 +174,17 @@ public class PaymentService {
                 }
             }
         } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
             log.error("WEBHOOK - Locking Error", e);
             log.info("결제 진행");
             responseDto = webhook(webHookDto);
         } finally {
+            boolean interrupted = Thread.interrupted();
+            if (interrupted) {
+                log.info("WEBHOOK - Locking Release");
+            } else {
+                log.info("No Interrupted");
+            }
             lock.unlock();
         }
         return responseDto;
@@ -286,9 +300,10 @@ public class PaymentService {
     }
 
     private void paymentProcess(Reservation reservation, Map<String, Object> paymentData) throws PaymentException, ReservationException {
-        if (reservation.getPayment() == null) {
+        Payment payment = reservation.getPayment();
+        if (payment == null) {
             log.info("NULL");
-            Payment payment = createPayment(paymentData, reservation);
+            payment = createPayment(paymentData, reservation);
             log.info("CREATED");
             validatePayment(reservation, paymentData);
             log.info("VALIDATED");
@@ -296,7 +311,6 @@ public class PaymentService {
             messageService.sendReservationMsg(reservation);
         } else {
             log.info("NOT NULL");
-            Payment payment = reservation.getPayment();
             validatePaymentData(payment, paymentData);
             log.info("VALIDATED");
         }
@@ -411,8 +425,6 @@ public class PaymentService {
         long payedAmount = Objects.requireNonNullElse((Integer) paymentData.get("amount"), -1L).longValue(); // JSONObject는 숫자를 Integer로 변환함 (반드시 Object를 먼저 Integer로 변환 후 long으로 변환해야 함)
         log.info("AMOUNT : {}", payedAmount);
 
-        log.info("status : {}", status);
-        log.info("amount : {}", payedAmount);
         if (!status.equals("paid")) {
             throw new PaymentException("결제가 완료되지 않았습니다.");
         }
@@ -427,12 +439,19 @@ public class PaymentService {
     }
 
     private void validatePaymentData(Payment payment, Map<String, Object> paymentData) throws ReservationException {
+        if (paymentData.isEmpty()) {
+            log.info("paymentData is empty");
+        }
+        else {
+            log.info("paymentData is not empty");
+        }
         String status = (String) paymentData.get("status");
+        log.info("STATUS : {}", status);
         String imp_uid = (String) paymentData.get("imp_uid");
-        long payedAmount = (Long) paymentData.get("amount");
+        log.info("imp_uid : {}", imp_uid);
+        long payedAmount = Objects.requireNonNullElse((Integer) paymentData.get("amount"), -1L).longValue(); // JSONObject는 숫자를 Integer로 변환함 (반드시 Object를 먼저 Integer로 변환 후 long으로 변환해야 함)
+        log.info("AMOUNT : {}", payedAmount);
 
-        log.info("status : {}", status);
-        log.info("amount : {}", payedAmount);
         if (status.equals("cancelled")) {
             messageService.sendAdminMsg("관리자 콘솔 환불 알림 - 환불되었습니다.");
             return;

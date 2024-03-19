@@ -19,7 +19,7 @@ public class CustomAsyncExceptionHandler implements AsyncUncaughtExceptionHandle
 		for (Object param : params) {
 			log.error("Parameter value - " + param);
 		}
-		messageService.sendDevMsg(ex.getMessage());
+		messageService.sendDevMsg("Async Exception : " + ex.getMessage());
 	}
 
 }

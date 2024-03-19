@@ -6,7 +6,6 @@ import com.yeoyeo.application.common.dto.GeneralResponseDto;
 import com.yeoyeo.application.common.exception.ExternalApiException;
 import com.yeoyeo.application.dateroom.repository.DateRoomRepository;
 import com.yeoyeo.application.message.service.MessageService;
-import com.yeoyeo.application.payment.service.PaymentService;
 import com.yeoyeo.application.reservation.dto.MakeReservationDto.MakeReservationDto;
 import com.yeoyeo.application.reservation.etc.exception.ReservationException;
 import com.yeoyeo.application.reservation.repository.ReservationRepository;
@@ -57,6 +56,7 @@ import org.springframework.retry.annotation.Recover;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -84,7 +84,6 @@ public class CalendarService {
     String YEOYEO_FILE_PATH_B;
 
     private final ReservationService reservationService;
-    private final PaymentService paymentService;
     private final CollisionHandleService collisionHandleService;
     private final MessageService messageService;
 
@@ -190,13 +189,21 @@ public class CalendarService {
                 log.info("CALENDAR EVENT UID : {}", uid);
                 String platform = getPlatformName(uid);
                 if (!platform.equals("yeoyeo")) {
-                    Reservation reservation = findExistingReservation(uid, roomId, guestFactory.getGuestClassName());
-                    if (reservation == null) registerReservation(event, guestFactory.createGuest(event.getDescription(), event.getSummary()), payment, roomId);
-                    else updateReservation(event, reservation);
+//                    Reservation reservation = findExistingReservation(uid, roomId, guestFactory.getGuestClassName());
+//                    if (reservation == null) registerReservation(event, guestFactory.createGuest(event.getDescription(), event.getSummary()), payment, roomId);
+//                    else updateReservation(event, reservation);
+                    asyncProcess(event, uid, guestFactory, payment, roomId);
                 }
             }
             cancelReservationStateSync(); // 동기화 되지 않은 예약 취소
         }
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void asyncProcess(VEvent event, String uid, GuestFactory guestFactory, Payment payment, long roomId) {
+        Reservation reservation = findExistingReservation(uid, roomId, guestFactory.getGuestClassName());
+        if (reservation == null) registerReservation(event, guestFactory.createGuest(event.getDescription(), event.getSummary()), payment, roomId);
+        else updateReservation(event, reservation);
     }
 
     private Calendar readIcalendarFile(String path) {
@@ -290,33 +297,52 @@ public class CalendarService {
     private void registerReservation(VEvent event, Guest guest, Payment payment, long roomId) {
         log.info("Reservation Sync - Register : {} / roomId : {} / uid : {}", guest.getName(), roomId, event.getUid().getValue());
         for (int i=0;i<3;i++) {
-            String startDate = event.getStartDate().getValue();
-            String endDate = event.getEndDate().getValue();
-            log.info("Reservation between : {} ~ {}", startDate, endDate);
-            if (checkExceedingAvailableDate(startDate, endDate)) return;
-            List<DateRoom> dateRoomList = getDateRoomList(startDate, endDate, roomId);
-            if (dateRoomList != null && dateRoomList.size() > 0) {
-                try {
-                    MakeReservationDto makeReservationDto = guest.createMakeReservationDto(dateRoomList, event.getDescription(), event.getSummary());
-                    Reservation reservation = reservationService.createReservation(makeReservationDto);
-                    reservation.setUniqueId(event.getUid().getValue());
-                    reservationService.setReservationPaid(reservation, payment);
-                    break;
-                } catch (ReservationException reservationException) {
-                    log.info("[예약 충돌 발생] - 동기화 과정 중 중복된 예약 발생. 홈페이지 예약 취소 처리 시작");
-                    Guest collidedGuest = checkUidChangeIssue(dateRoomList, guest.getName()); // UID 가 바뀌어서 기존 Guest 정보가 삭제되는 경우를 방지
-                    log.info("UID 변경 검증 결과 : {}", collidedGuest != null);
-                    if (collidedGuest != null) guest = collidedGuest; // UID가 바뀌었어도 예약 출처와 정보가 일치한다면 동일한 게스트로 간주
-                    boolean refundResult = collidedReservationCancel(dateRoomList);
-                    if (refundResult) {
-                        log.info("동기화 과정 중 중복된 예약 취소 완료. 재시도 시작");
-                    } else {
-                        log.info("동기화 과정 환불 과정 중 중복된 예약 취소 실패. 재시도 중지");
-                        messageService.sendAdminMsg("동기화 예약 환불 실패 오류 발생");
+            try {
+                String startDate = event.getStartDate().getValue();
+                String endDate = event.getEndDate().getValue();
+                log.info("Reservation between : {} ~ {}", startDate, endDate);
+                if (checkExceedingAvailableDate(startDate, endDate))
+                    return;
+                List<DateRoom> dateRoomList = getDateRoomList(startDate, endDate, roomId);
+                if (dateRoomList != null && dateRoomList.size() > 0) {
+                    log.info("등록 시작");
+                    try {
+                        MakeReservationDto makeReservationDto = guest.createMakeReservationDto(
+                            dateRoomList, event.getDescription(), event.getSummary());
+                        Reservation reservation = reservationService.createReservation(
+                            makeReservationDto);
+                        reservation.setUniqueId(event.getUid().getValue());
+                        reservationService.setReservationPaid(reservation, payment);
+                        break;
+                    } catch (ReservationException reservationException) {
+                        log.info("[예약 충돌 발생] - 동기화 과정 중 중복된 예약 발생. 홈페이지 예약 변경/취소 작업 시작");
+                        Guest collidedGuest = checkUidChangeIssue(dateRoomList,
+                            guest.getName()); // UID 가 바뀌어서 기존 Guest 정보가 삭제되는 경우를 방지
+                        log.info("UID 변경 검증 결과 : {}", collidedGuest != null);
+                        if (collidedGuest != null)
+                            guest = collidedGuest; // UID가 바뀌었어도 예약 출처와 정보가 일치한다면 동일한 게스트로 간주
+                        boolean refundResult = collidedReservationCancel(dateRoomList);
+                        if (refundResult) {
+                            log.info("동기화 과정 중 중복된 예약 취소 완료. 재시도 시작");
+                        } else {
+                            log.info("동기화 과정 중 중복된 예약 취소 실패. 재시도 중지");
+                            messageService.sendAdminMsg(
+                                "동기화 중 중복된 예약 환불 미진행 (방변경 제안 / 시스템 장애) - 확인 필요. 체크인 날짜 : "
+                                    + startDate);
+                            break;
+                        }
                     }
+                } else
+                    break;
+                if (i == 2) {
+                    log.info("동기화 중 중복된 예약 취소 실패. 재시도 횟수 초과");
+                    messageService.sendAdminMsg("동기화 오류 알림 - 중복된 예약을 취소하던 중 오류 발생");
                 }
-            } else break;
-            if (i == 2) messageService.sendAdminMsg("동기화 오류 알림 - 중복된 예약을 취소하던 중 오류 발생");
+            } catch (Exception e) {
+                log.error("동기화 예약 등록 중 예상치 못한 에러 발생", e);
+                messageService.sendDevMsg("동기화 중 예약 등록 중 예상치 못한 에러 발생 - 확인 필요");
+                break;
+            }
         }
     }
 
@@ -367,7 +393,7 @@ public class CalendarService {
                         log.info("홈페이지 예약 취소");
 //                        GeneralResponseDto response = paymentService.refundBySystem(collidedReservation);
                         GeneralResponseDto response = collisionHandleService.collideRefund(collidedReservation);
-                        if (!response.isSuccess() || response.getResultId() == 2) return false;
+                        if (!response.isSuccess()) return false;
                     } else {
                         log.info("플랫폼 예약 취소");
                         try {

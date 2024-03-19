@@ -1,6 +1,7 @@
 package com.yeoyeo.adapter.controller;
 
 import com.yeoyeo.application.calendar.service.CalendarService;
+import com.yeoyeo.application.collision.service.OfferService;
 import com.yeoyeo.application.common.dto.GeneralResponseDto;
 import com.yeoyeo.application.dateroom.repository.DateRoomRepository;
 import com.yeoyeo.application.message.service.MessageService;
@@ -38,6 +39,7 @@ public class ReservationController {
     private final ReservationService reservationService;
     private final MessageService messageService;
     private final CalendarService calendarService;
+    private final OfferService offerService;
 
     private final DateRoomRepository dateRoomRepository;
 
@@ -96,7 +98,8 @@ public class ReservationController {
     @GetMapping("/offer/{reservationId}/accept") // Todo : Offer Page 만든 후 Put으로 변경
     public ResponseEntity<GeneralResponseDto> acceptOffer(@PathVariable("reservationId") long reservationId) {
         try {
-            reservationService.acceptOffer(reservationId);
+            offerService.acceptOffer(reservationId);
+            offerService.interruptOfferThread(reservationId);
             return ResponseEntity.status(HttpStatus.OK).body(GeneralResponseDto.builder().success(true).message("예약 변경 수락 완료").build());
         } catch (ReservationException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(GeneralResponseDto.builder().success(false).message(e.getMessage()).build());
@@ -107,12 +110,8 @@ public class ReservationController {
 //    @PutMapping("/offer/{reservationId}/reject")
     @GetMapping("/offer/{reservationId}/reject") // Todo : Offer Page 만든 후 Put으로 변경
     public ResponseEntity<GeneralResponseDto> rejectOffer(@PathVariable("reservationId") long reservationId) {
-        try {
-            reservationService.rejectOffer(reservationId);
-            return ResponseEntity.status(HttpStatus.OK).body(GeneralResponseDto.builder().success(true).message("예약 변경 거절 완료").build());
-        } catch (ReservationException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(GeneralResponseDto.builder().success(false).message(e.getMessage()).build());
-        }
+        offerService.interruptOfferThread(reservationId);
+        return ResponseEntity.status(HttpStatus.OK).body(GeneralResponseDto.builder().success(true).message("예약 변경 거절 완료").build());
     }
 
 }

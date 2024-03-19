@@ -9,6 +9,7 @@ import com.yeoyeo.application.admin.etc.exception.AdminManageInfoException;
 import com.yeoyeo.application.admin.service.AdminManageService;
 import com.yeoyeo.application.admin.service.AuthService;
 import com.yeoyeo.application.calendar.service.CalendarService;
+import com.yeoyeo.application.collision.service.OfferService;
 import com.yeoyeo.application.common.dto.GeneralResponseDto;
 import com.yeoyeo.application.dateroom.dto.ChangeDateRoomListPriceRequestDto;
 import com.yeoyeo.application.dateroom.dto.ChangeDateRoomListStatusRequestDto;
@@ -57,6 +58,7 @@ public class AdminController {
     private final CalendarService calendarService;
     private final AuthService authService;
     private final MessageService messageService;
+    private final OfferService offerService;
 
     // Auth
     @PostMapping("/signup")
@@ -187,6 +189,6 @@ public class AdminController {
 
     @GetMapping("/offer")
     public List<Long> getReservationList() {
-        return reservationService.getReservationIdList();
+        return offerService.getReservationIdList();
     }
 }
