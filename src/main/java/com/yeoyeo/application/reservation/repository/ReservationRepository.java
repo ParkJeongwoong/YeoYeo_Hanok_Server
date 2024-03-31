@@ -1,6 +1,7 @@
 package com.yeoyeo.application.reservation.repository;
 
 import com.yeoyeo.domain.Reservation;
+import java.time.LocalDate;
 import java.util.List;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -19,4 +20,8 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
     List<Reservation> findAllByUniqueId(String uniqueId);
     @Query(value = "SELECT * FROM reservation WHERE first_date <= ?1 AND reserved_from = ?2", nativeQuery = true)
     List<Reservation> searchReservation(String searchWord, String phoneNumber);
+
+    @Query(value = "SELECT r FROM Reservation r JOIN FETCH r.mapDateRoomReservations mdr JOIN FETCH mdr.dateRoom dr JOIN FETCH dr.room WHERE dr.room.id = ?1 AND dr.date BETWEEN ?2 AND ?3 AND r.reservationState = ?4")
+    List<Reservation> findAllByRoomIdAndDateBetweenAndReservationState(long roomId, LocalDate startDate, LocalDate endDate, long reservationState);
+
 }

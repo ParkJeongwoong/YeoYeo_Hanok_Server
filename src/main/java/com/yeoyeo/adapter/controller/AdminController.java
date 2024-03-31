@@ -18,6 +18,7 @@ import com.yeoyeo.application.message.dto.SendMessageResponseDto;
 import com.yeoyeo.application.message.service.MessageService;
 import com.yeoyeo.application.payment.service.PaymentService;
 import com.yeoyeo.application.reservation.dto.MakeReservationRequestDto.MakeReservationAdminRequestDto;
+import com.yeoyeo.application.reservation.dto.MonthlyStatisticDto;
 import com.yeoyeo.application.reservation.dto.ReservationInfoDto;
 import com.yeoyeo.application.reservation.etc.exception.ReservationException;
 import com.yeoyeo.application.reservation.service.ReservationService;
@@ -175,6 +176,12 @@ public class AdminController {
     public void sendAdminManageInfoNoticeMessage(@RequestBody AdminManageInfoRequestDto requestDto) {
         reservationService.getReservation(requestDto.getReservationId()).setManagementLevel(2);
         messageService.sendNoticeMsg(requestDto.getNumberOnlyPhoneNumber());
+    }
+
+    // Information 관련
+    @GetMapping("/statistics/{year}/{month}")
+    public ResponseEntity<List<MonthlyStatisticDto>> getStatistics(@PathVariable("year") int year, @PathVariable("month") int month) {
+        return ResponseEntity.status(HttpStatus.OK).body(reservationService.getMonthlyStatistic(year, month));
     }
 
     // TEST

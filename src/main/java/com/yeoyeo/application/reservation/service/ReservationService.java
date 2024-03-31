@@ -8,14 +8,20 @@ import com.yeoyeo.application.dateroom.service.DateRoomCacheService;
 import com.yeoyeo.application.message.service.MessageService;
 import com.yeoyeo.application.reservation.dto.MakeReservationDto.MakeReservationDto;
 import com.yeoyeo.application.reservation.dto.MakeReservationRequestDto.MakeReservationAdminRequestDto;
+import com.yeoyeo.application.reservation.dto.MonthlyStatisticDto;
+import com.yeoyeo.application.reservation.dto.MonthlyStatisticOriginDto;
 import com.yeoyeo.application.reservation.dto.ReservationDetailInfoDto;
 import com.yeoyeo.application.reservation.dto.ReservationInfoDto;
 import com.yeoyeo.application.reservation.etc.exception.ReservationException;
 import com.yeoyeo.application.reservation.repository.ReservationRepository;
+import com.yeoyeo.application.room.dto.RoomInfoDto;
+import com.yeoyeo.application.room.service.RoomService;
 import com.yeoyeo.domain.DateRoom;
 import com.yeoyeo.domain.Guest.Guest;
 import com.yeoyeo.domain.Payment;
 import com.yeoyeo.domain.Reservation;
+import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -32,6 +38,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class ReservationService {
 
+    private final RoomService roomService;
     private final DateRoomCacheService dateRoomCacheService;
     private final MessageService messageService;
 
@@ -191,6 +198,39 @@ public class ReservationService {
     private void checkPhoneNumber(Reservation reservation) throws ReservationException {
         String phoneNumber = reservation.getGuest().getPhoneNumber();
         if (phoneNumber == null || phoneNumber.length() == 0) throw new ReservationException("휴대폰 번호가 없는 예약입니다. (홈페이지 예약이 아님)");
+    }
+
+    public List<MonthlyStatisticDto> getMonthlyStatistic(int year, int month) {
+        List<MonthlyStatisticDto> monthlyStatisticDtoList = new ArrayList<>();
+        List<RoomInfoDto> roomInfoDtos = roomService.showAllRooms();
+        for (RoomInfoDto roomInfoDto:roomInfoDtos) {
+            MonthlyStatisticDto monthlyStatisticDto = new MonthlyStatisticDto(year, month, roomInfoDto.getRoomId());
+            monthlyStatisticDtoList.add(monthlyStatisticDto);
+
+            List<Reservation> reservationList = reservationRepository.findAllByRoomIdAndDateBetweenAndReservationState(roomInfoDto.getRoomId(), LocalDate.of(year, month, 1), LocalDate.of(year, month, 31), 1);
+
+            MonthlyStatisticOriginDto homepage_reservations = new MonthlyStatisticOriginDto("GuestHome");
+            MonthlyStatisticOriginDto airbnb_reservations = new MonthlyStatisticOriginDto("GuestAirbnb");
+            MonthlyStatisticOriginDto booking_reservations = new MonthlyStatisticOriginDto("GuestBooking");
+
+            for (Reservation reservation:reservationList) {
+                switch (reservation.getReservedFrom()) {
+                    case "GuestHome":
+                        homepage_reservations.addReservationCount();
+                        break;
+                    case "GuestAirbnb":
+                        airbnb_reservations.addReservationCount();
+                        break;
+                    case "GuestBooking":
+                        booking_reservations.addReservationCount();
+                        break;
+                    default:
+                        log.error("예약 출처 에러 - {}", reservation.getReservedFrom());
+                        break;
+                }
+            }
+        }
+        return monthlyStatisticDtoList;
     }
 
 }
