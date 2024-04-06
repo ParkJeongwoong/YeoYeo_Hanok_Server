@@ -1,9 +1,8 @@
 package com.yeoyeo.application.message.dto;
 
-import lombok.Getter;
-
 import java.util.ArrayList;
 import java.util.List;
+import lombok.Getter;
 
 @Getter
 public class SendMessageRequestDto {
@@ -11,7 +10,7 @@ public class SendMessageRequestDto {
     private final String type; // SMS | LMS | MMS
     private final String contentType; // COMM : 일반메시지 | AD : 광고 메시지
     private final String countryCode; // 국가번호
-    private final String from; // 발신번호 - Todo : 법인 계정 등록 후 발신번호 생성 필요
+    private final String from = "01089599091"; // 발신번호
     private final String subject; // 메시지 제목
     private final String content; // 메시지 내용
     private final List<MessageDto> messages; // 메시지 정보 (개별 메시지 정보입력)
@@ -24,7 +23,6 @@ public class SendMessageRequestDto {
         this.type = type;
         this.contentType = "COMM";
         this.countryCode = "82";
-        this.from = "01020339091"; // Todo : 법인 계정 생성 후 수정 필요
         this.subject = subject;
         this.content = content;
         this.messages = new ArrayList<>();
@@ -35,7 +33,6 @@ public class SendMessageRequestDto {
         this.type = type;
         this.contentType = "COMM";
         this.countryCode = "82";
-        this.from = "01020339091"; // Todo : 법인 계정 생성 후 수정 필요
         this.subject = subject;
         this.content = content;
         this.messages = new ArrayList<>();

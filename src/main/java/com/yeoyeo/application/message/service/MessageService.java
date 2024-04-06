@@ -471,12 +471,16 @@ public class MessageService {
     }
 
     private SendMessageResponseDto sendMessage(String type, String subject, String content, String to) {
-        String uri = "/sms/v2/services/"+smsKey+"/messages";
-        String url = NCLOUD_SMS_URL+uri;
-        String timestamp = getTimestamp();
-        String signature = getSignature("POST", uri, timestamp);
-
-        return webClientService.sendMessage(type, url, subject, content, getNumberOnly(to), timestamp, accessKey, signature);
+        try {
+            String uri = "/sms/v2/services/"+smsKey+"/messages";
+            String url = NCLOUD_SMS_URL+uri;
+            String timestamp = getTimestamp();
+            String signature = getSignature("POST", uri, timestamp);
+            return webClientService.sendMessage(type, url, subject, content, getNumberOnly(to), timestamp, accessKey, signature);
+        } catch (Exception e) {
+            log.error("문자 발송 중 에러 발생", e);
+            return null;
+        }
     }
 
     private SendMessageResponseDto sendMultipleMessage(String type, String subject, String content, List<String> phoneNumberList) {
@@ -484,7 +488,6 @@ public class MessageService {
         String url = NCLOUD_SMS_URL+uri;
         String timestamp = getTimestamp();
         String signature = getSignature("POST", uri, timestamp);
-
         return webClientService.sendMultipleMessage(type, url, subject, content, phoneNumberList.stream().map(this::getNumberOnly).collect(Collectors.toList()), timestamp, accessKey, signature);
     }
 
@@ -498,21 +501,19 @@ public class MessageService {
                 .append(timestamp).append(newLine)
                 .append(accessKey).toString();
 
-        String encodeBase64String;
         try {
             SecretKeySpec signingKey = new SecretKeySpec(secretKey.getBytes(StandardCharsets.UTF_8), "HmacSHA256");
             Mac mac = Mac.getInstance("HmacSHA256");
             mac.init(signingKey);
             byte[] rawHmac = mac.doFinal(message.getBytes(StandardCharsets.UTF_8));
-            encodeBase64String = Base64.getEncoder().encodeToString(rawHmac);
+            return Base64.getEncoder().encodeToString(rawHmac);
         } catch (NoSuchAlgorithmException e) {
             log.error("Signature 생성 중 NoSuchAlgorithmException 에러 발생", e);
-            encodeBase64String = e.toString();
+            return e.toString();
         } catch (InvalidKeyException e) {
             log.error("Signature 생성 중 InvalidKeyException 에러 발생", e);
-            encodeBase64String = e.toString();
+            return e.toString();
         }
-        return encodeBase64String;
     }
 
     private String getTimestamp() {
