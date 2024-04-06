@@ -111,7 +111,7 @@ public class DateRoomCacheService {
 				cacheDto.getDate().getMonthValue(), cacheDto.getRoomId());
 			String hashKey = cacheDto.getDate().toString();
 			// 해당 캐시 데이터가 있으면 업데이트, 없으면 Skip
-			log.info("캐시 업데이트 시도: {} {}", key, hashKey);
+			log.info("캐시 업데이트 시도: {} {} - {}", key, hashKey, cacheDto.getReservationState());
 			if (Boolean.TRUE.equals(hashOperations.hasKey(key, hashKey))) {
 				log.info("Key 존재");
 				hashOperations.put(key, hashKey, new DateRoomInfoDto(cacheDto));

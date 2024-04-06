@@ -3,11 +3,13 @@ package com.yeoyeo.application.reservation.repository;
 import com.yeoyeo.domain.Reservation;
 import java.time.LocalDate;
 import java.util.List;
+import lombok.NonNull;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 public interface ReservationRepository extends JpaRepository<Reservation, Long> {
+    @NonNull
     @EntityGraph(attributePaths = {"mapDateRoomReservations","mapDateRoomReservations.dateRoom", "mapDateRoomReservations.dateRoom.room", "guest", "payment"})
     List<Reservation> findAll();
     @EntityGraph(attributePaths = {"mapDateRoomReservations","mapDateRoomReservations.dateRoom", "mapDateRoomReservations.dateRoom.room", "guest", "payment"})
@@ -23,5 +25,9 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
 
     @Query(value = "SELECT r FROM Reservation r JOIN FETCH r.mapDateRoomReservations mdr JOIN FETCH mdr.dateRoom dr JOIN FETCH dr.room WHERE dr.room.id = ?1 AND dr.date BETWEEN ?2 AND ?3 AND r.reservationState = ?4")
     List<Reservation> findAllByRoomIdAndDateBetweenAndReservationState(long roomId, LocalDate startDate, LocalDate endDate, long reservationState);
+    @Query(value = "SELECT r FROM Reservation r JOIN FETCH r.mapDateRoomReservations mdr JOIN FETCH mdr.dateRoom dr JOIN FETCH dr.room WHERE dr.room.id = ?1 AND r.reservationState = ?2")
+    List<Reservation> findAllByRoomIdAndReservationState(long roomId, long reservationState);
+    @Query(value = "SELECT r FROM Reservation r JOIN FETCH r.mapDateRoomReservations mdr JOIN FETCH mdr.dateRoom dr JOIN FETCH dr.room WHERE dr.room.id = ?1 AND r.reservationState = ?2 AND r.reservedFrom = ?3")
+    List<Reservation> findAllByRoomIdAndReservationStateAndReservedFrom(long roomId, long reservationState, String reservedFrom);
 
 }

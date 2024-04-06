@@ -4,6 +4,7 @@ import com.yeoyeo.domain.DateRoom;
 import com.yeoyeo.domain.Payment;
 import com.yeoyeo.domain.Reservation;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import lombok.Getter;
 
 @Getter
@@ -30,10 +31,12 @@ public class ReservationInfoDto {
         DateRoom firstDateRoom = entity.getFirstDateRoom();
         DateRoom lastDateRoom = entity.getLastDateRoom();
         Payment payment = entity.getPayment();
+        LocalDateTime createdDate = entity.getCreatedDate();
+        LocalDateTime modifiedDate = entity.getModifiedDate();
 
         this.reservationId = entity.getId();
-        this.createdDate = entity.getCreatedDate().toLocalDate();
-        this.modifiedDate = entity.getModifiedDate().toLocalDate();
+        if (createdDate!=null) this.createdDate = createdDate.toLocalDate(); else this.createdDate = null;
+        if (modifiedDate!=null) this.modifiedDate = modifiedDate.toLocalDate(); else this.modifiedDate = null;
         if (firstDateRoom!=null) this.checkInDate = firstDateRoom.getDate(); else this.checkInDate = null;
         if (lastDateRoom!=null) this.checkOutDate = lastDateRoom.getDate().plusDays(1); else this.checkOutDate = null;
         if (firstDateRoom!=null) this.roomName = firstDateRoom.getRoom().getName(); else this.roomName = null;

@@ -46,12 +46,17 @@ public class ReservationService {
     private final ReservationRepository reservationRepository;
 
     public List<ReservationInfoDto> showReservations(int type) {
-        // 현재 가상계좌 결제를 사용하지 않아 미결제 상태 0이 없음
+        try {
+            // 현재 가상계좌 결제를 사용하지 않아 미결제 상태 0이 없음
 
-        if (type == 0) { // 전체
-            return reservationRepository.findAll().stream().sorted(Comparator.comparing(Reservation::getFirstDate)).map(ReservationInfoDto::new).collect(Collectors.toList());
-        } else { // 1 : 숙박 대기, 2 : 숙박 완료, 3 : 예약 취소, 4 : 환불 완료
-            return reservationRepository.findAllByReservationState(type).stream().sorted(Comparator.comparing(Reservation::getFirstDate)).map(ReservationInfoDto::new).collect(Collectors.toList());
+            if (type == 0) { // 전체
+                return reservationRepository.findAll().stream().sorted(Comparator.comparing(Reservation::getFirstDate)).map(ReservationInfoDto::new).collect(Collectors.toList());
+            } else { // 1 : 숙박 대기, 2 : 숙박 완료, 3 : 예약 취소, 4 : 환불 완료
+                return reservationRepository.findAllByReservationState(type).stream().sorted(Comparator.comparing(Reservation::getFirstDate)).map(ReservationInfoDto::new).collect(Collectors.toList());
+            }
+        } catch (Exception e) {
+            log.error("예약 정보 조회 중 오류 발생", e);
+            return new ArrayList<>();
         }
     }
 
@@ -91,15 +96,11 @@ public class ReservationService {
 
     @Transactional
     public void setReservationPaid(Reservation reservation, Payment payment) throws ReservationException {
-//        List<String> dateRoomIdList = reservation.getDateRoomIdList();
         List<DateRoom> dateRoomList = reservation.getDateRoomList();
         try {
-//            for (String dateRoomId:dateRoomIdList) {
-//                DateRoom dateRoom = dateRoomRepository.findById(dateRoomId).orElseThrow(NoSuchElementException::new);
             for (DateRoom dateRoom:dateRoomList) {
                 log.info("{} : {} {} 예약시도", reservation.getGuest().getName(), dateRoom.getDate(), dateRoom.getRoom().getId());
                 dateRoom.setStateBooked();
-//                dateRoomRepository.save(dateRoom);
                 log.info("{} : {} {} 예약성공", reservation.getGuest().getName(), dateRoom.getDate(), dateRoom.getRoom().getId());
                 dateRoomCacheService.updateCache(new DateRoomCacheDto(dateRoom));
             }
@@ -203,33 +204,48 @@ public class ReservationService {
     public List<MonthlyStatisticDto> getMonthlyStatistic(int year, int month) {
         List<MonthlyStatisticDto> monthlyStatisticDtoList = new ArrayList<>();
         List<RoomInfoDto> roomInfoDtos = roomService.showAllRooms();
-        for (RoomInfoDto roomInfoDto:roomInfoDtos) {
-            MonthlyStatisticDto monthlyStatisticDto = new MonthlyStatisticDto(year, month, roomInfoDto.getRoomId());
-            monthlyStatisticDtoList.add(monthlyStatisticDto);
+        LocalDate firstDate = LocalDate.of(year, month, 1);
+        LocalDate lastDate = LocalDate.of(year, month, 1).plusMonths(1).minusDays(1);
 
-            List<Reservation> reservationList = reservationRepository.findAllByRoomIdAndDateBetweenAndReservationState(roomInfoDto.getRoomId(), LocalDate.of(year, month, 1), LocalDate.of(year, month, 31), 1);
+        try {
+            for (RoomInfoDto roomInfoDto:roomInfoDtos) {
+                log.info("RoomId: {}", roomInfoDto.getRoomId());
 
-            MonthlyStatisticOriginDto homepage_reservations = new MonthlyStatisticOriginDto("GuestHome");
-            MonthlyStatisticOriginDto airbnb_reservations = new MonthlyStatisticOriginDto("GuestAirbnb");
-            MonthlyStatisticOriginDto booking_reservations = new MonthlyStatisticOriginDto("GuestBooking");
+                MonthlyStatisticDto monthlyStatisticDto = new MonthlyStatisticDto(year, month, roomInfoDto.getRoomId());
 
-            for (Reservation reservation:reservationList) {
-                switch (reservation.getReservedFrom()) {
-                    case "GuestHome":
-                        homepage_reservations.addReservationCount();
-                        break;
-                    case "GuestAirbnb":
-                        airbnb_reservations.addReservationCount();
-                        break;
-                    case "GuestBooking":
-                        booking_reservations.addReservationCount();
-                        break;
-                    default:
-                        log.error("예약 출처 에러 - {}", reservation.getReservedFrom());
-                        break;
+                List<Reservation> reservationList = reservationRepository.findAllByRoomIdAndDateBetweenAndReservationState(roomInfoDto.getRoomId(), firstDate, lastDate, 1);
+
+                MonthlyStatisticOriginDto homepage_reservations = new MonthlyStatisticOriginDto("GuestHome");
+                MonthlyStatisticOriginDto airbnb_reservations = new MonthlyStatisticOriginDto("GuestAirbnb");
+                MonthlyStatisticOriginDto booking_reservations = new MonthlyStatisticOriginDto("GuestBooking");
+
+                for (Reservation reservation:reservationList) {
+                    switch (reservation.getReservedFrom()) {
+                        case "GuestHome":
+                            homepage_reservations.addReservationCount();
+                            break;
+                        case "GuestAirbnb":
+                            airbnb_reservations.addReservationCount();
+                            break;
+                        case "GuestBooking":
+                            booking_reservations.addReservationCount();
+                            break;
+                        default:
+                            log.error("예약 출처 에러 - {}", reservation.getReservedFrom());
+                            break;
+                    }
                 }
+                log.info("Homepage: {}, Airbnb: {}, Booking: {}", homepage_reservations.getReservationCount(), airbnb_reservations.getReservationCount(), booking_reservations.getReservationCount());
+
+                monthlyStatisticDto.addOrigin(homepage_reservations);
+                monthlyStatisticDto.addOrigin(airbnb_reservations);
+                monthlyStatisticDto.addOrigin(booking_reservations);
+                monthlyStatisticDtoList.add(monthlyStatisticDto);
             }
+        } catch (Exception e) {
+            log.error("월별 통계 조회 중 에러", e);
         }
+        log.info("월별 통계 조회 완료 (size : {})", monthlyStatisticDtoList.size());
         return monthlyStatisticDtoList;
     }
 

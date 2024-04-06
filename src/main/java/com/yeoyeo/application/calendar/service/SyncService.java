@@ -40,10 +40,55 @@ public class SyncService {
 	private final ReservationRepository reservationRepository;
 
 	@Transactional(propagation = Propagation.REQUIRES_NEW)
-	public void asyncProcess(VEvent event, String uid, GuestFactory guestFactory, Payment payment, long roomId) {
+	public void syncProcess(VEvent event, String uid, GuestFactory guestFactory, Payment dummyPayment, long roomId) {
 		Reservation reservation = findExistingReservation(uid, roomId, guestFactory.getGuestClassName());
-		if (reservation == null) registerReservation(event, guestFactory.createGuest(event.getDescription(), event.getSummary()), payment, roomId);
+		if (reservation == null) registerReservation(event, guestFactory.createGuest(event.getDescription(), event.getSummary()), dummyPayment, roomId);
 		else updateReservation(event, reservation);
+	}
+
+	@Transactional(propagation = Propagation.REQUIRES_NEW)
+	public void setReservationStateSync(String guestClassName, long roomId) {
+		try {
+//			List<Reservation> reservationList = reservationRepository.findAllByReservationState(1);
+			List<Reservation> reservationList = reservationRepository.findAllByRoomIdAndReservationStateAndReservedFrom(roomId,1, guestClassName); //findAllByReservationState(1);
+			LocalDate now = LocalDate.now();
+			int count = 0;
+			for (Reservation reservation : reservationList) {
+				try {
+//					if (reservation.getRoom().getId()==roomId && reservation.getReservedFrom().equals(guestClassName) && reservation.getFirstDate().isAfter(now)) {
+					if (reservation.getFirstDate().isAfter(now)) {
+						reservation.setStateSyncStart();
+						count++;
+					}
+				} catch (ReservationException e) {
+					log.error("동기화를 위해 예약 상태를 변경 중 에러 발생 {}", reservation.getId(),e);
+				}
+			}
+			log.info("동기화 개수 : {}/{}", count, reservationList.size());
+		} catch (Exception e) {
+			log.error("동기화를 위해 예약 상태를 변경 중 에러 발생",e);
+			messageService.sendDevMsg("동기화 중 setReservationStateSync 에러 발생");
+		}
+	}
+
+	@Transactional(propagation = Propagation.REQUIRES_NEW)
+	public void cancelReservationStateSync(String guestClassName, long roomId) {
+		try {
+//			List<Reservation> reservationList = reservationRepository.findAllByReservationState(5);
+			List<Reservation> reservationList = reservationRepository.findAllByRoomIdAndReservationStateAndReservedFrom(roomId, 5, guestClassName);
+			log.info("취소 개수 : {}", reservationList.size());
+			for (Reservation reservation : reservationList) {
+				try {
+					log.info("취소 예약 : {} / {} / {} ~ {}", reservation.getId(), reservation.getRoom().getName(), reservation.getFirstDate(), reservation.getLastDateRoom().getDate());
+					reservationService.cancel(reservation);
+				} catch (ReservationException e) {
+					log.error("동기화 되지 않은 예약 취소 중 에러 발생 {}", reservation.getId(),e);
+				}
+			}
+		} catch (Exception e) {
+			log.error("동기화 되지 않은 예약 취소 중 에러 발생",e);
+			messageService.sendDevMsg("동기화 중 cancelReservationStateSync 에러 발생");
+		}
 	}
 
 	private Reservation findExistingReservation(String uid, long roomId, String guestClassName) {
@@ -59,7 +104,7 @@ public class SyncService {
 		return null;
 	}
 
-	private void registerReservation(VEvent event, Guest guest, Payment payment, long roomId) {
+	private void registerReservation(VEvent event, Guest guest, Payment dummyPayment, long roomId) {
 		log.info("Reservation Sync - Register : {} / roomId : {} / uid : {}", guest.getName(), roomId, event.getUid().getValue());
 		for (int i=0;i<3;i++) {
 			try {
@@ -79,7 +124,7 @@ public class SyncService {
 						Reservation reservation = reservationService.createReservation(
 							makeReservationDto);
 						reservation.setUniqueId(event.getUid().getValue());
-						reservationService.setReservationPaid(reservation, payment);
+						reservationService.setReservationPaid(reservation, dummyPayment);
 						break;
 					} catch (ReservationException reservationException) {
 						log.info("[예약 충돌 발생] - 동기화 과정 중 중복된 예약 발생. 홈페이지 예약 변경/취소 작업 시작");
@@ -167,8 +212,14 @@ public class SyncService {
 			.getMapDateRoomReservations().stream().map(MapDateRoomReservation::getReservation)
 			.filter(reservation -> reservation.getReservationState() == 1 || reservation.getReservationState() == 5)
 			.findFirst().orElse(null);
+		if (collidedReservation != null) {
+			log.info("UID 변경 검증 - 충돌 예약 정보 : {} / {} / {} / {} / {} / {} <- {}",
+				collidedReservation.getUniqueId(), collidedReservation.getGuest().getName(),
+				collidedReservation.getFirstDate(), collidedReservation.getLastDateRoom().getDate(),
+				collidedReservation.getManagementLevel(), collidedReservation.getReservationState(), guestName);
+		}
 		if (collidedReservation != null
-			&& collidedReservation.getManagementLevel() > 0
+//			&& collidedReservation.getManagementLevel() > 0 // 왜 굳이 이 조건이 필요한지 모르겠음
 			&& collidedReservation.getGuest().getName().equals(guestName)
 			&& collidedReservation.getFirstDate().isEqual(dateRoomList.get(0).getDate())
 			&& collidedReservation.getLastDateRoom().getDate().isEqual(dateRoomList.get(dateRoomList.size()-1).getDate())) {
