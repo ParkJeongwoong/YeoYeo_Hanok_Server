@@ -5,8 +5,8 @@ import lombok.Getter;
 @Getter
 public class MonthlyStatisticOriginDto {
 
-	final String reservedFrom;
-	int reservationCount = 0;
+	private final String reservedFrom;
+	private int reservationCount = 0;
 
 	public MonthlyStatisticOriginDto(String reservedFrom) {
 		this.reservedFrom = reservedFrom;

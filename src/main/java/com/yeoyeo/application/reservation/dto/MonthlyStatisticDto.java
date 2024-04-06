@@ -2,15 +2,17 @@ package com.yeoyeo.application.reservation.dto;
 
 import java.util.ArrayList;
 import java.util.List;
+import lombok.Getter;
 
+@Getter
 public class MonthlyStatisticDto {
 
-	final int year;
-	final int month;
-	final long roomId;
-	final int dayCount;
-	int totalReservationCount;
-	List<MonthlyStatisticOriginDto> monthlyStatisticOriginDtoList = new ArrayList<>();
+	private final int year;
+	private final int month;
+	private final long roomId;
+	private final int dayCount;
+	private int totalReservationCount;
+	private final List<MonthlyStatisticOriginDto> monthlyStatisticOriginDtoList = new ArrayList<>();
 
 	public MonthlyStatisticDto(int year, int month, long roomId) {
 		this.year = year;
@@ -19,12 +21,12 @@ public class MonthlyStatisticDto {
 		this.dayCount = getDayCount(year, month);
 	}
 
-	public void addMonthlyStatisticOriginDto(MonthlyStatisticOriginDto monthlyStatisticOriginDto) {
+	public void addOrigin(MonthlyStatisticOriginDto monthlyStatisticOriginDto) {
 		this.monthlyStatisticOriginDtoList.add(monthlyStatisticOriginDto);
 		this.totalReservationCount += monthlyStatisticOriginDto.getReservationCount();
 	}
 
-	public int getDayCount(int year, int month) {
+	private int getDayCount(int year, int month) {
 		int dayCount = 0;
 		switch (month) {
 		case 1: case 3: case 5: case 7: case 8: case 10: case 12:

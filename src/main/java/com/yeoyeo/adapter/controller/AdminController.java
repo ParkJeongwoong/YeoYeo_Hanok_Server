@@ -181,7 +181,9 @@ public class AdminController {
     // Information 관련
     @GetMapping("/statistics/{year}/{month}")
     public ResponseEntity<List<MonthlyStatisticDto>> getStatistics(@PathVariable("year") int year, @PathVariable("month") int month) {
-        return ResponseEntity.status(HttpStatus.OK).body(reservationService.getMonthlyStatistic(year, month));
+        List<MonthlyStatisticDto> monthlyStatisticDtoList = reservationService.getMonthlyStatistic(year, month);
+        log.info("monthlyStatisticDtoList : {}", monthlyStatisticDtoList.size());
+        return ResponseEntity.status(HttpStatus.OK).body(monthlyStatisticDtoList);
     }
 
     // TEST
