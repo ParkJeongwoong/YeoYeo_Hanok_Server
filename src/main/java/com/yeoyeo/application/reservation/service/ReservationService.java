@@ -222,15 +222,16 @@ public class ReservationService {
                 MonthlyStatisticOriginDto booking_reservations = new MonthlyStatisticOriginDto("GuestBooking");
 
                 for (Reservation reservation:reservationList) {
+                    int dateCount = reservation.getDateRoomList().size();
                     switch (reservation.getReservedFrom()) {
                         case "GuestHome":
-                            homepage_reservations.addReservationCount();
+                            homepage_reservations.addReservationCount(dateCount);
                             break;
                         case "GuestAirbnb":
-                            airbnb_reservations.addReservationCount();
+                            airbnb_reservations.addReservationCount(dateCount);
                             break;
                         case "GuestBooking":
-                            booking_reservations.addReservationCount();
+                            booking_reservations.addReservationCount(dateCount);
                             break;
                         default:
                             log.error("예약 출처 에러 - {}", reservation.getReservedFrom());

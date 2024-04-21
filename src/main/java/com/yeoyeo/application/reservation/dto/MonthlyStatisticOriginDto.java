@@ -12,8 +12,8 @@ public class MonthlyStatisticOriginDto {
 		this.reservedFrom = reservedFrom;
 	}
 
-	public void addReservationCount() {
-		this.reservationCount++;
+	public void addReservationCount(int dateCount) {
+		this.reservationCount += dateCount;
 	}
 
 }
