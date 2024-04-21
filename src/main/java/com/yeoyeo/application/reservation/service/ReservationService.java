@@ -213,7 +213,9 @@ public class ReservationService {
 
                 MonthlyStatisticDto monthlyStatisticDto = new MonthlyStatisticDto(year, month, roomInfoDto.getRoomId());
 
-                List<Reservation> reservationList = reservationRepository.findAllByRoomIdAndDateBetweenAndReservationState(roomInfoDto.getRoomId(), firstDate, lastDate, 1);
+                List<Reservation> reservationList = new ArrayList<>();
+                reservationList.addAll(reservationRepository.findAllByRoomIdAndDateBetweenAndReservationState(roomInfoDto.getRoomId(), firstDate, lastDate, 1));
+                reservationList.addAll(reservationRepository.findAllByRoomIdAndDateBetweenAndReservationState(roomInfoDto.getRoomId(), firstDate, lastDate, 2));
 
                 MonthlyStatisticOriginDto homepage_reservations = new MonthlyStatisticOriginDto("GuestHome");
                 MonthlyStatisticOriginDto airbnb_reservations = new MonthlyStatisticOriginDto("GuestAirbnb");
