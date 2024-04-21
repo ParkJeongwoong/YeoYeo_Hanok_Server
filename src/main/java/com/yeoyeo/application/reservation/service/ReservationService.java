@@ -222,23 +222,28 @@ public class ReservationService {
                 MonthlyStatisticOriginDto booking_reservations = new MonthlyStatisticOriginDto("GuestBooking");
 
                 for (Reservation reservation:reservationList) {
-                    int dateCount = reservation.getDateRoomList().size();
+                    int dateCount = (int) reservation.getDateRoomList()
+                        .stream().filter(
+                            dateRoom -> dateRoom.getDate().getYear() == year && dateRoom.getDate().getMonthValue() == month
+                        ).count();
+                    log.info("reserved checkin: {}, dateCount: {}", reservation.getFirstDate(), dateCount);
                     switch (reservation.getReservedFrom()) {
                         case "GuestHome":
-                            homepage_reservations.addReservationCount(dateCount);
+                            if (reservation.getGuest().getName().equals("관리자 생성 예약")) break;
+                            homepage_reservations.addReservedCount(dateCount);
                             break;
                         case "GuestAirbnb":
-                            airbnb_reservations.addReservationCount(dateCount);
+                            airbnb_reservations.addReservedCount(dateCount);
                             break;
                         case "GuestBooking":
-                            booking_reservations.addReservationCount(dateCount);
+                            booking_reservations.addReservedCount(dateCount);
                             break;
                         default:
                             log.error("예약 출처 에러 - {}", reservation.getReservedFrom());
                             break;
                     }
                 }
-                log.info("Homepage: {}, Airbnb: {}, Booking: {}", homepage_reservations.getReservationCount(), airbnb_reservations.getReservationCount(), booking_reservations.getReservationCount());
+                log.info("Homepage: {}, Airbnb: {}, Booking: {}", homepage_reservations.getReservedCount(), airbnb_reservations.getReservedCount(), booking_reservations.getReservedCount());
 
                 monthlyStatisticDto.addOrigin(homepage_reservations);
                 monthlyStatisticDto.addOrigin(airbnb_reservations);

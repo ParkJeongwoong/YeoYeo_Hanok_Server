@@ -6,14 +6,14 @@ import lombok.Getter;
 public class MonthlyStatisticOriginDto {
 
 	private final String reservedFrom;
-	private int reservationCount = 0;
+	private int reservedCount = 0;
 
 	public MonthlyStatisticOriginDto(String reservedFrom) {
 		this.reservedFrom = reservedFrom;
 	}
 
-	public void addReservationCount(int dateCount) {
-		this.reservationCount += dateCount;
+	public void addReservedCount(int dateCount) {
+		this.reservedCount += dateCount;
 	}
 
 }

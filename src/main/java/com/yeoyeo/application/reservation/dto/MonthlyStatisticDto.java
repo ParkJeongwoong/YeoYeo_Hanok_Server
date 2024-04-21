@@ -11,7 +11,7 @@ public class MonthlyStatisticDto {
 	private final int month;
 	private final long roomId;
 	private final int dayCount;
-	private int totalReservationCount;
+	private int totalReservedCount;
 	private final List<MonthlyStatisticOriginDto> monthlyStatisticOriginDtoList = new ArrayList<>();
 
 	public MonthlyStatisticDto(int year, int month, long roomId) {
@@ -23,7 +23,7 @@ public class MonthlyStatisticDto {
 
 	public void addOrigin(MonthlyStatisticOriginDto monthlyStatisticOriginDto) {
 		this.monthlyStatisticOriginDtoList.add(monthlyStatisticOriginDto);
-		this.totalReservationCount += monthlyStatisticOriginDto.getReservationCount();
+		this.totalReservedCount += monthlyStatisticOriginDto.getReservedCount();
 	}
 
 	private int getDayCount(int year, int month) {
