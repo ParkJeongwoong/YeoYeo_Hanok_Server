@@ -177,6 +177,14 @@ public class CalendarService {
         }
     }
 
+    /* [문제 상황] - 2024-04-23
+    1. 에어비앤비에서 <수, 목, 금>이 예약 불가로 설정되어있고 <화>는 비어있음
+    2. 화요일이 되면 당일 예약도 불가능해지므로 에어비앤비는 <화, 수, 목, 금> 이 예약 불가라고 생각
+    3. 그리고 당일이 포함된 연속된 예약 상태 정보는 공유해주지 않음
+    4. 화요일날 동기화를 하면 <수, 목, 금>에 예약 불가능하다는 정보가 오지 않음 (에어비앤비는 <화, 수, 목, 금> 예약 불가라고 생각 & 화요일이 포함됐기 때문에 전달 X) 
+    5. 따라서 수목금 예약이 취소됐다고 생각하고 예약 정보를 삭제하는 문제 발생
+    -> 에어비앤비 수동 예약인 경우 익일 예약 정보를 삭제하지 않음
+     */
     private void syncIcalendarFile(String path, GuestFactory guestFactory, Payment dummyPayment, long roomId) {
         Calendar calendar = readIcalendarFile(path);
         if (calendar != null) {

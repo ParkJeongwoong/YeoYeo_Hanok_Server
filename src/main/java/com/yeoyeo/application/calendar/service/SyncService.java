@@ -73,12 +73,20 @@ public class SyncService {
 
 	@Transactional(propagation = Propagation.REQUIRES_NEW)
 	public void cancelReservationStateSync(String guestClassName, long roomId) {
+		LocalDate today = LocalDate.now();
+		LocalDate tomorrow = today.plusDays(1);
 		try {
-//			List<Reservation> reservationList = reservationRepository.findAllByReservationState(5);
 			List<Reservation> reservationList = reservationRepository.findAllByRoomIdAndReservationStateAndReservedFrom(roomId, 5, guestClassName);
 			log.info("취소 개수 : {}", reservationList.size());
 			for (Reservation reservation : reservationList) {
 				try {
+					if (reservation.getReservedFrom().equals("GuestAirbnb") && reservation.getGuest().getName().equals("AirBnbGuest_External") && reservation.getFirstDate().isEqual(tomorrow)) {
+						DateRoom dateRoom = dateRoomRepository.findById(today.format(DateTimeFormatter.ofPattern("yyyyMMdd"))+roomId).orElse(null);
+						if (dateRoom != null && dateRoom.getRoomReservationState() == 0) {
+							log.info("AirBnbGuest_External 하루 전 예약 && 당일 예약이 없을 시 취소하지 않음");
+							continue;
+						}
+					}
 					log.info("취소 예약 : {} / {} / {} ~ {}", reservation.getId(), reservation.getRoom().getName(), reservation.getFirstDate(), reservation.getLastDateRoom().getDate());
 					reservationService.cancel(reservation);
 				} catch (ReservationException e) {
