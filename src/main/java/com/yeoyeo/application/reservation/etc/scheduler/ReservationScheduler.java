@@ -58,6 +58,13 @@ public class ReservationScheduler extends Scheduler {
         log.info("예약 완료 처리 정상 종료");
     }
 
+    /* [문제 상황] - 2024-05-10
+    결제까지 마친 고객의 예약정보가 사라지는 문제 발생.
+    검증이 필요하지만 Reservation이 삭제되어 예약 상태 확인이 불가능한 상황.
+    Reservation을 삭제하는 유일한 로직이 아래의 스케줄러이기 때문에 여기서 문제가 발생한 것으로 추정됨.
+    [해결 방안]
+    Payment가 존재하는 Reservation은 삭제하지 않도록 수정.
+     */
     @Transactional
     @Scheduled(cron = "0 1 3 * * *") // 매일 3시 1분 0초 동작
     public synchronized void dailyReservationClearing() {
@@ -68,6 +75,7 @@ public class ReservationScheduler extends Scheduler {
         log.info("미결제 예약 건수 : {}건", reservationList.size());
         int deletedCnt = 0;
         for (Reservation reservation : reservationList) {
+            if (reservation.getPayment()!=null) continue;
             if (reservation.getFirstDateRoom()==null) reservationRepository.delete(reservation);
             else if (reservation.getCreatedDate().isBefore(before24hour)) reservationRepository.delete(reservation);
             else break;
