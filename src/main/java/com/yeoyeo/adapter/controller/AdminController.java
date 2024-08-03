@@ -23,6 +23,11 @@ import com.yeoyeo.application.reservation.dto.ReservationInfoDto;
 import com.yeoyeo.application.reservation.etc.exception.ReservationException;
 import com.yeoyeo.application.reservation.service.ReservationService;
 import com.yeoyeo.application.room.service.RoomService;
+import com.yeoyeo.application.scraping.dto.ScrapingGetNaverRequestDto;
+import com.yeoyeo.application.scraping.dto.ScrapingGetNaverResponseDto;
+import com.yeoyeo.application.scraping.dto.ScrapingPostNaverRequestDto;
+import com.yeoyeo.application.scraping.dto.ScrapingPostNaverResponseDto;
+import com.yeoyeo.application.scraping.service.ScrapingService;
 import com.yeoyeo.domain.Admin.Administrator;
 import com.yeoyeo.domain.Reservation;
 import io.swagger.v3.oas.annotations.Operation;
@@ -42,6 +47,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @Tag(name = "관리자 API", description = "관리자가 사용할 수 있는 API")
@@ -60,6 +66,7 @@ public class AdminController {
     private final AuthService authService;
     private final MessageService messageService;
     private final OfferService offerService;
+    private final ScrapingService scrapingService;
 
     // Auth
     @PostMapping("/signup")
@@ -199,5 +206,23 @@ public class AdminController {
     @GetMapping("/offer")
     public List<Long> getReservationList() {
         return offerService.getReservationIdList();
+    }
+
+    @GetMapping("/scraping/test")
+    public String testScrapingServer() {
+        return scrapingService.TestConnection();
+    }
+
+    @GetMapping("/scraping/sync/out")
+    public ScrapingGetNaverResponseDto testScrapingSyncOut(@RequestParam("monthSize") int monthSize) {
+        ScrapingGetNaverRequestDto requestDto = new ScrapingGetNaverRequestDto(monthSize);
+        return scrapingService.GetReservationFromNaver(requestDto);
+    }
+
+    @GetMapping("/scraping/sync/in")
+    public ScrapingPostNaverResponseDto testScrapingSyncIn(@RequestParam("date") String date, @RequestParam("roomId") long roomId) {
+        String roomName = roomId == 1 ? "여유" : "여행";
+        ScrapingPostNaverRequestDto requestDto = ScrapingPostNaverRequestDto.builder().targetRoom(roomName).targetDateStr(date).build();
+        return scrapingService.PostReservationFromNaverAsync(requestDto);
     }
 }
