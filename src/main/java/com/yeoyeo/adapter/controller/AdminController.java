@@ -210,19 +210,34 @@ public class AdminController {
 
     @GetMapping("/scraping/test")
     public String testScrapingServer() {
-        return scrapingService.TestConnection();
+        try {
+            return scrapingService.TestConnection();
+        } catch (Exception e) {
+            log.error("Scraping Test Error", e);
+            return e.getMessage();
+        }
     }
 
     @GetMapping("/scraping/sync/out")
     public ScrapingGetNaverResponseDto testScrapingSyncOut(@RequestParam("monthSize") int monthSize) {
-        ScrapingGetNaverRequestDto requestDto = new ScrapingGetNaverRequestDto(monthSize);
-        return scrapingService.GetReservationFromNaver(requestDto);
+        try {
+            ScrapingGetNaverRequestDto requestDto = new ScrapingGetNaverRequestDto(monthSize);
+            return scrapingService.GetReservationFromNaver(requestDto);
+        } catch (Exception e) {
+            log.error("Scraping Sync Out Error", e);
+            return ScrapingGetNaverResponseDto.builder().message(e.getMessage()).build();
+        }
     }
 
     @GetMapping("/scraping/sync/in")
     public ScrapingPostNaverResponseDto testScrapingSyncIn(@RequestParam("date") String date, @RequestParam("roomId") long roomId) {
-        String roomName = roomId == 1 ? "여유" : "여행";
-        ScrapingPostNaverRequestDto requestDto = ScrapingPostNaverRequestDto.builder().targetRoom(roomName).targetDateStr(date).build();
-        return scrapingService.PostReservationFromNaverAsync(requestDto);
+        try {
+            String roomName = roomId == 1 ? "여유" : "여행";
+            ScrapingPostNaverRequestDto requestDto = ScrapingPostNaverRequestDto.builder().targetRoom(roomName).targetDateStr(date).build();
+            return scrapingService.PostReservationFromNaverAsync(requestDto);
+        } catch (Exception e) {
+            log.error("Scraping Sync In Error", e);
+            return ScrapingPostNaverResponseDto.builder().message(e.getMessage()).build();
+        }
     }
 }
