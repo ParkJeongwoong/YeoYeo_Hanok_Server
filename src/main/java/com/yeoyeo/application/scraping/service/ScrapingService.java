@@ -16,7 +16,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class ScrapingService {
 
-	static final String SCRAPING_SERVER = "127.0.0.1:5000";
+	static final String SCRAPING_SERVER = "http://host.docker.internal:5000";
 
 	@Value("${scraping.accessKey}")
 	String accessKey;
