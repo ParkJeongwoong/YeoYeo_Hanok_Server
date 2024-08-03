@@ -222,7 +222,8 @@ public class AdminController {
     public ScrapingGetNaverResponseDto testScrapingSyncOut(@RequestParam("monthSize") int monthSize) {
         try {
             ScrapingGetNaverRequestDto requestDto = new ScrapingGetNaverRequestDto(monthSize);
-            return scrapingService.GetReservationFromNaver(requestDto);
+            ScrapingGetNaverResponseDto responseDto = scrapingService.GetReservationFromNaver(requestDto);
+            return responseDto;
         } catch (Exception e) {
             log.error("Scraping Sync Out Error", e);
             return ScrapingGetNaverResponseDto.builder().message(e.getMessage()).build();
@@ -232,7 +233,7 @@ public class AdminController {
     @GetMapping("/scraping/sync/in")
     public ScrapingPostNaverResponseDto testScrapingSyncIn(@RequestParam("date") String date, @RequestParam("roomId") long roomId) {
         try {
-            String roomName = roomId == 1 ? "여유" : "여행";
+            String roomName = roomId == 1 ? "Yeoyu" : "Yeohang";
             ScrapingPostNaverRequestDto requestDto = ScrapingPostNaverRequestDto.builder().targetRoom(roomName).targetDateStr(date).build();
             return scrapingService.PostReservationFromNaverAsync(requestDto);
         } catch (Exception e) {

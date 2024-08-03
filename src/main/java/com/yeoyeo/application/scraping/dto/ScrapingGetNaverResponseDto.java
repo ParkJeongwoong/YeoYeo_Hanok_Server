@@ -1,12 +1,14 @@
 package com.yeoyeo.application.scraping.dto;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import lombok.Builder;
 import lombok.Getter;
-import org.json.simple.JSONArray;
+import lombok.extern.slf4j.Slf4j;
 import org.json.simple.JSONObject;
 
+@Slf4j
 @Getter
 public class ScrapingGetNaverResponseDto {
 
@@ -23,21 +25,25 @@ public class ScrapingGetNaverResponseDto {
 
 	public ScrapingGetNaverResponseDto(JSONObject response) {
 		this.message = String.valueOf(response.get("message"));
+		log.info("message: " + message);
 
 		List<ScrapingNaverBookingInfo> notCanceledBookingList = new ArrayList<>();
 		List<ScrapingNaverBookingInfo> allBookingList = new ArrayList<>();
 
-		JSONArray notCanceledBookingListJSON = (JSONArray) response.get("notCanceledBookingList");
-		for (Object bookingInfo : notCanceledBookingListJSON) {
-			JSONObject bookingInfoJSON = (JSONObject) bookingInfo;
-			notCanceledBookingList.add(new ScrapingNaverBookingInfo(bookingInfoJSON));
-		}
+		List notCanceledBookingListJSON = (List) response.get("notCanceledBookingList");
 
-		JSONArray allBookingListJSON = (JSONArray) response.get("allBookingList");
-		for (Object bookingInfo : allBookingListJSON) {
-			JSONObject bookingInfoJSON = (JSONObject) bookingInfo;
-			allBookingList.add(new ScrapingNaverBookingInfo(bookingInfoJSON));
+		for (Object bookingInfo : notCanceledBookingListJSON) {
+			LinkedHashMap<String, Object> bookingInfoMap =(LinkedHashMap<String, Object>) bookingInfo;
+			notCanceledBookingList.add(new ScrapingNaverBookingInfo(bookingInfoMap));
 		}
+		log.info("notCanceledBookingList length: " + notCanceledBookingList.size());
+
+		List allBookingListJSON = (List) response.get("allBookingList");
+		for (Object bookingInfo : allBookingListJSON) {
+			LinkedHashMap<String, Object> bookingInfoMap = (LinkedHashMap<String, Object>) bookingInfo;
+			allBookingList.add(new ScrapingNaverBookingInfo(bookingInfoMap));
+		}
+		log.info("allBookingList length: " + allBookingList.size());
 
 		this.notCanceledBookingList = notCanceledBookingList;
 		this.allBookingList = allBookingList;

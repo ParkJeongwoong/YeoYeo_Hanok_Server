@@ -1,8 +1,10 @@
 package com.yeoyeo.application.scraping.dto;
 
+import java.util.LinkedHashMap;
 import lombok.Builder;
-import org.json.simple.JSONObject;
+import lombok.Getter;
 
+@Getter
 public class ScrapingNaverBookingInfo {
 
 	private final String name;
@@ -30,7 +32,7 @@ public class ScrapingNaverBookingInfo {
 		this.status = status;
 	}
 
-	public ScrapingNaverBookingInfo(JSONObject jsonObject) {
+	public ScrapingNaverBookingInfo(LinkedHashMap jsonObject) {
 		this.name = String.valueOf(jsonObject.get("name"));
 		this.phone = String.valueOf(jsonObject.get("phone"));
 		this.reservationNumber = String.valueOf(jsonObject.get("reservationNumber"));
