@@ -16,7 +16,8 @@ import org.springframework.stereotype.Service;
 @Service
 public class ScrapingService {
 
-	static final String SCRAPING_SERVER = "http://host.docker.internal:5000";
+	@Value("${scraping.server.url}")
+	String SCRAPING_SERVER;
 
 	@Value("${scraping.accessKey}")
 	String accessKey;
@@ -24,8 +25,7 @@ public class ScrapingService {
 	private final WebClientService webClientService;
 
 	public String TestConnection() {
-		JSONObject response = webClientService.get("application/json;charset=UTF-8", SCRAPING_SERVER);
-		return response.toJSONString();
+		return webClientService.getString("application/json;charset=UTF-8", SCRAPING_SERVER);
 	}
 
 	public ScrapingGetNaverResponseDto GetReservationFromNaver(ScrapingGetNaverRequestDto requestDto) {

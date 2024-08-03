@@ -66,6 +66,13 @@ public class WebClientService {
                 .block();
     }
 
+    public String getString(String contentType, String url) {
+        return WebClient(contentType, url).get()
+            .retrieve()
+            .bodyToMono(String.class)
+            .block();
+    }
+
     public JSONObject get(String contentType, String url, MediaType acceptType) {
         return WebClient(contentType, url).get()
                 .accept(acceptType)
