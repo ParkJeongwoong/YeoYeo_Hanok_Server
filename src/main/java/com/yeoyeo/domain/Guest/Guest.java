@@ -62,4 +62,8 @@ public class Guest {
     public Guest clone() {
         return new Guest(this.name, this.phoneNumber, this.email, this.guestCount, this.request);
     }
+
+    public String getPlatformName() {
+        return "";
+    }
 }

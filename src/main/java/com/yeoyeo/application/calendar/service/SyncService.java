@@ -23,6 +23,8 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.fortuna.ical4j.model.component.VEvent;
+import net.fortuna.ical4j.model.property.Description;
+import net.fortuna.ical4j.model.property.Summary;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,7 +44,7 @@ public class SyncService {
 	@Transactional(propagation = Propagation.REQUIRES_NEW)
 	public void syncProcess(VEvent event, String uid, GuestFactory guestFactory, Payment dummyPayment, long roomId) {
 		Reservation reservation = findExistingReservation(uid, roomId, guestFactory.getGuestClassName());
-		if (reservation == null) registerReservation(event, guestFactory.createGuest(event.getDescription(), event.getSummary()), dummyPayment, roomId);
+		if (reservation == null) registerReservationByEvent(event, guestFactory.createGuest(event.getDescription(), event.getSummary()), dummyPayment, roomId);
 		else updateReservation(event, reservation);
 	}
 
@@ -112,12 +114,27 @@ public class SyncService {
 		return null;
 	}
 
-	private void registerReservation(VEvent event, Guest guest, Payment dummyPayment, long roomId) {
+	private void registerReservationByEvent(VEvent event, Guest guest, Payment dummyPayment, long roomId) {
 		log.info("Reservation Sync - Register : {} / roomId : {} / uid : {}", guest.getName(), roomId, event.getUid().getValue());
+		String startDate = event != null ? event.getStartDate().getValue() : null;
+		String endDate = event != null ? event.getEndDate().getValue() : null;
+		Description description = event != null ? event.getDescription() : null;
+		Summary summary = event != null ? event.getSummary() : null;
+		String UID = event != null ? event.getUid().getValue() : null;
+
+		registerReservation(guest, dummyPayment, roomId, startDate, endDate, description, summary, UID);
+	}
+
+	private void registerReservation(Guest guest,
+		Payment dummyPayment,
+		long roomId,
+		String startDate,
+		String endDate,
+		Description description,
+		Summary summary,
+		String UID) {
 		for (int i=0;i<3;i++) {
 			try {
-				String startDate = event.getStartDate().getValue();
-				String endDate = event.getEndDate().getValue();
 				log.info("Reservation between : {} ~ {}", startDate, endDate);
 				if (checkExceedingAvailableDate(startDate, endDate)) {
 					log.info("<예약 가능 기간 초과> - 예약 불가능한 날짜가 포함되어 있습니다.");
@@ -128,20 +145,21 @@ public class SyncService {
 					log.info("<등록 시작>");
 					try {
 						MakeReservationDto makeReservationDto = guest.createMakeReservationDto(
-							dateRoomList, event.getDescription(), event.getSummary());
+							dateRoomList, description, summary);
 						Reservation reservation = reservationService.createReservation(
 							makeReservationDto);
-						reservation.setUniqueId(event.getUid().getValue());
+						reservation.setUniqueId(UID);
 						reservationService.setReservationPaid(reservation, dummyPayment);
 						break;
 					} catch (ReservationException reservationException) {
 						log.info("[예약 충돌 발생] - 동기화 과정 중 중복된 예약 발생. 홈페이지 예약 변경/취소 작업 시작");
+						String platformName = guest.getPlatformName();
 						Guest collidedGuest = checkUidChangeIssue(dateRoomList,
 							guest.getName()); // UID 가 바뀌어서 기존 Guest 정보가 삭제되는 경우를 방지
 						log.info("UID 변경 검증 결과 : {}", collidedGuest != null);
 						if (collidedGuest != null)
 							guest = collidedGuest; // UID가 바뀌었어도 예약 출처와 정보가 일치한다면 동일한 게스트로 간주
-						boolean refundResult = collidedReservationCancel(dateRoomList);
+						boolean refundResult = collidedReservationCancel(dateRoomList, platformName);
 						if (refundResult) {
 							log.info("동기화 과정 중 중복된 예약 취소 완료. 재시도 시작");
 						} else {
@@ -177,7 +195,7 @@ public class SyncService {
 				reservationService.cancel(reservation);
 				Guest guestClone = reservation.getGuest().clone();
 				Payment paymentClone = reservation.getPayment().clone();
-				registerReservation(event, guestClone, paymentClone, reservation.getRoom().getId());
+				registerReservationByEvent(event, guestClone, paymentClone, reservation.getRoom().getId());
 			} else reservation.setStateSyncEnd(); // 동기화 완료
 		} catch (ReservationException e) {
 			messageService.sendAdminMsg("동기화 오류 알림 - 수정된 예약정보 반영을 위해 기존 예약 변경 중 오류 발생");
@@ -185,7 +203,7 @@ public class SyncService {
 		}
 	}
 
-	private boolean collidedReservationCancel(List<DateRoom> dateRoomList) {
+	private boolean collidedReservationCancel(List<DateRoom> dateRoomList, String platformName) {
 		for (DateRoom dateRoom : dateRoomList) {
 			List<Reservation> reservationList = dateRoom.getMapDateRoomReservations().stream().map(MapDateRoomReservation::getReservation).collect(
 				Collectors.toList());
@@ -193,12 +211,15 @@ public class SyncService {
 				if (collidedReservation.getReservationState() == 1 || collidedReservation.getReservationState() == 5) {
 					String uid = collidedReservation.getUniqueId();
 					log.info("{} 날짜의 {} 방 예약 취소 - 예약번호 : {} / {}", dateRoom.getDate(), dateRoom.getRoom().getName(), collidedReservation.getId(), uid);
-					if (uid == null || getPlatformName(uid).equals("yeoyeo")) {
+					String currentPlatformName = getPlatformName(uid);
+					if (uid == null || currentPlatformName.equals("yeoyeo")) {
 						log.info("홈페이지 예약 취소");
-//                        GeneralResponseDto response = paymentService.refundBySystem(collidedReservation);
 						GeneralResponseDto response = collisionHandleService.collideRefund(collidedReservation);
 						if (!response.isSuccess()) return false;
-					} else {
+					} else if (!currentPlatformName.equals(platformName)) {
+						log.info("다른 플랫폼 간 예약 충돌 발생");
+						messageService.sendAdminMsg("동기화 오류 알림 - " + currentPlatformName + "과 " + platformName + " 간 예약 충돌 발생");
+					}else {
 						log.info("플랫폼 예약 취소");
 						try {
 							reservationService.cancel(collidedReservation);

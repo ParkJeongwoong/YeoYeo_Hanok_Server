@@ -43,4 +43,9 @@ public class GuestAirbnb extends Guest {
         return new GuestAirbnb(this.name);
     }
 
+    @Override
+    public String getPlatformName() {
+        return "airbnb.com";
+    }
+
 }

@@ -12,6 +12,7 @@ public enum GuestType {
     AIRBNB("GUEST_AIRBNB", "에어비앤비 예약 손님"),
     BOOKING("GUEST_BOOKING", "부킹닷컴 예약 손님"),
     DIRECT("GUEST_DIRECT", "문의 예약 손님"),
+    NAVER("GUEST_NAVER", "네이버 예약 손님"),
     OTHER("GUEST_OTHER", "기타 예약 손님");
 
     private final String key;

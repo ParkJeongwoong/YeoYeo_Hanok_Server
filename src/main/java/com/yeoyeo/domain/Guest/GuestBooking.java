@@ -42,4 +42,9 @@ public class GuestBooking extends Guest {
         return new GuestBooking(this.name);
     }
 
+    @Override
+    public String getPlatformName() {
+        return "booking.com";
+    }
+
 }

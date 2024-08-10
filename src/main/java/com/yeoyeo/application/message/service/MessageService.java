@@ -476,7 +476,13 @@ public class MessageService {
             String url = NCLOUD_SMS_URL+uri;
             String timestamp = getTimestamp();
             String signature = getSignature("POST", uri, timestamp);
-            return webClientService.sendMessage(type, url, subject, content, getNumberOnly(to), timestamp, accessKey, signature);
+
+            String numberOnlyTo = getNumberOnly(to);
+            if (isVaildPhoneNumber(numberOnlyTo) == false) {
+                log.error("전화번호가 유효하지 않습니다. to : {}", to);
+                return null;
+            }
+            return webClientService.sendMessage(type, url, subject, content, numberOnlyTo, timestamp, accessKey, signature);
         } catch (Exception e) {
             log.error("문자 발송 중 에러 발생", e);
             return null;
@@ -546,6 +552,10 @@ public class MessageService {
             return commonMethod.delCache(phoneNumber);
         }
         return false;
+    }
+
+    private boolean isVaildPhoneNumber(String phoneNumber) {
+        return phoneNumber.length() == 11 && phoneNumber.startsWith("010");
     }
 
     private String getNumberOnly(String string) {

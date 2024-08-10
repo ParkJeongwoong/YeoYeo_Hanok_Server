@@ -1,6 +1,10 @@
 package com.yeoyeo.application.scraping.dto;
 
+import com.yeoyeo.application.reservation.dto.MakeReservationDto.MakeReservationDto;
+import com.yeoyeo.domain.DateRoom;
+import com.yeoyeo.domain.Guest.GuestNaver;
 import java.util.LinkedHashMap;
+import java.util.List;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -43,6 +47,21 @@ public class ScrapingNaverBookingInfo {
 		this.comment = String.valueOf(jsonObject.get("comment"));
 		this.price = String.valueOf(jsonObject.get("price"));
 		this.status = String.valueOf(jsonObject.get("status"));
+	}
+
+	public MakeReservationDto toMakeReservationDto(List<DateRoom> dateRoomList) {
+		GuestNaver guest = toGuestNaver();
+		return new MakeReservationDto(dateRoomList, guest, 1);
+	}
+
+	public GuestNaver toGuestNaver() {
+		return GuestNaver.builder()
+			.name(name)
+			.phoneNumber(phone)
+			.request(comment
+				+ " / 예약번호 : " + reservationNumber
+				+ " / " + option)
+			.build();
 	}
 
 }

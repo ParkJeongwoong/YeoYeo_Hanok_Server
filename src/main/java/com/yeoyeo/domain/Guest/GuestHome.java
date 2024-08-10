@@ -21,4 +21,9 @@ public class GuestHome extends Guest {
         return new GuestHome(this.name, super.phoneNumber, this.email, this.guestCount, this.request);
     }
 
+    @Override
+    public String getPlatformName() {
+        return "yeoyeo.com";
+    }
+
 }
