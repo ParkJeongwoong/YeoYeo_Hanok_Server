@@ -222,11 +222,22 @@ public class AdminController {
     public ScrapingGetNaverResponseDto testScrapingSyncOut(@RequestParam("monthSize") int monthSize) {
         try {
             ScrapingGetNaverRequestDto requestDto = new ScrapingGetNaverRequestDto(monthSize);
-            ScrapingGetNaverResponseDto responseDto = scrapingService.GetReservationFromNaver(requestDto);
-            return responseDto;
+            return scrapingService.GetReservationFromNaver(requestDto);
         } catch (Exception e) {
             log.error("Scraping Sync Out Error", e);
             return ScrapingGetNaverResponseDto.builder().message(e.getMessage()).build();
+        }
+    }
+
+    @GetMapping("/scraping/save/in")
+    public String testSaveFromNaver(@RequestParam("monthSize") int monthSize) {
+        try {
+            ScrapingGetNaverRequestDto requestDto = new ScrapingGetNaverRequestDto(monthSize);
+            scrapingService.SyncReservationFromNaver(requestDto);
+            return "Success";
+        } catch (Exception e) {
+            log.error("Scraping Sync Out Error", e);
+            return e.getMessage();
         }
     }
 
