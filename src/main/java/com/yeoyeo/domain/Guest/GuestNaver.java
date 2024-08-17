@@ -1,5 +1,6 @@
 package com.yeoyeo.domain.Guest;
 
+import com.yeoyeo.application.reservation.dto.MakeReservationDto.MakeReservationDto;
 import com.yeoyeo.application.reservation.dto.MakeReservationDto.MakeReservationNaverDto;
 import com.yeoyeo.domain.DateRoom;
 import jakarta.persistence.Entity;
@@ -23,14 +24,36 @@ public class GuestNaver extends Guest {
 	public GuestNaver(Description description, Summary summary) {
 		if (summary == null) super.name = "NaverGuest_External";
 		else super.name = summary.getValue();
-
-		if (description == null || summary == null || !summary.getValue().equals("Reserved")) super.name = "NaverGuest_External";
-		else super.name = "NaverGuest";
+		if (description == null) super.request = "네이버 예약입니다.";
+		else {
+			String[] descriptionLines = description.getValue().split("/");
+			for (int i = 0; i < descriptionLines.length; i++) {
+				if (i == 0) super.phoneNumber = descriptionLines[i];
+				else if (i == 1) super.request = descriptionLines[i];
+				else super.request += " / " + descriptionLines[i];
+			}
+		}
 	}
 
 	@Override
 	public MakeReservationNaverDto createMakeReservationDto(List<DateRoom> dateRoomList) {
-		return new MakeReservationNaverDto(dateRoomList, this, 0);
+		return new MakeReservationNaverDto(dateRoomList, this, 1);
+	}
+
+	@Override
+	public MakeReservationDto createMakeReservationDto(List<DateRoom> dateRoomList, Description description, Summary summary) {
+		if (summary == null) super.name = "NaverGuest_External";
+		else super.name = summary.getValue();
+		if (description == null) super.request = "네이버 예약입니다.";
+		else {
+			String[] descriptionLines = description.getValue().split("/");
+			for (int i = 0; i < descriptionLines.length; i++) {
+				if (i == 0) super.phoneNumber = descriptionLines[i];
+				else if (i == 1) super.request = descriptionLines[i];
+				else super.request += " / " + descriptionLines[i];
+			}
+		}
+		return new MakeReservationDto(dateRoomList, this, 1);
 	}
 
 	@Override

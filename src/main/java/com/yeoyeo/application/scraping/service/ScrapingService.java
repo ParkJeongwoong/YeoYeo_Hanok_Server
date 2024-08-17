@@ -55,6 +55,9 @@ public class ScrapingService {
 		JSONObject response = webClientService.post("application/json;charset=UTF-8", SCRAPING_SERVER + "/sync/out", requestDto);
 		ScrapingGetNaverResponseDto responseDto = new ScrapingGetNaverResponseDto(response);
 		List<ScrapingNaverBookingInfo> notCanceledBookingList = responseDto.getNotCanceledBookingList();
+		for (ScrapingNaverBookingInfo bookingInfo : notCanceledBookingList) {
+			log.info("bookingInfo : {} ({} ~ {})", bookingInfo.getName(), bookingInfo.getStartDate(), bookingInfo.getEndDate());
+		}
 		calendarService.writeIcalendarFileByNaver(notCanceledBookingList);
 	}
 

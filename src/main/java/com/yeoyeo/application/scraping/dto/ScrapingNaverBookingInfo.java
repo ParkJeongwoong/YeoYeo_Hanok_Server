@@ -55,13 +55,7 @@ public class ScrapingNaverBookingInfo {
 	}
 
 	public GuestNaver toGuestNaver() {
-		return GuestNaver.builder()
-			.name(name)
-			.phoneNumber(phone)
-			.request(comment
-				+ " / 예약번호 : " + reservationNumber
-				+ " / " + option)
-			.build();
+		return new GuestNaver(name, phone, "", 0, comment + " / 예약번호 : " + reservationNumber + " / " + option);
 	}
 
 }

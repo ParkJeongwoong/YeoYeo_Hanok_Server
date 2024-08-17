@@ -284,8 +284,11 @@ public class PaymentService {
             long refundAmount = payment.getAmount();
 
             // 환불 요청
-            String accessToken = getToken();
-            sendRefundRequest("관리자의 환불 요청", refundAmount, (int) refundAmount, payment.getImp_uid(), accessToken);
+            // 관리자가 생성한 예약의 경우 환불 요청을 하지 않는다.
+            if (!payment.getBuyer_name().equals("AdminGuest")) {
+                String accessToken = getToken();
+                sendRefundRequest("관리자의 환불 요청", refundAmount, (int) refundAmount, payment.getImp_uid(), accessToken);
+            }
 
             // 환불 완료
             payment.setCanceled(refundAmount, "관리자 사유 환불", "None");

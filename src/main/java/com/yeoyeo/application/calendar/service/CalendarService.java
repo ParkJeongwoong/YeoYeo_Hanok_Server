@@ -1,12 +1,9 @@
 package com.yeoyeo.application.calendar.service;
 
 import com.yeoyeo.aop.annotation.SingleJob;
-import com.yeoyeo.application.collision.service.CollisionHandleService;
 import com.yeoyeo.application.common.exception.ExternalApiException;
-import com.yeoyeo.application.dateroom.repository.DateRoomRepository;
 import com.yeoyeo.application.message.service.MessageService;
 import com.yeoyeo.application.reservation.repository.ReservationRepository;
-import com.yeoyeo.application.reservation.service.ReservationService;
 import com.yeoyeo.application.scraping.dto.ScrapingNaverBookingInfo;
 import com.yeoyeo.domain.Guest.Factory.GuestAirbnbFactory;
 import com.yeoyeo.domain.Guest.Factory.GuestBookingFactory;
@@ -389,7 +386,7 @@ public class CalendarService {
             VEvent event = new VEvent(startDT, endDT, eventName)
                 .withProperty(uid)
                 .getFluentTarget();
-            event.getProperties().add(new Description(bookingInfo.getPhone()+"/"+bookingInfo.getComment()));
+            event.getProperties().add(new Description(bookingInfo.getPhone()+"/"+bookingInfo.getComment()+"/"+bookingInfo.getOption()));
             return event;
         } catch (ParseException e) {
             log.error("Reservation LocalDate Parse Exception", e);
