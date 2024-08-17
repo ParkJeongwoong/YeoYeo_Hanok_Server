@@ -144,6 +144,7 @@ public class CalendarService {
         getIcsFileFromPlatform(BOOKING_FILE_URL_B, BOOKING_FILE_PATH_B);
         syncIcalendarFile(BOOKING_FILE_PATH_B, getGuestBookingFactory(), getPaymentBooking(), 2);
     }
+
     @Transactional
     public void writeFullICSFile(long roomId) { writeFullIcalendarFile(roomId); }
     @Transactional
