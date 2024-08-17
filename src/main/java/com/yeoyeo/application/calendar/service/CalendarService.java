@@ -242,9 +242,8 @@ public class CalendarService {
         try {
             Calendar yeoyuCalendar = getNaverCalendar(1);
             Calendar yeohangCalendar = getNaverCalendar(2);
-            UidGenerator uidGenerator = new FixedUidGenerator(new SimpleHostInfo("naver.com"), "9091");
             for (ScrapingNaverBookingInfo scrapingNaverBookingInfo : scrapingData) {
-                VEvent event = createVEventByNaver(scrapingNaverBookingInfo, uidGenerator);
+                VEvent event = createVEventByNaver(scrapingNaverBookingInfo);
                 if (scrapingNaverBookingInfo.getRoom().equals("한옥스테이 여여 - 여유")) yeoyuCalendar.withComponent(event);
                 else yeohangCalendar.withComponent(event);
             }
@@ -377,12 +376,12 @@ public class CalendarService {
         return null;
     }
 
-    private VEvent createVEventByNaver(ScrapingNaverBookingInfo bookingInfo, UidGenerator uidGenerator) {
+    private VEvent createVEventByNaver(ScrapingNaverBookingInfo bookingInfo) {
         try {
             String eventName = bookingInfo.getName();
             Date startDT = new Date(bookingInfo.getStartDate());
             Date endDT = new Date(bookingInfo.getEndDate());
-            Uid uid = uidGenerator.generateUid();
+            Uid uid = new Uid(bookingInfo.makeUniqueKey());
             VEvent event = new VEvent(startDT, endDT, eventName)
                 .withProperty(uid)
                 .getFluentTarget();

@@ -58,4 +58,8 @@ public class ScrapingNaverBookingInfo {
 		return new GuestNaver(name, phone, "", 0, comment + " / 예약번호 : " + reservationNumber + " / " + option);
 	}
 
+	public String makeUniqueKey() {
+		return reservationNumber + "-" + startDate + "-" + endDate + "-9091@naver.com" ;
+	}
+
 }
