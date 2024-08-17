@@ -11,6 +11,7 @@ import com.yeoyeo.application.scraping.dto.ScrapingNaverBookingInfo;
 import com.yeoyeo.domain.Guest.Factory.GuestAirbnbFactory;
 import com.yeoyeo.domain.Guest.Factory.GuestBookingFactory;
 import com.yeoyeo.domain.Guest.Factory.GuestFactory;
+import com.yeoyeo.domain.Guest.Factory.GuestNaverFactory;
 import com.yeoyeo.domain.Payment;
 import com.yeoyeo.domain.Reservation;
 import jakarta.servlet.http.HttpServletResponse;
@@ -34,6 +35,7 @@ import net.fortuna.ical4j.model.Calendar;
 import net.fortuna.ical4j.model.Component;
 import net.fortuna.ical4j.model.Date;
 import net.fortuna.ical4j.model.component.VEvent;
+import net.fortuna.ical4j.model.property.Description;
 import net.fortuna.ical4j.model.property.Uid;
 import net.fortuna.ical4j.util.FixedUidGenerator;
 import net.fortuna.ical4j.util.SimpleHostInfo;
@@ -95,9 +97,11 @@ public class CalendarService {
         log.info("syncInICSFile_Reservation - Reservation Room ID : {}", roomId);
         if (roomId == 1) {
             syncInICSFile_Airbnb_A();
+            syncInICSFile_Naver_A();
         } else if (roomId == 2) {
             syncInICSFile_Airbnb_B();
             syncInICSFile_Booking_B();
+            syncInICSFile_Naver_B();
         }
         else log.error("syncInICSFile_Reservation - Reservation Room ID is WRONG : given {}", roomId);
     }
@@ -107,6 +111,8 @@ public class CalendarService {
         syncInICSFile_Airbnb_A();
         syncInICSFile_Airbnb_B();
         syncInICSFile_Booking_B();
+        syncInICSFile_Naver_A();
+        syncInICSFile_Naver_B();
     }
 
     @Transactional
@@ -143,6 +149,17 @@ public class CalendarService {
         log.info("syncInICSFile_Booking_B - Start");
         getIcsFileFromPlatform(BOOKING_FILE_URL_B, BOOKING_FILE_PATH_B);
         syncIcalendarFile(BOOKING_FILE_PATH_B, getGuestBookingFactory(), getPaymentBooking(), 2);
+    }
+
+    @Transactional
+    public synchronized void syncInICSFile_Naver_A() {
+        log.info("syncInICSFile_Naver_A - Start");
+        syncIcalendarFile(NAVER_FILE_PATH_A, getGuestNaverFactory(), getPaymentNaver(), 1);
+    }
+    @Transactional
+    public synchronized void syncInICSFile_Naver_B() {
+        log.info("syncInICSFile_Naver_B - Start");
+        syncIcalendarFile(NAVER_FILE_PATH_B, getGuestNaverFactory(), getPaymentNaver(), 2);
     }
 
     @Transactional
@@ -313,6 +330,10 @@ public class CalendarService {
         return new GuestBookingFactory();
     }
 
+    private GuestNaverFactory getGuestNaverFactory() {
+        return new GuestNaverFactory();
+    }
+
     private Payment getPaymentAirbnb() {
         return Payment.builder()
                 .amount(0).buyer_name("AirBnbGuest").buyer_tel("000-0000-0000").imp_uid("none").pay_method("airbnb").receipt_url("none").status("paid").build();
@@ -321,6 +342,11 @@ public class CalendarService {
     private Payment getPaymentBooking() {
         return Payment.builder()
                 .amount(0).buyer_name("BookingGuest").buyer_tel("000-0000-0000").imp_uid("none").pay_method("booking").receipt_url("none").status("paid").build();
+    }
+
+    private Payment getPaymentNaver() {
+        return Payment.builder()
+                .amount(0).buyer_name("NaverGuest").buyer_tel("000-0000-0000").imp_uid("none").pay_method("naver").receipt_url("none").status("paid").build();
     }
 
     private Calendar getCalendar(long roomId) {
@@ -360,9 +386,11 @@ public class CalendarService {
             Date startDT = new Date(bookingInfo.getStartDate());
             Date endDT = new Date(bookingInfo.getEndDate());
             Uid uid = uidGenerator.generateUid();
-            return new VEvent(startDT, endDT, eventName)
-                    .withProperty(uid)
-                    .getFluentTarget();
+            VEvent event = new VEvent(startDT, endDT, eventName)
+                .withProperty(uid)
+                .getFluentTarget();
+            event.getProperties().add(new Description(bookingInfo.getPhone()+"/"+bookingInfo.getComment()));
+            return event;
         } catch (ParseException e) {
             log.error("Reservation LocalDate Parse Exception", e);
         }

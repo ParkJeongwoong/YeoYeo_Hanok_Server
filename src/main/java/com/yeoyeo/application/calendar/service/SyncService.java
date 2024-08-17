@@ -274,6 +274,9 @@ public class SyncService {
 	}
 
 	private String getPlatformName(String uid) {
+		if (uid == null) {
+			return "yeoyeo";
+		}
 		String[] strings = uid.split("@");
 		return strings[strings.length-1];
 	}

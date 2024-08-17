@@ -103,10 +103,15 @@ public class AdminManageInfo {
                     this.checkout = reservation.getFirstDate().plusDays(1);
                 }
                 else {
-                    this.guestType = 3;
+                    this.guestType = 1;
                     this.checkin = reservation.getFirstDate();
                     this.checkout = reservation.getLastDateRoom().getDate().plusDays(1);
                 }
+                break;
+            case "GuestNaver":
+                this.guestType = 4;
+                this.checkin = reservation.getFirstDate();
+                this.checkout = reservation.getLastDateRoom().getDate().plusDays(1);
                 break;
             default:
                 this.guestType = -1;

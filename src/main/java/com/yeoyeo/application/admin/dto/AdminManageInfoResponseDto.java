@@ -40,6 +40,9 @@ public class AdminManageInfoResponseDto {
             case 3:
                 this.guestType = GuestType.BOOKING;
                 break;
+            case 4:
+                this.guestType = GuestType.NAVER;
+                break;
             default:
                 this.guestType = GuestType.OTHER;
         }

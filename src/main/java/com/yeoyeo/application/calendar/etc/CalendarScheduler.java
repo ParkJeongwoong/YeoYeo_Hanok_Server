@@ -32,6 +32,8 @@ public class CalendarScheduler extends Scheduler {
     public synchronized void regularSync_Naver() {
         log.info("[SCHEDULE - Regular Calendar Synchronization : Naver ]");
         scrapingService.SyncReservationFromNaver(new ScrapingGetNaverRequestDto(3));
+        calendarService.syncInICSFile_Naver_A();
+        calendarService.syncInICSFile_Naver_B();
     }
 
 
