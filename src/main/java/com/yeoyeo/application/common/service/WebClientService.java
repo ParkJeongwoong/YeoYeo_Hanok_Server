@@ -4,7 +4,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yeoyeo.application.message.dto.SendMessageRequestDto;
 import com.yeoyeo.application.message.dto.SendMessageResponseDto;
+import com.yeoyeo.application.message.service.MessageService;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.json.simple.JSONObject;
 import org.springframework.core.ParameterizedTypeReference;
@@ -12,12 +14,17 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.BodyInserters;
+import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.util.DefaultUriBuilderFactory;
+import reactor.core.publisher.Mono;
 
 @Slf4j
+@RequiredArgsConstructor
 @Service
 public class WebClientService {
+
+    private final MessageService messageService;
 
     public WebClient WebClient(String contentType) {
         return WebClient.builder().defaultHeader(HttpHeaders.CONTENT_TYPE, contentType).build();
@@ -87,6 +94,18 @@ public class WebClientService {
             .retrieve()
             .bodyToMono(JSONObject.class)
             .block();
+    }
+
+    public JSONObject postWithErrorHandling(String contentType, String url, Object bodyValue, String errorMessage) {
+        ClientResponse response = WebClient(contentType, url).post()
+            .bodyValue(bodyValue)
+            .exchangeToMono(clientResponse -> Mono.just(clientResponse))
+            .block();
+        int statusCode = response.statusCode().value();
+        if (statusCode != 200) {
+            messageService.sendDevMsg(errorMessage);
+        }
+        return response.bodyToMono(JSONObject.class).block();
     }
 
     public JSONObject post(String contentType, String url, Object bodyValue, String headerName, String headerValue) {

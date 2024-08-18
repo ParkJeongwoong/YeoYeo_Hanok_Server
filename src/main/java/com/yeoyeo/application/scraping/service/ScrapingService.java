@@ -2,7 +2,6 @@ package com.yeoyeo.application.scraping.service;
 
 import com.yeoyeo.application.calendar.service.CalendarService;
 import com.yeoyeo.application.common.service.WebClientService;
-import com.yeoyeo.application.reservation.repository.ReservationRepository;
 import com.yeoyeo.application.scraping.dto.ScrapingGetNaverRequestDto;
 import com.yeoyeo.application.scraping.dto.ScrapingGetNaverResponseDto;
 import com.yeoyeo.application.scraping.dto.ScrapingNaverBookingInfo;
@@ -31,8 +30,6 @@ public class ScrapingService {
 	private final WebClientService webClientService;
 	private final CalendarService calendarService;
 
-	private final ReservationRepository reservationRepository;
-
 	public String TestConnection() {
 		return webClientService.getString("application/json;charset=UTF-8", SCRAPING_SERVER);
 	}
@@ -52,7 +49,7 @@ public class ScrapingService {
 	@Transactional
 	public void SyncReservationFromNaver(ScrapingGetNaverRequestDto requestDto) {
 		requestDto.setActivationKey(accessKey);
-		JSONObject response = webClientService.post("application/json;charset=UTF-8", SCRAPING_SERVER + "/sync/out", requestDto);
+		JSONObject response = webClientService.postWithErrorHandling("application/json;charset=UTF-8", SCRAPING_SERVER + "/sync/out", requestDto, "네이버->서버 동기화 실패");
 		ScrapingGetNaverResponseDto responseDto = new ScrapingGetNaverResponseDto(response);
 		List<ScrapingNaverBookingInfo> notCanceledBookingList = responseDto.getNotCanceledBookingList();
 		for (ScrapingNaverBookingInfo bookingInfo : notCanceledBookingList) {
