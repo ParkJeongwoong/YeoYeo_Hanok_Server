@@ -18,7 +18,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.net.SocketException;
 import java.net.URL;
 import java.text.ParseException;
 import java.time.format.DateTimeFormatter;
@@ -34,9 +33,6 @@ import net.fortuna.ical4j.model.Date;
 import net.fortuna.ical4j.model.component.VEvent;
 import net.fortuna.ical4j.model.property.Description;
 import net.fortuna.ical4j.model.property.Uid;
-import net.fortuna.ical4j.util.FixedUidGenerator;
-import net.fortuna.ical4j.util.SimpleHostInfo;
-import net.fortuna.ical4j.util.UidGenerator;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
@@ -225,14 +221,11 @@ public class CalendarService {
         try {
             List<Reservation> reservationList = reservationRepository.findAllByReservationState(1);
             Calendar calendar = getCalendar(roomId);
-            UidGenerator uidGenerator = new FixedUidGenerator(new SimpleHostInfo("yeoyeo"), "9091");
             for (Reservation reservation : reservationList) {
-                VEvent event = createVEvent(reservation, uidGenerator);
+                VEvent event = createVEvent(reservation);
                 if (reservation.getRoom().getId()==roomId) calendar.withComponent(event);
             }
             createIcsFile(calendar, roomId);
-        } catch (SocketException e) {
-            log.error("UidGenerator Issue : InetAddressHostInfo process Error", e);
         } catch (IOException e) {
             log.error("ICS File Creation Exception", e);
         }
@@ -249,8 +242,6 @@ public class CalendarService {
             }
             createIcsFile(yeoyuCalendar, 3);
             createIcsFile(yeohangCalendar, 4);
-        } catch (SocketException e) {
-            log.error("UidGenerator Issue : InetAddressHostInfo process Error", e);
         } catch (IOException e) {
             log.error("ICS File Creation Exception", e);
         }
@@ -261,18 +252,15 @@ public class CalendarService {
             List<Reservation> reservationList = reservationRepository.findAllByReservationStateAndReservedFrom(1, "GuestHome");
             List<Reservation> reservationFromNaverList = reservationRepository.findAllByReservationStateAndReservedFrom(1, "GuestNaver");
             Calendar calendar = getCalendar(roomId);
-            UidGenerator uidGenerator = new FixedUidGenerator(new SimpleHostInfo("yeoyeo"), "9091");
             for (Reservation reservation : reservationList) {
-                VEvent event = createVEvent(reservation, uidGenerator);
+                VEvent event = createVEvent(reservation);
                 if (reservation.getRoom().getId()==roomId) calendar.withComponent(event);
             }
             for (Reservation reservation : reservationFromNaverList) {
-                VEvent event = createVEvent(reservation, uidGenerator);
+                VEvent event = createVEvent(reservation);
                 if (reservation.getRoom().getId()==roomId) calendar.withComponent(event);
             }
             createIcsFile(calendar, roomId);
-        } catch (SocketException e) {
-            log.error("UidGenerator Issue : InetAddressHostInfo process Error", e);
         } catch (IOException e) {
             log.error("ICS File Creation Exception", e);
         }
@@ -359,13 +347,13 @@ public class CalendarService {
             .getFluentTarget();
     }
 
-    private VEvent createVEvent(Reservation reservation, UidGenerator uidGenerator) {
+    private VEvent createVEvent(Reservation reservation) {
         try {
             String eventName = reservation.getGuest().getName();
             Date startDT = new Date(reservation.getFirstDate().format(DateTimeFormatter.ofPattern("yyyyMMdd")));
             Date endDT = new Date(reservation.getLastDateRoom().getDate().plusDays(1).format(DateTimeFormatter.ofPattern("yyyyMMdd")));
             Uid uid;
-            if (reservation.getUniqueId()==null||reservation.getUniqueId().length()==0) uid = uidGenerator.generateUid();
+            if (reservation.getUniqueId()==null||reservation.getUniqueId().length()==0) uid = new Uid(reservation.makeUniqueKey());
             else uid = new Uid(reservation.getUniqueId());
             return new VEvent(startDT, endDT, eventName)
                     .withProperty(uid)

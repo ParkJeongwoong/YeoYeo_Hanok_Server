@@ -6,10 +6,12 @@ import com.yeoyeo.domain.DateRoom;
 import jakarta.persistence.Entity;
 import java.util.List;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import net.fortuna.ical4j.model.property.Description;
 import net.fortuna.ical4j.model.property.Summary;
 
 //@SuperBuilder
+@Slf4j
 @Getter
 @Entity
 public class GuestAirbnb extends Guest {
@@ -26,7 +28,7 @@ public class GuestAirbnb extends Guest {
     public GuestAirbnb(Description description, Summary summary) {
         if (description == null || summary == null || !summary.getValue().equals("Reserved")) super.name = "AirBnbGuest_External";
         else super.name = "AirBnbGuest";
-        if (description != null) super.phoneNumber = getLast4DigitsFromAirbnb(description.getValue());
+        if (description != null) super.phoneNumber = getLast4DigitsFromAirbnb(description);
     }
 
     @Override
@@ -50,13 +52,17 @@ public class GuestAirbnb extends Guest {
         return "airbnb.com";
     }
 
-    private String getLast4DigitsFromAirbnb(String description) {
-        if (description == null || description.length() < 4) {
+    private String getLast4DigitsFromAirbnb(Description description) {
+        String descriptionValue = description.getValue();
+        if (description == null || descriptionValue.length() < 4) {
             // 입력이 null이거나 길이가 4보다 작으면 전체 문자열 반환
-            return description;
+            return descriptionValue;
         }
         // 마지막 4자리를 반환
-        return description.substring(description.length() - 4);
+        // TODO : Test Code 확인 후 제거
+        log.info("TEST TEMP - Description: " + descriptionValue);
+        description.getParameters().forEach(param -> log.info("TEST TEMP - Param: " + param));
+        return descriptionValue.substring(descriptionValue.length() - 4);
     }
 
 }

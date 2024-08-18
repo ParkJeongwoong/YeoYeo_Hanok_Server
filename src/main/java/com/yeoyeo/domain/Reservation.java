@@ -180,4 +180,8 @@ public class Reservation extends BaseTimeEntity {
         return phoneNumber.replaceAll("[^0-9]","").equals(this.guest.getNumberOnlyPhoneNumber());
     }
 
+    public String makeUniqueKey() {
+        return this.id + "-" + "-9091@yeoyeo.com";
+    }
+
 }

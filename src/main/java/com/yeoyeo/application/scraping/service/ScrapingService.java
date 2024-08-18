@@ -2,6 +2,7 @@ package com.yeoyeo.application.scraping.service;
 
 import com.yeoyeo.application.calendar.service.CalendarService;
 import com.yeoyeo.application.common.service.WebClientService;
+import com.yeoyeo.application.message.service.MessageService;
 import com.yeoyeo.application.scraping.dto.ScrapingGetNaverRequestDto;
 import com.yeoyeo.application.scraping.dto.ScrapingGetNaverResponseDto;
 import com.yeoyeo.application.scraping.dto.ScrapingNaverBookingInfo;
@@ -15,6 +16,7 @@ import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.reactive.function.client.ClientResponse;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -29,6 +31,7 @@ public class ScrapingService {
 
 	private final WebClientService webClientService;
 	private final CalendarService calendarService;
+	private final MessageService messageService;
 
 	public String TestConnection() {
 		return webClientService.getString("application/json;charset=UTF-8", SCRAPING_SERVER);
@@ -49,8 +52,14 @@ public class ScrapingService {
 	@Transactional
 	public void SyncReservationFromNaver(ScrapingGetNaverRequestDto requestDto) {
 		requestDto.setActivationKey(accessKey);
-		JSONObject response = webClientService.postWithErrorHandling("application/json;charset=UTF-8", SCRAPING_SERVER + "/sync/out", requestDto, "네이버->서버 동기화 실패");
-		ScrapingGetNaverResponseDto responseDto = new ScrapingGetNaverResponseDto(response);
+		ClientResponse response = webClientService.postWithClientResponse("application/json;charset=UTF-8", SCRAPING_SERVER + "/sync/out", requestDto);
+		int statusCode = response.statusCode().value();
+		if (statusCode != 200) {
+			messageService.sendDevMsg("네이버->서버 동기화 실패");
+			return;
+		}
+		JSONObject jsonObject = response.bodyToMono(JSONObject.class).block();
+		ScrapingGetNaverResponseDto responseDto = new ScrapingGetNaverResponseDto(jsonObject);
 		List<ScrapingNaverBookingInfo> notCanceledBookingList = responseDto.getNotCanceledBookingList();
 		for (ScrapingNaverBookingInfo bookingInfo : notCanceledBookingList) {
 			log.info("bookingInfo : {} ({} ~ {})", bookingInfo.getName(), bookingInfo.getStartDate(), bookingInfo.getEndDate());
