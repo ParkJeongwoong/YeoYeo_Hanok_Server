@@ -109,6 +109,11 @@ public class SyncService {
 			if (reservation.getReservationState() == 5
 				&& reservation.getRoom().getId() == roomId
 				&& reservation.getReservedFrom().equals(guestClassName)) return reservation;
+			// TODO : 아래 로직이 꼭 필요한지는 검토 필요
+			if (reservation.getReservedFrom().equals("GuestNaver") && reservation.getReservationState() == 1) {
+				log.info("NAVER 중복된 예약 존재 - 모니터링용");
+				return reservation;
+			}
 		}
 		log.info("일치하는 reservation 없음");
 		return null;

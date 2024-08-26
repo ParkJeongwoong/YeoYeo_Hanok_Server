@@ -117,6 +117,10 @@ public class MessageService {
             log.info("예약자 이름이 관리자 이름과 동일합니다. 예약 문자를 보내지 않습니다.");
             return;
         }
+        if (reservation.getReservedFrom().equals("GuestAirbnb") || reservation.getReservedFrom().equals("GuestBooking") || reservation.getReservedFrom().equals("GuestNaver")) {
+            log.info("예약자가 직접 예약한 경우에만 문자를 보냅니다.");
+            return;
+        }
         LocalDate startDate = reservation.getFirstDateRoom().getDate();
         LocalDate endDate = reservation.getLastDateRoom().getDate().plusDays(1);
         String startDate_string = startDate.getYear()+"년 "+startDate.getMonthValue()+"월"+startDate.getDayOfMonth()+"일";
