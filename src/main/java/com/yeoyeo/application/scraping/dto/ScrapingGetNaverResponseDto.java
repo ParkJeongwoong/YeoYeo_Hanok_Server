@@ -23,30 +23,35 @@ public class ScrapingGetNaverResponseDto {
 		this.allBookingList = allBookingList;
 	}
 
-	public ScrapingGetNaverResponseDto(JSONObject response) {
-		this.message = String.valueOf(response.get("message"));
-		log.info("message: " + message);
+	public ScrapingGetNaverResponseDto(JSONObject response) throws Exception {
+		try {
+			this.message = String.valueOf(response.get("message"));
+			log.info("message: " + message);
 
-		List<ScrapingNaverBookingInfo> notCanceledBookingList = new ArrayList<>();
-		List<ScrapingNaverBookingInfo> allBookingList = new ArrayList<>();
+			List<ScrapingNaverBookingInfo> notCanceledBookingList = new ArrayList<>();
+			List<ScrapingNaverBookingInfo> allBookingList = new ArrayList<>();
 
-		List notCanceledBookingListJSON = (List) response.get("notCanceledBookingList");
+			List notCanceledBookingListJSON = (List) response.get("notCanceledBookingList");
 
-		for (Object bookingInfo : notCanceledBookingListJSON) {
-			LinkedHashMap<String, Object> bookingInfoMap =(LinkedHashMap<String, Object>) bookingInfo;
-			notCanceledBookingList.add(new ScrapingNaverBookingInfo(bookingInfoMap));
+			for (Object bookingInfo : notCanceledBookingListJSON) {
+				LinkedHashMap<String, Object> bookingInfoMap = (LinkedHashMap<String, Object>) bookingInfo;
+				notCanceledBookingList.add(new ScrapingNaverBookingInfo(bookingInfoMap));
+			}
+			log.info("notCanceledBookingList length: " + notCanceledBookingList.size());
+
+			List allBookingListJSON = (List) response.get("allBookingList");
+			for (Object bookingInfo : allBookingListJSON) {
+				LinkedHashMap<String, Object> bookingInfoMap = (LinkedHashMap<String, Object>) bookingInfo;
+				allBookingList.add(new ScrapingNaverBookingInfo(bookingInfoMap));
+			}
+			log.info("allBookingList length: " + allBookingList.size());
+
+			this.notCanceledBookingList = notCanceledBookingList;
+			this.allBookingList = allBookingList;
+		} catch (Exception e) {
+			log.error("ScrapingGetNaverResponseDto error", e);
+			throw e;
 		}
-		log.info("notCanceledBookingList length: " + notCanceledBookingList.size());
-
-		List allBookingListJSON = (List) response.get("allBookingList");
-		for (Object bookingInfo : allBookingListJSON) {
-			LinkedHashMap<String, Object> bookingInfoMap = (LinkedHashMap<String, Object>) bookingInfo;
-			allBookingList.add(new ScrapingNaverBookingInfo(bookingInfoMap));
-		}
-		log.info("allBookingList length: " + allBookingList.size());
-
-		this.notCanceledBookingList = notCanceledBookingList;
-		this.allBookingList = allBookingList;
 	}
 
 }

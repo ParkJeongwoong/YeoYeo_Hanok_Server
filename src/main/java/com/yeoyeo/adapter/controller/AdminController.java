@@ -252,4 +252,13 @@ public class AdminController {
             return ScrapingPostNaverResponseDto.builder().message(e.getMessage()).build();
         }
     }
+
+    @GetMapping("/scraping/message/test")
+    public void wrongResultTest() {
+        try {
+            scrapingService.WrongResultTest();
+        } catch (Exception e) {
+            log.error("Scraping Sync In Error", e);
+        }
+    }
 }

@@ -16,7 +16,6 @@ import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.reactive.function.client.ClientResponse;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -38,9 +37,14 @@ public class ScrapingService {
 	}
 
 	public ScrapingGetNaverResponseDto GetReservationFromNaver(ScrapingGetNaverRequestDto requestDto) {
-		requestDto.setActivationKey(accessKey);
-		JSONObject response = webClientService.post("application/json;charset=UTF-8", SCRAPING_SERVER + "/sync/out", requestDto);
+		try {
+			requestDto.setActivationKey(accessKey);
+			JSONObject response = webClientService.post("application/json;charset=UTF-8", SCRAPING_SERVER + "/sync/out", requestDto);
 		return new ScrapingGetNaverResponseDto(response);
+		} catch (Exception e) {
+			messageService.sendDevMsg("네이버->서버 동기화 실패");
+			return null;
+		}
 	}
 
 	public ScrapingPostNaverResponseDto PostReservationFromNaverAsync(ScrapingPostNaverRequestDto requestDto) {
@@ -51,20 +55,41 @@ public class ScrapingService {
 
 	@Transactional
 	public void SyncReservationFromNaver(ScrapingGetNaverRequestDto requestDto) {
-		requestDto.setActivationKey(accessKey);
-		ClientResponse response = webClientService.postWithClientResponse("application/json;charset=UTF-8", SCRAPING_SERVER + "/sync/out", requestDto);
-		int statusCode = response.statusCode().value();
-		if (statusCode != 200) {
+		try {
+			requestDto.setActivationKey(accessKey);
+			JSONObject response = webClientService.postWithErrorMsg("application/json;charset=UTF-8", SCRAPING_SERVER + "/sync/out", requestDto, "네이버->서버 동기화 실패");
+			if (response == null) {
+				messageService.sendDevMsg("네이버->서버 동기화 실패");
+				return;
+			}
+			ScrapingGetNaverResponseDto responseDto = new ScrapingGetNaverResponseDto(response);
+			List<ScrapingNaverBookingInfo> notCanceledBookingList = responseDto.getNotCanceledBookingList();
+			for (ScrapingNaverBookingInfo bookingInfo : notCanceledBookingList) {
+				log.info("bookingInfo : {} ({} ~ {})", bookingInfo.getName(), bookingInfo.getStartDate(), bookingInfo.getEndDate());
+			}
+			calendarService.writeIcalendarFileByNaver(notCanceledBookingList);
+		} catch (Exception e) {
 			messageService.sendDevMsg("네이버->서버 동기화 실패");
-			return;
 		}
-		JSONObject jsonObject = response.bodyToMono(JSONObject.class).block();
-		ScrapingGetNaverResponseDto responseDto = new ScrapingGetNaverResponseDto(jsonObject);
-		List<ScrapingNaverBookingInfo> notCanceledBookingList = responseDto.getNotCanceledBookingList();
-		for (ScrapingNaverBookingInfo bookingInfo : notCanceledBookingList) {
-			log.info("bookingInfo : {} ({} ~ {})", bookingInfo.getName(), bookingInfo.getStartDate(), bookingInfo.getEndDate());
+	}
+
+	public void WrongResultTest() {
+		try {
+			ScrapingGetNaverRequestDto requestDto = new ScrapingGetNaverRequestDto(1);
+			JSONObject response = webClientService.postWithErrorMsg("application/json;charset=UTF-8", SCRAPING_SERVER + "/test/1234", requestDto, "실패 테스트");
+			if (response == null) {
+				messageService.sendDevMsg("실패 테스트1");
+				return;
+			}
+			ScrapingGetNaverResponseDto responseDto = new ScrapingGetNaverResponseDto(response);
+			List<ScrapingNaverBookingInfo> notCanceledBookingList = responseDto.getNotCanceledBookingList();
+			for (ScrapingNaverBookingInfo bookingInfo : notCanceledBookingList) {
+				log.info("bookingInfo : {} ({} ~ {})", bookingInfo.getName(), bookingInfo.getStartDate(), bookingInfo.getEndDate());
+			}
+			calendarService.writeIcalendarFileByNaver(notCanceledBookingList);
+		} catch (Exception e) {
+			messageService.sendDevMsg("실패 테스트2");
 		}
-		calendarService.writeIcalendarFileByNaver(notCanceledBookingList);
 	}
 
 	public void SyncReservationToNaver(ScrapingPostNaverRequestDto requestDto) {

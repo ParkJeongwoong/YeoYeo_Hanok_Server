@@ -13,7 +13,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.BodyInserters;
-import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.util.DefaultUriBuilderFactory;
 import reactor.core.publisher.Mono;
@@ -93,10 +92,12 @@ public class WebClientService {
             .block();
     }
 
-    public ClientResponse postWithClientResponse(String contentType, String url, Object bodyValue) {
+    public JSONObject postWithErrorMsg(String contentType, String url, Object bodyValue, String errorMsg) {
         return WebClient(contentType, url).post()
             .bodyValue(bodyValue)
-            .exchangeToMono(clientResponse -> Mono.just(clientResponse))
+            .retrieve()
+            .onStatus(status -> status.is4xxClientError() || status.is5xxServerError(), response -> Mono.error(new Exception(errorMsg)))
+            .bodyToMono(JSONObject.class)
             .block();
     }
 
