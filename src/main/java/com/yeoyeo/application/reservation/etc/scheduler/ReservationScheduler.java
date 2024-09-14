@@ -192,4 +192,22 @@ public class ReservationScheduler extends Scheduler {
         return !reservation.getGuest().getName().equals("AirBnbGuest");
     }
 
+    @Scheduled(cron = "0 30 10 * * *") // 매일 10시 30분 0초 동작
+    public synchronized void nudgeNaverReview() {
+        log.info("[SCHEDULE - Nudge Naver Review]");
+        LocalDate checkOutDay = LocalDate.now().minusDays(1);
+        LocalDate lastDay = checkOutDay.minusDays(1);
+        log.info("오늘 날짜 : {}, 체크아웃 날짜 : {}, 마지막 숙박 날짜 : {}", LocalDate.now(), checkOutDay, lastDay);
+        List<Reservation> reservationList = reservationRepository.findAllByCheckOutAndReservedFrom(lastDay, "GuestNaver");
+        log.info("네이버 리뷰 요청 대상 건수 : {}건", reservationList.size());
+        for (Reservation reservation : reservationList) {
+            if (reservation.getGuest().getPhoneNumber() != null) {
+                log.info("네이버 리뷰 요청 문자 발송 대상 : {}", reservation.getGuest().getName());
+                SendMessageResponseDto responseDto = messageService.sendNaverReviewNudge(reservation.getGuest().getNumberOnlyPhoneNumber());
+                log.info("문자 발송 결과 : {}", responseDto.toString());
+            }
+        }
+        log.info("네이버 리뷰 요청 문자 전송 정상 종료");
+    }
+
 }

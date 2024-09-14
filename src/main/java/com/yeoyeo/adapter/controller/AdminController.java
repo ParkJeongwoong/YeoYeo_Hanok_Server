@@ -202,6 +202,14 @@ public class AdminController {
     public SendMessageResponseDto testNoticeMsg(@RequestBody MessageTestRequestDto requestDto) {
         return messageService.sendNoticeMsg(requestDto.getNumberOnlyPhoneNumber());
     }
+    @GetMapping("/message/naver-event")
+    public void naverEventMsg() {
+        try {
+            messageService.sendNaverReviewNudge("01020339091");
+        } catch (Exception e) {
+            log.error("Naver Event Msg Error", e);
+        }
+    }
 
     @GetMapping("/offer")
     public List<Long> getReservationList() {
@@ -250,15 +258,6 @@ public class AdminController {
         } catch (Exception e) {
             log.error("Scraping Sync In Error", e);
             return ScrapingPostNaverResponseDto.builder().message(e.getMessage()).build();
-        }
-    }
-
-    @GetMapping("/scraping/message/test")
-    public void wrongResultTest() {
-        try {
-            scrapingService.WrongResultTest();
-        } catch (Exception e) {
-            log.error("Scraping Sync In Error", e);
         }
     }
 }

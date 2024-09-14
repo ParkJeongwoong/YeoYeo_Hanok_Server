@@ -474,6 +474,22 @@ public class MessageService {
         sendMultipleMessage("LMS", subject4Admin, content4Admin, ADMIN_LIST);
     }
 
+    public SendMessageResponseDto sendNaverReviewNudge(String to) {
+        String subject = "[한옥스테이 여여] 네이버 리뷰 이벤트 안내";
+        String content = "안녕하세요, 한옥스테이 여여입니다." + changeLine +
+            "여행 후 일상에 잘 복귀하셨나요?" + changeLine +
+            "저희 숙소에서의 시간이 좋은 추억으로 남으셨길 바랍니다:)" + changeTwoLine +
+            "네이버에 좋은 리뷰를 남겨주시면 커피 쿠폰을 선물로 보내드리는 이벤트를 진행하고 있으니," + changeLine +
+            "한옥스테이 여여에서의 숙박이 마음에 드셨다면 후기를 남겨주시면 감사하겠습니다." + changeTwoLine +
+            "앞으로도 더 좋은 서비스를 제공할 수 있도록 노력하겠습니다. " + changeLine +
+            "오늘도 좋은 하루 되세요~" + changeLine +
+            "감사합니다." + changeTwoLine +
+            "한옥스테이 여여 드림";
+
+        log.info("예약자에게 문자를 보냅니다. to : {}", to);
+        return sendMessage("LMS", subject, content, to);
+    }
+
     private SendMessageResponseDto sendMessage(String type, String subject, String content, String to) {
         try {
             String uri = "/sms/v2/services/"+smsKey+"/messages";

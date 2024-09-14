@@ -73,25 +73,6 @@ public class ScrapingService {
 		}
 	}
 
-	public void WrongResultTest() {
-		try {
-			ScrapingGetNaverRequestDto requestDto = new ScrapingGetNaverRequestDto(1);
-			JSONObject response = webClientService.postWithErrorMsg("application/json;charset=UTF-8", SCRAPING_SERVER + "/test/1234", requestDto, "실패 테스트");
-			if (response == null) {
-				messageService.sendDevMsg("실패 테스트1");
-				return;
-			}
-			ScrapingGetNaverResponseDto responseDto = new ScrapingGetNaverResponseDto(response);
-			List<ScrapingNaverBookingInfo> notCanceledBookingList = responseDto.getNotCanceledBookingList();
-			for (ScrapingNaverBookingInfo bookingInfo : notCanceledBookingList) {
-				log.info("bookingInfo : {} ({} ~ {})", bookingInfo.getName(), bookingInfo.getStartDate(), bookingInfo.getEndDate());
-			}
-			calendarService.writeIcalendarFileByNaver(notCanceledBookingList);
-		} catch (Exception e) {
-			messageService.sendDevMsg("실패 테스트2");
-		}
-	}
-
 	public void SyncReservationToNaver(ScrapingPostNaverRequestDto requestDto) {
 		Reservation reservation = new Reservation();
 		// TODO : 특정 CreatedAt 이후로 동기화

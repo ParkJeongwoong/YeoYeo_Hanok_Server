@@ -220,6 +220,7 @@ public class ReservationService {
                 MonthlyStatisticOriginDto homepage_reservations = new MonthlyStatisticOriginDto("GuestHome");
                 MonthlyStatisticOriginDto airbnb_reservations = new MonthlyStatisticOriginDto("GuestAirbnb");
                 MonthlyStatisticOriginDto booking_reservations = new MonthlyStatisticOriginDto("GuestBooking");
+                MonthlyStatisticOriginDto naver_reservations = new MonthlyStatisticOriginDto("GuestNaver");
 
                 for (Reservation reservation:reservationList) {
                     int dateCount = (int) reservation.getDateRoomList()
@@ -237,6 +238,9 @@ public class ReservationService {
                             break;
                         case "GuestBooking":
                             booking_reservations.addReservedCount(dateCount);
+                            break;
+                        case "GuestNaver":
+                            naver_reservations.addReservedCount(dateCount);
                             break;
                         default:
                             log.error("예약 출처 에러 - {}", reservation.getReservedFrom());
