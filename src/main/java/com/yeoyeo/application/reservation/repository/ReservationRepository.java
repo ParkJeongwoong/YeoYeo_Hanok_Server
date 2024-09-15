@@ -30,7 +30,7 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
     @Query(value = "SELECT r FROM Reservation r JOIN FETCH r.mapDateRoomReservations mdr JOIN FETCH mdr.dateRoom dr JOIN FETCH dr.room WHERE dr.room.id = ?1 AND r.reservationState = ?2 AND r.reservedFrom = ?3")
     List<Reservation> findAllByRoomIdAndReservationStateAndReservedFrom(long roomId, long reservationState, String reservedFrom);
 
-    @Query(value = "SELECT r FROM Reservation r JOIN FETCH r.mapDateRoomReservations mdr JOIN FETCH mdr.dateRoom dr WHERE dr.date = ?1 AND r.reservationState = 2 AND r.reservedFrom = ?2")
-    List<Reservation> findAllByCheckOutAndReservedFrom(LocalDate checkOut, String reservedFrom);
+    @Query(value = "SELECT r FROM Reservation r JOIN FETCH r.guest JOIN FETCH r.mapDateRoomReservations mdr JOIN FETCH mdr.dateRoom dr WHERE dr.date = ?1 AND r.reservedFrom = ?2 AND r.reservationState = 2")
+    List<Reservation> findAllByLastDateAndReservedFrom(LocalDate lastDate, String reservedFrom);
 
 }

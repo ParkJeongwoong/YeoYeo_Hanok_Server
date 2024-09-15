@@ -198,7 +198,7 @@ public class ReservationScheduler extends Scheduler {
         LocalDate checkOutDay = LocalDate.now().minusDays(1);
         LocalDate lastDay = checkOutDay.minusDays(1);
         log.info("오늘 날짜 : {}, 체크아웃 날짜 : {}, 마지막 숙박 날짜 : {}", LocalDate.now(), checkOutDay, lastDay);
-        List<Reservation> reservationList = reservationRepository.findAllByCheckOutAndReservedFrom(lastDay, "GuestNaver");
+        List<Reservation> reservationList = reservationRepository.findAllByLastDateAndReservedFrom(lastDay, "GuestNaver");
         log.info("네이버 리뷰 요청 대상 건수 : {}건", reservationList.size());
         for (Reservation reservation : reservationList) {
             if (reservation.getGuest().getPhoneNumber() != null) {
