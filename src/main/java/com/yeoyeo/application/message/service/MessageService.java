@@ -76,10 +76,6 @@ public class MessageService {
 
     // LMS
     public void sendReservationMsg(Reservation reservation) {
-        if (checkAdminName(reservation.getGuest().getName())) {
-            log.info("예약자 이름이 관리자 이름과 동일합니다. 예약 문자를 보내지 않습니다.");
-            return;
-        }
         LocalDate startDate = reservation.getFirstDateRoom().getDate();
         LocalDate endDate = reservation.getLastDateRoom().getDate().plusDays(1);
         String startDate_string = String.format("%d년 %d월 %d일", startDate.getYear(), startDate.getMonthValue(), startDate.getDayOfMonth());
@@ -113,10 +109,6 @@ public class MessageService {
 
     // LMS
     public void sendCancelMsg(Reservation reservation) {
-        if (checkAdminName(reservation.getGuest().getName())) {
-            log.info("예약자 이름이 관리자 이름과 동일합니다. 예약 문자를 보내지 않습니다.");
-            return;
-        }
         if (reservation.getReservedFrom().equals("GuestAirbnb") || reservation.getReservedFrom().equals("GuestBooking") || reservation.getReservedFrom().equals("GuestNaver")) {
             log.info("예약자가 직접 예약한 경우에만 문자를 보냅니다.");
             return;
@@ -161,10 +153,6 @@ public class MessageService {
 
     // LMS
     public void sendCollisionMsg(Reservation reservation) {
-        if (checkAdminName(reservation.getGuest().getName())) {
-            log.info("예약자 이름이 관리자 이름과 동일합니다. 예약 문자를 보내지 않습니다.");
-            return;
-        }
         LocalDate startDate = reservation.getFirstDateRoom().getDate();
         LocalDate endDate = reservation.getLastDateRoom().getDate().plusDays(1);
         String startDate_string = startDate.getYear()+"년 "+startDate.getMonthValue()+"월"+startDate.getDayOfMonth()+"일";
@@ -432,10 +420,6 @@ public class MessageService {
     }
 
     public void sendChangeOfferMsg(Reservation reservation) {
-        if (checkAdminName(reservation.getGuest().getName())) {
-            log.info("예약자 이름이 관리자 이름과 동일합니다. 예약 문자를 보내지 않습니다.");
-            return;
-        }
         LocalDate startDate = reservation.getFirstDateRoom().getDate();
         LocalDate endDate = reservation.getLastDateRoom().getDate().plusDays(1);
         String startDate_string = startDate.getYear()+"년 "+startDate.getMonthValue()+"월"+startDate.getDayOfMonth()+"일";
