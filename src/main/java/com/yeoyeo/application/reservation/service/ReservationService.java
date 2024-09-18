@@ -247,11 +247,12 @@ public class ReservationService {
                             break;
                     }
                 }
-                log.info("Homepage: {}, Airbnb: {}, Booking: {}", homepage_reservations.getReservedCount(), airbnb_reservations.getReservedCount(), booking_reservations.getReservedCount());
+                log.info("Homepage: {}, Airbnb: {}, Booking: {}, Naver : {}", homepage_reservations.getReservedCount(), airbnb_reservations.getReservedCount(), booking_reservations.getReservedCount(), naver_reservations.getReservedCount());
 
                 monthlyStatisticDto.addOrigin(homepage_reservations);
                 monthlyStatisticDto.addOrigin(airbnb_reservations);
                 monthlyStatisticDto.addOrigin(booking_reservations);
+                monthlyStatisticDto.addOrigin(naver_reservations);
                 monthlyStatisticDtoList.add(monthlyStatisticDto);
             }
         } catch (Exception e) {
