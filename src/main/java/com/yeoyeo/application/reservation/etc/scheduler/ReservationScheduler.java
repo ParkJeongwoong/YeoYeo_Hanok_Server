@@ -192,7 +192,7 @@ public class ReservationScheduler extends Scheduler {
         return !reservation.getGuest().getName().equals("AirBnbGuest");
     }
 
-    @Scheduled(cron = "0 30 10 * * *") // 매일 10시 30분 0초 동작
+//    @Scheduled(cron = "0 30 10 * * *") // 매일 10시 30분 0초 동작
     public synchronized void nudgeNaverReview() {
         log.info("[SCHEDULE - Nudge Naver Review]");
         LocalDate checkOutDay = LocalDate.now().minusDays(1);
